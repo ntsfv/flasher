@@ -9,8 +9,9 @@ K1921VKx Flasher Utility
 import sys
 import logger
 import inspect
-from PyQt5.QtWidgets import (QApplication, QMainWindow)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog)
 from ui_main import Ui_MainWindow
+from ui_about import Ui_AboutDialog
 
 
 # -- Global variables ---------------------------------------------------------
@@ -36,6 +37,10 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.about_dialog = QDialog(self)
+        self.about_dialog.ui = Ui_AboutDialog()
+        self.about_dialog.ui.setupUi(self.about_dialog)
+
         # Set vars
         self.connected = False
         self.flashn = 0
@@ -48,6 +53,9 @@ class MainWindow(QMainWindow):
     # -- Slots general --
     def handle_act_about_triggered(self):
         log_dbg("Handler <%s> called" % whoami())
+        text = self.about_dialog.ui.lab_version.text().replace("x.x", VERSION)
+        self.about_dialog.ui.lab_version.setText(text)
+        self.about_dialog.exec_()
 
     def handle_combo_port_changed(self, num):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % num))
