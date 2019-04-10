@@ -7,7 +7,7 @@ K1921VKx Flasher Utility
 
 # -- Imports ------------------------------------------------------------------
 import sys
-import logging
+import logger
 import inspect
 from PyQt5.QtWidgets import (QApplication, QMainWindow)
 from ui_main import Ui_MainWindow
@@ -21,12 +21,8 @@ EMULATED_MCU = "k1921vk035"
 
 
 # -- Misc functions -----------------------------------------------------------
-def str_bold(str):
-    return "\033[1m%s\033[1;0m" % str
-
-
 def whoami():
-    return str_bold(inspect.getouterframes(inspect.currentframe())[1].function)
+    return inspect.getouterframes(inspect.currentframe())[1].function
 
 
 # -- Special classes ----------------------------------------------------------
@@ -51,16 +47,16 @@ class MainWindow(QMainWindow):
 
     # -- Slots general --
     def handle_act_about_triggered(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_combo_port_changed(self, num):
-        log_debug("Handler %s called" % (whoami() + str_bold("(%d)" % num)))
+        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % num))
 
     def handle_combo_baud_changed(self, num):
-        log_debug("Handler %s called" % (whoami() + str_bold("(%d)" % num)))
+        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % num))
 
     def handle_btn_connect_clicked(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
         if not self.connected:
             state = True
             btn_text = "Отключиться"
@@ -83,7 +79,7 @@ class MainWindow(QMainWindow):
             self.connected = state
 
     def handle_flash_select_toggled(self, state):
-        log_debug("Handler %s called" % (whoami() + str_bold("(%d)" % state)))
+        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if state:
             if self.ui.rbtn_flash0.isChecked():
                 self.flashn = 0
@@ -94,7 +90,7 @@ class MainWindow(QMainWindow):
             log_info("Выбрана флеш-память %s" % flash_name)
 
     def handle_chbox_nvr_toggled(self, state):
-        log_debug("Handler %s called" % (whoami() + str_bold("(%d)" % state)))
+        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if self.ui.chbox_nvr.isChecked():
             self.nvr = True
             region_name = "NVR/Info"
@@ -104,82 +100,85 @@ class MainWindow(QMainWindow):
         log_info("Выбрана %s область флеш-памяти" % region_name)
 
     def handle_btn_exec_clicked(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     # -- Slots for Write Tab widgets --
     def handle_twrite_ledit_filepath_editint_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_twrite_ledit_addr_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_twrite_btn_fileopen_clicked(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     # -- Slots for Erase Tab widgets --
     def handle_terase_ledit_firstpage_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_terase_ledit_lastpage_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_terase_ledit_addrstart_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_terase_ledit_bytes_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     # -- Slots for Read Tab widgets --
     def handle_tread_ledit_filepath_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_tread_btn_fileopen_clicked(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_tread_ledit_firstpage_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_tread_ledit_lastpage_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_tread_ledit_addrstart_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_tread_ledit_bytes_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_tread_chbox_verif_toggled(self, state):
-        log_debug("Handler %s called" % (whoami() + str_bold("(%d)" % state)))
+        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
 
     def handle_tread_ledit_verif_filepath_editing_finished(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     def handle_tread_btn_verif_fileopen_clicked(self):
-        log_debug("Handler %s called" % whoami())
+        log_dbg("Handler <%s> called" % whoami())
 
     # -- Application specific code --
 
 
 # -- Standalone run -----------------------------------------------------------
 if __name__ == '__main__':
-    def log_debug(msg):
-        logging.debug(msg)
+    logger.init(debug=True, logfile="flasher.log")
+
+    def log_dbg(msg):
+        logger.debug(msg)
 
     def log_info(msg):
-        logging.info(msg)
-        main_window.ui.tedit_log.appendPlainText("%s" % msg)
+        logger.info(msg)
+        main_window.ui.tedit_log.appendHtml('[<span style=" color:#4e9a06;">INFO</span>]: %s' % msg)
 
-    def log_warning(msg):
-        logging.warning(msg)
+    def log_warn(msg):
+        logger.warning(msg)
+        main_window.ui.tedit_log.appendHtml('[<span style=" color:#e9b96e;">WARN</span>]: %s' % msg)
 
-    def log_error(msg):
-        logging.error(msg)
+    def log_err(msg):
+        logger.error(msg)
+        main_window.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
 
-    logging.addLevelName(logging.DEBUG, "\033[1;34m%s\033[1;0m" % logging.getLevelName(logging.DEBUG))
-    logging.addLevelName(logging.INFO, "\033[1;32m%s\033[1;0m" % logging.getLevelName(logging.INFO))
-    logging.addLevelName(logging.WARNING, "\033[1;33m%s\033[1;0m" % logging.getLevelName(logging.WARNING))
-    logging.addLevelName(logging.ERROR, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
-    logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+    def log_crit(msg):
+        logger.critical(msg)
+        main_window.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
+
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

@@ -1029,15 +1029,19 @@
        <attribute name="title">
         <string notr="true">Конфигурация</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_12">
-        <item>
-         <widget class="QLabel" name="tconf_lab_test">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QLabel" name="tconf_lab_test">
+        <property name="geometry">
+         <rect>
+          <x>9</x>
+          <y>9</y>
+          <width>57</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -1058,6 +1062,11 @@
         <width>16777215</width>
         <height>16777215</height>
        </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>Fixed</family>
+       </font>
       </property>
      </widget>
     </item>
