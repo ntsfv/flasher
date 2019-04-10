@@ -2,6 +2,7 @@
 # Tools
 #===============================================================================
 PYUIC = pyuic5
+PYRCC = pyrcc5
 
 #===============================================================================
 # Paths and files
@@ -11,10 +12,13 @@ APPPATH = ..
 UIFILES = $(wildcard *.ui)
 UIPYFILES = $(addprefix ${APPPATH}/ui_, $(patsubst %.ui, %.py, $(UIFILES)))
 
+RCFILES = $(wildcard *.qrc)
+RCPYFILES = $(addprefix ${APPPATH}/, $(patsubst %.qrc, %_rc.py, $(RCFILES)))
+
 #===============================================================================
 # Make all targets
 #===============================================================================
-all: ui
+all: ui rc
 
 #===============================================================================
 # Convert .ui to .py
@@ -25,5 +29,12 @@ ${APPPATH}/ui_%.py: %.ui
 	@echo $< "->" $@
 	@$(PYUIC) -x $< -o $@
 
+rc: $(RCPYFILES)
+
+${APPPATH}/%_rc.py: %.qrc
+	@echo $< "->" $@
+	@$(PYRCC) $< -o $@
+
 clean:
 	rm -f ${UIPYFILES}
+	rm -f ${RCPYFILES}

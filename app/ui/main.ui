@@ -26,7 +26,7 @@
    <string>K1921VKx Flasher</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="app.qrc">
+   <iconset resource="ui.qrc">
     <normaloff>:/icons/flasher.png</normaloff>:/icons/flasher.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -331,7 +331,7 @@
            <bool>false</bool>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
           <attribute name="horizontalHeaderDefaultSectionSize">
            <number>84</number>
@@ -401,7 +401,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QLabel" name="twrite_lab_open_file">
+            <widget class="QLabel" name="twrite_lab_fileopen">
              <property name="text">
               <string>Выбор файла для записи (*.bin):</string>
              </property>
@@ -410,14 +410,14 @@
            <item>
             <layout class="QHBoxLayout" name="twrite_hbox_file">
              <item>
-              <widget class="QLineEdit" name="twrite_ledit_file_path">
+              <widget class="QLineEdit" name="twrite_ledit_filepath">
                <property name="readOnly">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="twrite_btn_open_file">
+              <widget class="QPushButton" name="twrite_btn_fileopen">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -489,21 +489,21 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
-            <widget class="QRadioButton" name="twrite_rbtn_erase_none">
+            <widget class="QRadioButton" name="twrite_rbtn_ernone">
              <property name="text">
               <string>Не стирать</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QRadioButton" name="twrite_rbtn_erase_all">
+            <widget class="QRadioButton" name="twrite_rbtn_erall">
              <property name="text">
               <string>Стереть всё</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QRadioButton" name="twrite_rbtn_erase_pages">
+            <widget class="QRadioButton" name="twrite_rbtn_erpages">
              <property name="text">
               <string>Стереть необходимое</string>
              </property>
@@ -532,7 +532,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="twrite_chbox_exec">
+            <widget class="QCheckBox" name="twrite_chbox_go">
              <property name="text">
               <string>Переход к исполнению загруженного кода</string>
              </property>
@@ -580,7 +580,7 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
-            <widget class="QRadioButton" name="terase_rbtn_erase_all">
+            <widget class="QRadioButton" name="terase_rbtn_erall">
              <property name="text">
               <string>Стереть всё</string>
              </property>
@@ -590,7 +590,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QRadioButton" name="terase_rbtn_erase_pages">
+            <widget class="QRadioButton" name="terase_rbtn_erpages">
              <property name="text">
               <string>Стереть страницы</string>
              </property>
@@ -617,7 +617,7 @@
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
              <item row="0" column="0">
-              <widget class="QLabel" name="terase_lab_first_page">
+              <widget class="QLabel" name="terase_lab_firstpage">
                <property name="text">
                 <string>Первая страница</string>
                </property>
@@ -627,7 +627,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="terase_ledit_first_page">
+              <widget class="QLineEdit" name="terase_ledit_firstpage">
                <property name="maximumSize">
                 <size>
                  <width>50</width>
@@ -640,7 +640,7 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="terase_lab_last_page">
+              <widget class="QLabel" name="terase_lab_lastpage">
                <property name="text">
                 <string>Последняя страница</string>
                </property>
@@ -650,7 +650,7 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="terase_ledit_last_page">
+              <widget class="QLineEdit" name="terase_ledit_lastpage">
                <property name="maximumSize">
                 <size>
                  <width>50</width>
@@ -706,7 +706,7 @@
               </widget>
              </item>
              <item row="0" column="0">
-              <widget class="QLabel" name="terase_lab_addr_start">
+              <widget class="QLabel" name="terase_lab_addrstart">
                <property name="text">
                 <string>Адрес начала</string>
                </property>
@@ -716,7 +716,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="terase_ledit_addr_start">
+              <widget class="QLineEdit" name="terase_ledit_addrstart">
                <property name="minimumSize">
                 <size>
                  <width>80</width>
@@ -772,7 +772,7 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_8">
            <item>
-            <widget class="QLabel" name="tread_lab_open_file">
+            <widget class="QLabel" name="tread_lab_fileopen">
              <property name="text">
               <string>Выбор файла для сохранения (*.bin):</string>
              </property>
@@ -781,14 +781,14 @@
            <item>
             <layout class="QHBoxLayout" name="tread_hbox_file">
              <item>
-              <widget class="QLineEdit" name="tread_ledit_file_path">
+              <widget class="QLineEdit" name="tread_ledit_filepath">
                <property name="readOnly">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="tread_btn_open_file">
+              <widget class="QPushButton" name="tread_btn_fileopen">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -816,7 +816,7 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="tread_lab_first_page">
+                <widget class="QLabel" name="tread_lab_firstpage">
                  <property name="text">
                   <string>Первая страница</string>
                  </property>
@@ -826,7 +826,7 @@
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QLineEdit" name="tread_ledit_first_page">
+                <widget class="QLineEdit" name="tread_ledit_firstpage">
                  <property name="maximumSize">
                   <size>
                    <width>50</width>
@@ -839,7 +839,7 @@
                 </widget>
                </item>
                <item row="1" column="0">
-                <widget class="QLabel" name="tread_lab_last_page">
+                <widget class="QLabel" name="tread_lab_lastpage">
                  <property name="text">
                   <string>Последняя страница</string>
                  </property>
@@ -849,7 +849,7 @@
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QLineEdit" name="tread_ledit_last_page">
+                <widget class="QLineEdit" name="tread_ledit_lastpage">
                  <property name="maximumSize">
                   <size>
                    <width>50</width>
@@ -876,7 +876,7 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="tread_lab_addr_start">
+                <widget class="QLabel" name="tread_lab_addrstart">
                  <property name="text">
                   <string>Адрес начала</string>
                  </property>
@@ -886,7 +886,7 @@
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QLineEdit" name="tread_ledit_addr_start">
+                <widget class="QLineEdit" name="tread_ledit_addrstart">
                  <property name="minimumSize">
                   <size>
                    <width>80</width>
@@ -963,7 +963,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="tread_lab_open_verif_file">
+            <widget class="QLabel" name="tread_lab_verif_fileopen">
              <property name="text">
               <string>Выбор файла для верификации (*.bin):</string>
              </property>
@@ -972,14 +972,14 @@
            <item>
             <layout class="QHBoxLayout" name="tread_hbox_verif_file">
              <item>
-              <widget class="QLineEdit" name="tread_ledit_verif_file_path">
+              <widget class="QLineEdit" name="tread_ledit_verif_filepath">
                <property name="readOnly">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="tread_btn_open_verif_file">
+              <widget class="QPushButton" name="tread_btn_verif_fileopen">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1098,7 +1098,7 @@
   </action>
  </widget>
  <resources>
-  <include location="app.qrc"/>
+  <include location="ui.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -1172,8 +1172,8 @@
    <slot>handle_combo_baud_changed(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>254</x>
-     <y>53</y>
+     <x>235</x>
+     <y>61</y>
     </hint>
     <hint type="destinationlabel">
      <x>288</x>
@@ -1188,8 +1188,8 @@
    <slot>handle_btn_connect_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>249</x>
-     <y>79</y>
+     <x>235</x>
+     <y>89</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -1201,23 +1201,23 @@
    <sender>rbtn_flash0</sender>
    <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_rbtn_flash0_toggled(bool)</slot>
+   <slot>handle_flash_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>345</x>
      <y>50</y>
     </hint>
     <hint type="destinationlabel">
-     <x>361</x>
-     <y>24</y>
+     <x>358</x>
+     <y>22</y>
     </hint>
    </hints>
   </connection>
   <connection>
    <sender>rbtn_flash1</sender>
-   <signal>clicked(bool)</signal>
+   <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_rbtn_flash1_toggled(bool)</slot>
+   <slot>handle_flash_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>437</x>
@@ -1233,11 +1233,11 @@
    <sender>chbox_nvr</sender>
    <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_chbox_nvr_toggled(bool)</slot>
+   <slot>handle_flash_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>310</x>
-     <y>78</y>
+     <x>312</x>
+     <y>75</y>
     </hint>
     <hint type="destinationlabel">
      <x>493</x>
@@ -1261,6 +1261,262 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>twrite_ledit_filepath</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_twrite_ledit_filepath_editint_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>65</x>
+     <y>191</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>4</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twrite_ledit_addr</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_twrite_ledit_addr_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>162</x>
+     <y>221</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>6</x>
+     <y>247</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twrite_btn_fileopen</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_twrite_btn_fileopen_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>461</x>
+     <y>186</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>495</x>
+     <y>193</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_ledit_firstpage</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_terase_ledit_firstpage_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>195</x>
+     <y>215</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2</x>
+     <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_ledit_lastpage</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_terase_ledit_lastpage_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>174</x>
+     <y>244</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>444</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_ledit_addrstart</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_terase_ledit_addrstart_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>428</x>
+     <y>210</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>499</x>
+     <y>233</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_ledit_bytes</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_terase_ledit_bytes_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>424</x>
+     <y>239</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>497</x>
+     <y>279</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_filepath</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_ledit_filepath_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>78</x>
+     <y>186</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>4</x>
+     <y>190</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_btn_fileopen</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_btn_fileopen_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>457</x>
+     <y>185</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>495</x>
+     <y>225</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_firstpage</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_ledit_firstpage_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>188</x>
+     <y>223</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>5</x>
+     <y>292</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_lastpage</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_ledit_lastpage_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>184</x>
+     <y>248</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>330</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_addrstart</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_ledit_addrstart_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>423</x>
+     <y>220</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>493</x>
+     <y>273</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_bytes</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_ledit_bytes_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>446</x>
+     <y>250</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>496</x>
+     <y>308</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_chbox_verif</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_chbox_verif_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>40</x>
+     <y>300</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>387</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_verif_filepath</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_ledit_verif_filepath_editing_finished()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>66</x>
+     <y>348</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>433</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_btn_verif_fileopen</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tread_btn_verif_fileopen_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>461</x>
+     <y>353</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>496</x>
+     <y>382</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>handle_act_about_triggered()</slot>
@@ -1268,10 +1524,24 @@
   <slot>handle_combo_port_changed(int)</slot>
   <slot>handle_combo_baud_changed(int)</slot>
   <slot>handle_btn_connect_clicked()</slot>
-  <slot>handle_rbtn_flash0_toggled(bool)</slot>
-  <slot>handle_rbtn_flash1_toggled(bool)</slot>
-  <slot>handle_chbox_nvr_toggled(bool)</slot>
+  <slot>handle_flash_select_toggled(bool)</slot>
   <slot>handle_tinfo_combo_flash_changed(int)</slot>
   <slot>handle_btn_exec_clicked()</slot>
+  <slot>handle_twrite_ledit_filepath_editing_finished()</slot>
+  <slot>handle_twrite_ledit_addr_editing_finished()</slot>
+  <slot>handle_twrite_btn_fileopen_clicked()</slot>
+  <slot>handle_terase_ledit_firstpage_editing_finished()</slot>
+  <slot>handle_terase_ledit_lastpage_editing_finished()</slot>
+  <slot>handle_terase_ledit_addrstart_editing_finished()</slot>
+  <slot>handle_terase_ledit_bytes_editing_finished()</slot>
+  <slot>handle_tread_ledit_filepath_editing_finished()</slot>
+  <slot>handle_tread_btn_fileopen_clicked()</slot>
+  <slot>handle_tread_ledit_firstpage_editing_finished()</slot>
+  <slot>handle_tread_ledit_lastpage_editing_finished()</slot>
+  <slot>handle_tread_ledit_addrstart_editing_finished()</slot>
+  <slot>handle_tread_ledit_bytes_editing_finished()</slot>
+  <slot>handle_tread_chbox_verif_toggled(bool)</slot>
+  <slot>handle_tread_ledit_verif_filepath_editing_finished()</slot>
+  <slot>handle_tread_btn_verif_fileopen_clicked()</slot>
  </slots>
 </ui>
