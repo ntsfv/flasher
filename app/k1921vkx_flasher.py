@@ -9,6 +9,8 @@ K1921VKx Flasher Utility
 import sys
 import logger
 import inspect
+import serport
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
@@ -37,6 +39,11 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.handle_timer_tick)
+        self.timer.start(3000)  # parse available serial ports every 3 sec
+
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
         self.about_dialog.ui.setupUi(self.about_dialog)
@@ -51,6 +58,11 @@ class MainWindow(QMainWindow):
         event.accept()
 
     # -- Slots general --
+    def handle_timer_tick(self):
+        # log_dbg("Handler <%s> called" % whoami())
+        self.ui.combo_port.clear()
+        [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
+
     def handle_act_about_triggered(self):
         log_dbg("Handler <%s> called" % whoami())
         text = self.about_dialog.ui.lab_version.text().replace("x.x", VERSION)
@@ -68,9 +80,11 @@ class MainWindow(QMainWindow):
         if not self.connected:
             state = True
             btn_text = "Отключиться"
+            self.timer.stop()
         else:
             state = False
             btn_text = "Подключиться"
+            self.timer.start()
 
         # TODO: check if COM selected, and try to connect
         if EMULATION:
@@ -85,6 +99,7 @@ class MainWindow(QMainWindow):
             self.ui.frm_flash.setEnabled(state)
             self.ui.btn_exec.setEnabled(state)
             self.connected = state
+
 
     def handle_flash_select_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))

@@ -54,19 +54,20 @@
             <widget class="QComboBox" name="combo_port">
              <property name="maximumSize">
               <size>
-               <width>100</width>
+               <width>16777215</width>
                <height>16777215</height>
               </size>
              </property>
-             <item>
-              <property name="text">
-               <string notr="true">---</string>
-              </property>
-             </item>
             </widget>
            </item>
            <item>
             <widget class="QComboBox" name="combo_baud">
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="currentIndex">
               <number>4</number>
              </property>
@@ -1160,38 +1161,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>combo_port</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_combo_port_changed(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>50</x>
-     <y>51</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>6</x>
-     <y>25</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>combo_baud</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_combo_baud_changed(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>235</x>
-     <y>61</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>288</x>
-     <y>54</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>btn_connect</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
@@ -1530,8 +1499,6 @@
  </connections>
  <slots>
   <slot>handle_act_about_triggered()</slot>
-  <slot>handle_combo_port_changed(int)</slot>
-  <slot>handle_combo_baud_changed(int)</slot>
   <slot>handle_btn_connect_clicked()</slot>
   <slot>handle_flash_select_toggled(bool)</slot>
   <slot>handle_tinfo_combo_flash_changed(int)</slot>
