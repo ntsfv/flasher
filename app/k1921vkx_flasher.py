@@ -11,7 +11,6 @@ import logger
 import inspect
 import serport
 import mcu
-from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
                              QHeaderView)
 from PyQt5.QtGui import (QIcon, QPixmap)
@@ -69,9 +68,6 @@ class MainWindow(QMainWindow):
         self.upd_tinfo_table()
 
         [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.handle_timer_tick)
-        self.timer.start(3000)  # parse available serial ports every 3 sec
 
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
@@ -82,8 +78,8 @@ class MainWindow(QMainWindow):
         event.accept()
 
     # -- Slots general --
-    def handle_timer_tick(self):
-        # log_dbg("Handler <%s> called" % whoami())
+    def handle_btn_updport_clicked(self):
+        log_dbg("Handler <%s> called" % whoami())
         self.ui.combo_port.clear()
         [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
 
@@ -117,8 +113,7 @@ class MainWindow(QMainWindow):
 
         if update_gui:
             self.ui.btn_connect.setText(btn_text)
-            self.ui.combo_port.setEnabled(not state)
-            self.ui.combo_baud.setEnabled(not state)
+            self.ui.frm_connect.setEnabled(state)
             self.ui.tab_info.setEnabled(state)
             self.ui.tab_write.setEnabled(state)
             self.ui.tab_erase.setEnabled(state)

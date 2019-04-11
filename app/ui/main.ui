@@ -51,6 +51,29 @@
          <item>
           <layout class="QHBoxLayout" name="hbox_port">
            <item>
+            <widget class="QPushButton" name="btn_updport">
+             <property name="minimumSize">
+              <size>
+               <width>21</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>21</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string notr="true"/>
+             </property>
+             <property name="icon">
+              <iconset resource="ui.qrc">
+               <normaloff>:/icons/update.png</normaloff>:/icons/update.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QComboBox" name="combo_port">
              <property name="maximumSize">
               <size>
@@ -1505,6 +1528,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>btn_updport</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_btn_updport_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>34</x>
+     <y>55</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>2</x>
+     <y>54</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>handle_act_about_triggered()</slot>
@@ -1529,5 +1568,6 @@
   <slot>handle_tread_ledit_verif_filepath_editing_finished()</slot>
   <slot>handle_tread_btn_verif_fileopen_clicked()</slot>
   <slot>handle_chbox_nvr_toggled(bool)</slot>
+  <slot>handle_btn_updport_clicked()</slot>
  </slots>
 </ui>

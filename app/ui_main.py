@@ -33,6 +33,15 @@ class Ui_MainWindow(object):
         self.verticalLayout_11.setObjectName("verticalLayout_11")
         self.hbox_port = QtWidgets.QHBoxLayout()
         self.hbox_port.setObjectName("hbox_port")
+        self.btn_updport = QtWidgets.QPushButton(self.frm_connect)
+        self.btn_updport.setMinimumSize(QtCore.QSize(21, 0))
+        self.btn_updport.setMaximumSize(QtCore.QSize(21, 16777215))
+        self.btn_updport.setText("")
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/icons/update.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.btn_updport.setIcon(icon1)
+        self.btn_updport.setObjectName("btn_updport")
+        self.hbox_port.addWidget(self.btn_updport)
         self.combo_port = QtWidgets.QComboBox(self.frm_connect)
         self.combo_port.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.combo_port.setObjectName("combo_port")
@@ -559,6 +568,7 @@ class Ui_MainWindow(object):
         self.tread_chbox_verif.toggled['bool'].connect(MainWindow.handle_tread_chbox_verif_toggled)
         self.tread_ledit_verif_filepath.editingFinished.connect(MainWindow.handle_tread_ledit_verif_filepath_editing_finished)
         self.tread_btn_verif_fileopen.clicked.connect(MainWindow.handle_tread_btn_verif_fileopen_clicked)
+        self.btn_updport.clicked.connect(MainWindow.handle_btn_updport_clicked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
