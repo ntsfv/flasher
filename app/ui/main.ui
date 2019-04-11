@@ -256,7 +256,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_info">
        <property name="enabled">
@@ -386,7 +386,7 @@
            <bool>false</bool>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
@@ -1284,9 +1284,9 @@
   </connection>
   <connection>
    <sender>twrite_ledit_filepath</sender>
-   <signal>editingFinished()</signal>
+   <signal>textChanged(QString)</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_twrite_ledit_filepath_editint_finished()</slot>
+   <slot>handle_ledit_filepath_changed(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
@@ -1318,7 +1318,7 @@
    <sender>twrite_btn_fileopen</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_twrite_btn_fileopen_clicked()</slot>
+   <slot>handle_btn_fileopen_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>461</x>
@@ -1593,9 +1593,9 @@
   <slot>handle_flash_select_toggled(bool)</slot>
   <slot>handle_tinfo_combo_flash_changed(int)</slot>
   <slot>handle_btn_exec_clicked()</slot>
-  <slot>handle_twrite_ledit_filepath_editing_finished()</slot>
+  <slot>handle_ledit_filepath_changed(QString)</slot>
   <slot>handle_twrite_ledit_addr_editing_finished()</slot>
-  <slot>handle_twrite_btn_fileopen_clicked()</slot>
+  <slot>handle_btn_fileopen_clicked()</slot>
   <slot>handle_terase_ledit_firstpage_editing_finished()</slot>
   <slot>handle_terase_ledit_lastpage_editing_finished()</slot>
   <slot>handle_terase_ledit_addrstart_editing_finished()</slot>

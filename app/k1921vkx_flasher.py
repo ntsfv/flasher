@@ -7,13 +7,14 @@ K1921VKx Flasher Utility
 
 # -- Imports ------------------------------------------------------------------
 import sys
+import os
 import logger
 import inspect
 import serport
 import mcu
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
-                             QHeaderView, QAction)
+                             QHeaderView, QAction, QFileDialog,QLineEdit)
 from PyQt5.QtGui import (QIcon, QPixmap, QCursor)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
@@ -48,6 +49,8 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.ui.btn_updport.clicked.emit()
+
         self.ui.tedit_log.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.tedit_log.customContextMenuRequested.connect(self.handle_tedit_log_context_menu)
 
@@ -70,6 +73,19 @@ class MainWindow(QMainWindow):
 
         self.mcu = mcu.get_by_name('k1921vkx')
         self.upd_tinfo_table()
+
+        self.ui.twrite_ledit_filepath.last_text = ""
+        self.ui.twrite_ledit_addr.last_text = ""
+        self.ui.tread_ledit_bytes.last_text = ""
+        self.ui.tread_ledit_addrstart.last_text = ""
+        self.ui.tread_ledit_lastpage.last_text = ""
+        self.ui.tread_ledit_firstpage.last_text = ""
+        self.ui.tread_ledit_filepath.last_text = ""
+        self.ui.tread_ledit_verif_filepath.last_text = ""
+        self.ui.terase_ledit_bytes.last_text = ""
+        self.ui.terase_ledit_addrstart.last_text = ""
+        self.ui.terase_ledit_lastpage.last_text = ""
+        self.ui.terase_ledit_firstpage.last_text = ""
 
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
@@ -164,14 +180,29 @@ class MainWindow(QMainWindow):
         log_dbg("Handler <%s> called" % whoami())
 
     # -- Slots for Write Tab widgets --
-    def handle_twrite_ledit_filepath_editint_finished(self):
+    def handle_ledit_filepath_changed(self, text):
         log_dbg("Handler <%s> called" % whoami())
+
+        if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
+            log_info('Выбран файл "%s"' % self.sender().text())
+            log_info('Размер %d байт' % os.path.getsize(self.sender().text()))
+            self.ui.twrite_ledit_filepath.setStyleSheet("color: black;")
+        else:
+            self.ui.twrite_ledit_filepath.setStyleSheet("color: red;")
+        self.sender().last_text = self.sender().text()
 
     def handle_twrite_ledit_addr_editing_finished(self):
         log_dbg("Handler <%s> called" % whoami())
 
-    def handle_twrite_btn_fileopen_clicked(self):
+    def handle_btn_fileopen_clicked(self):
         log_dbg("Handler <%s> called" % whoami())
+        options = QFileDialog.Options()
+        filename, _ = QFileDialog.getOpenFileName(self,
+                                                  "Открыть бинарный файл", self.sender().text(), "Бинарные файлы (*.bin)",
+                                                  options=options)
+        if filename:
+            rexp_ledit = QtCore.QRegExp('^.*_filepath$')
+            self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0].setText(filename)
 
     # -- Slots for Erase Tab widgets --
     def handle_terase_ledit_firstpage_editing_finished(self):

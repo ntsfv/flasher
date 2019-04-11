@@ -29,7 +29,7 @@ def list_ports():
     result = []
     for port in ports:
         try:
-            s = serial.Serial(port)
+            s = serial.Serial(port, baudrate=115200)
             s.close()
             result.append(port)
         except (OSError, serial.SerialException):
