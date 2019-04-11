@@ -235,18 +235,18 @@
              <widget class="QLineEdit" name="tinfo_ledit_chipid">
               <property name="minimumSize">
                <size>
-                <width>80</width>
+                <width>90</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>80</width>
+                <width>90</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="text">
-               <string notr="true">0x00000000</string>
+               <string notr="true">0xFFFFFFFF</string>
               </property>
               <property name="readOnly">
                <bool>true</bool>
@@ -264,18 +264,18 @@
              <widget class="QLineEdit" name="tinfo_ledit_cpuid">
               <property name="minimumSize">
                <size>
-                <width>80</width>
+                <width>90</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>80</width>
+                <width>90</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="text">
-               <string notr="true">0x00000000</string>
+               <string notr="true">0xFFFFFFFF</string>
               </property>
               <property name="readOnly">
                <bool>true</bool>
@@ -293,13 +293,13 @@
              <widget class="QLineEdit" name="tinfo_ledit_bootver">
               <property name="minimumSize">
                <size>
-                <width>80</width>
+                <width>90</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>80</width>
+                <width>90</width>
                 <height>16777215</height>
                </size>
               </property>
@@ -459,13 +459,13 @@
               <widget class="QLineEdit" name="twrite_ledit_addr">
                <property name="minimumSize">
                 <size>
-                 <width>80</width>
+                 <width>90</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>80</width>
+                 <width>90</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -696,13 +696,13 @@
               <widget class="QLineEdit" name="terase_ledit_bytes">
                <property name="minimumSize">
                 <size>
-                 <width>80</width>
+                 <width>90</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>80</width>
+                 <width>90</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -725,13 +725,13 @@
               <widget class="QLineEdit" name="terase_ledit_addrstart">
                <property name="minimumSize">
                 <size>
-                 <width>80</width>
+                 <width>90</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>80</width>
+                 <width>90</width>
                  <height>16777215</height>
                 </size>
                </property>
@@ -895,13 +895,13 @@
                 <widget class="QLineEdit" name="tread_ledit_addrstart">
                  <property name="minimumSize">
                   <size>
-                   <width>80</width>
+                   <width>90</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>80</width>
+                   <width>90</width>
                    <height>16777215</height>
                   </size>
                  </property>
@@ -924,13 +924,13 @@
                 <widget class="QLineEdit" name="tread_ledit_bytes">
                  <property name="minimumSize">
                   <size>
-                   <width>80</width>
+                   <width>90</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>80</width>
+                   <width>90</width>
                    <height>16777215</height>
                   </size>
                  </property>

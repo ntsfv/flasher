@@ -10,6 +10,7 @@ import sys
 import logger
 import inspect
 import serport
+import mcu
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog)
 from ui_main import Ui_MainWindow
@@ -19,16 +20,22 @@ from ui_about import Ui_AboutDialog
 # -- Global variables ---------------------------------------------------------
 VERSION = "1.0"
 
-EMULATION = True
-EMULATED_MCU = "k1921vk035"
-
 
 # -- Misc functions -----------------------------------------------------------
 def whoami():
     return inspect.getouterframes(inspect.currentframe())[1].function
 
 
-# -- Special classes ----------------------------------------------------------
+# -- Test functions -----------------------------------------------------------
+def test_init(port, baud):
+    log_info("Открываю порт %s %s" % (port, baud))
+    return {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+
+
+def test_deinit():
+    log_info("Закрываю порт")
+    return True
+
 
 # -- Main window --------------------------------------------------------------
 class MainWindow(QMainWindow):
@@ -49,9 +56,7 @@ class MainWindow(QMainWindow):
         self.about_dialog.ui.setupUi(self.about_dialog)
 
         # Set vars
-        self.connected = False
-        self.flashn = 0
-        self.nvr = False
+        self.mcu = mcu.get_by_name('k1921vkx')
 
     # -- Events --
     def closeEvent(self, event):
@@ -69,25 +74,29 @@ class MainWindow(QMainWindow):
         self.about_dialog.ui.lab_version.setText(text)
         self.about_dialog.exec_()
 
-    def handle_combo_port_changed(self, num):
-        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % num))
-
-    def handle_combo_baud_changed(self, num):
-        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % num))
-
     def handle_btn_connect_clicked(self):
         log_dbg("Handler <%s> called" % whoami())
-        if not self.connected:
+        update_gui = False
+        port = self.ui.combo_port.currentText()
+        baud = self.ui.combo_baud.currentText()
+        if not self.is_connected():
             state = True
             btn_text = "Отключиться"
-            self.timer.stop()
+            mcu_info = test_init(port, baud)
+            if mcu_info:
+                self.timer.stop()
+                self.mcu = mcu.get_by_chipid(mcu_info['chipid'])
+                update_gui = True
         else:
             state = False
             btn_text = "Подключиться"
-            self.timer.start()
+            if test_deinit():
+                self.timer.start()
+                self.mcu = mcu.get_by_name('k1921vkx')
+                mcu_info = {'chipid': '0xFFFFFFFF', 'cpuid': '0xFFFFFFFF', 'bootver': '0.0'}
+                update_gui = True
 
-        # TODO: check if COM selected, and try to connect
-        if EMULATION:
+        if update_gui:
             self.ui.btn_connect.setText(btn_text)
             self.ui.combo_port.setEnabled(not state)
             self.ui.combo_baud.setEnabled(not state)
@@ -98,8 +107,8 @@ class MainWindow(QMainWindow):
             self.ui.tab_config.setEnabled(state)
             self.ui.frm_flash.setEnabled(state)
             self.ui.btn_exec.setEnabled(state)
-            self.connected = state
-
+            self.upd_frm_flash()
+            self.upd_tinfo_values(mcu_info)
 
     def handle_flash_select_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
@@ -177,6 +186,23 @@ class MainWindow(QMainWindow):
         log_dbg("Handler <%s> called" % whoami())
 
     # -- Application specific code --
+    def is_connected(self):
+        return not self.ui.combo_port.isEnabled()
+
+    def upd_frm_flash(self):
+        self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
+        if len(self.mcu.flash) == 2:
+            self.ui.rbtn_flash1.setEnabled(True)
+            self.ui.rbtn_flash1.setText(self.mcu.flash[1]['name'].upper())
+        else:
+            self.ui.rbtn_flash1.setEnabled(False)
+            self.ui.rbtn_flash1.setText('')
+
+    def upd_tinfo_values(self, info):
+        self.ui.tinfo_ledit_chipid.setText(info['chipid'])
+        self.ui.tinfo_ledit_cpuid.setText(info['cpuid'])
+        self.ui.tinfo_ledit_bootver.setText(info['bootver'])
+        self.ui.tinfo_lab_mcu.setText(self.mcu.name_ru)
 
 
 # -- Standalone run -----------------------------------------------------------
