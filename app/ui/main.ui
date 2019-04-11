@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>600</height>
+    <height>650</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>500</width>
-    <height>600</height>
+    <height>650</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>600</height>
+    <height>650</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -30,24 +30,15 @@
     <normaloff>:/icons/flasher.png</normaloff>:/icons/flasher.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_10">
+   <layout class="QVBoxLayout" name="verticalLayout_12">
     <item>
-     <layout class="QHBoxLayout" name="hbox_global_opt">
+     <layout class="QVBoxLayout" name="vbox_options">
       <item>
-       <widget class="QFrame" name="frm_connect">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>71</height>
-         </size>
+       <widget class="QGroupBox" name="gbox_connect">
+        <property name="title">
+         <string>Подключение</string>
         </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_11">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
           <layout class="QHBoxLayout" name="hbox_port">
            <item>
@@ -63,6 +54,9 @@
                <width>21</width>
                <height>16777215</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>Обновить список портов</string>
              </property>
              <property name="text">
               <string notr="true"/>
@@ -139,79 +133,108 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="hbox_connect">
-           <item>
-            <widget class="QPushButton" name="btn_connect">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string notr="true">Подключиться</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QFrame" name="frm_flash">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <layout class="QHBoxLayout" name="hbox_flash_select">
-           <item>
-            <widget class="QRadioButton" name="rbtn_flash0">
-             <property name="layoutDirection">
-              <enum>Qt::LeftToRight</enum>
-             </property>
-             <property name="autoFillBackground">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string notr="true">FLASH0</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="rbtn_flash1">
-             <property name="text">
-              <string notr="true">FLASH1</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="chbox_nvr">
+          <widget class="QPushButton" name="btn_connect">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
-            <string notr="true">NVR / Info область</string>
+            <string notr="true">Подключиться</string>
            </property>
           </widget>
          </item>
         </layout>
        </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="hbox_selection">
+        <item>
+         <widget class="QGroupBox" name="gbox_flash">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="title">
+           <string>Выбор флеш</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <layout class="QHBoxLayout" name="hbox_flash_select">
+             <item>
+              <widget class="QRadioButton" name="rbtn_flash0">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string notr="true">FLASH0</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="rbtn_flash1">
+               <property name="text">
+                <string notr="true">FLASH1</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gbox_region">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="title">
+           <string>Выбор области</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_10">
+           <item>
+            <layout class="QHBoxLayout" name="hbox_region">
+             <item>
+              <widget class="QRadioButton" name="rbtn_regionmain">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string notr="true">Основная</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="rbtn_regionnvr">
+               <property name="text">
+                <string notr="true">NVR / Info</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
@@ -223,7 +246,7 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>349</height>
+        <height>320</height>
        </size>
       </property>
       <property name="maximumSize">
@@ -1199,8 +1222,8 @@
    <slot>handle_btn_connect_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>235</x>
-     <y>89</y>
+     <x>477</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -1215,8 +1238,8 @@
    <slot>handle_flash_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>345</x>
-     <y>50</y>
+     <x>105</x>
+     <y>147</y>
     </hint>
     <hint type="destinationlabel">
      <x>358</x>
@@ -1231,28 +1254,12 @@
    <slot>handle_flash_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>437</x>
-     <y>49</y>
+     <x>194</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
      <x>498</x>
      <y>57</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chbox_nvr</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_chbox_nvr_toggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>312</x>
-     <y>75</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>493</x>
-     <y>105</y>
     </hint>
    </hints>
   </connection>
@@ -1264,7 +1271,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>437</x>
-     <y>474</y>
+     <y>516</y>
     </hint>
     <hint type="destinationlabel">
      <x>496</x>
@@ -1280,7 +1287,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>65</x>
-     <y>191</y>
+     <y>261</y>
     </hint>
     <hint type="destinationlabel">
      <x>4</x>
@@ -1296,7 +1303,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>162</x>
-     <y>221</y>
+     <y>291</y>
     </hint>
     <hint type="destinationlabel">
      <x>6</x>
@@ -1312,7 +1319,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>461</x>
-     <y>186</y>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
      <x>495</x>
@@ -1328,7 +1335,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>195</x>
-     <y>215</y>
+     <y>285</y>
     </hint>
     <hint type="destinationlabel">
      <x>2</x>
@@ -1344,7 +1351,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>174</x>
-     <y>244</y>
+     <y>314</y>
     </hint>
     <hint type="destinationlabel">
      <x>1</x>
@@ -1360,7 +1367,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>428</x>
-     <y>210</y>
+     <y>280</y>
     </hint>
     <hint type="destinationlabel">
      <x>499</x>
@@ -1376,7 +1383,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>424</x>
-     <y>239</y>
+     <y>309</y>
     </hint>
     <hint type="destinationlabel">
      <x>497</x>
@@ -1392,7 +1399,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>78</x>
-     <y>186</y>
+     <y>256</y>
     </hint>
     <hint type="destinationlabel">
      <x>4</x>
@@ -1408,7 +1415,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>457</x>
-     <y>185</y>
+     <y>255</y>
     </hint>
     <hint type="destinationlabel">
      <x>495</x>
@@ -1424,7 +1431,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>188</x>
-     <y>223</y>
+     <y>293</y>
     </hint>
     <hint type="destinationlabel">
      <x>5</x>
@@ -1440,7 +1447,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>184</x>
-     <y>248</y>
+     <y>318</y>
     </hint>
     <hint type="destinationlabel">
      <x>3</x>
@@ -1456,7 +1463,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>423</x>
-     <y>220</y>
+     <y>290</y>
     </hint>
     <hint type="destinationlabel">
      <x>493</x>
@@ -1472,7 +1479,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>446</x>
-     <y>250</y>
+     <y>320</y>
     </hint>
     <hint type="destinationlabel">
      <x>496</x>
@@ -1488,7 +1495,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>40</x>
-     <y>300</y>
+     <y>370</y>
     </hint>
     <hint type="destinationlabel">
      <x>1</x>
@@ -1504,7 +1511,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>66</x>
-     <y>348</y>
+     <y>418</y>
     </hint>
     <hint type="destinationlabel">
      <x>3</x>
@@ -1520,7 +1527,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>461</x>
-     <y>353</y>
+     <y>423</y>
     </hint>
     <hint type="destinationlabel">
      <x>496</x>
@@ -1535,12 +1542,44 @@
    <slot>handle_btn_updport_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>34</x>
-     <y>55</y>
+     <x>36</x>
+     <y>75</y>
     </hint>
     <hint type="destinationlabel">
-     <x>2</x>
-     <y>54</y>
+     <x>4</x>
+     <y>56</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rbtn_regionmain</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_region_select_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>147</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>496</x>
+     <y>131</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rbtn_regionnvr</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_region_select_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>418</x>
+     <y>149</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>494</x>
+     <y>178</y>
     </hint>
    </hints>
   </connection>
@@ -1567,7 +1606,7 @@
   <slot>handle_tread_chbox_verif_toggled(bool)</slot>
   <slot>handle_tread_ledit_verif_filepath_editing_finished()</slot>
   <slot>handle_tread_btn_verif_fileopen_clicked()</slot>
-  <slot>handle_chbox_nvr_toggled(bool)</slot>
   <slot>handle_btn_updport_clicked()</slot>
+  <slot>handle_region_select_toggled(bool)</slot>
  </slots>
 </ui>

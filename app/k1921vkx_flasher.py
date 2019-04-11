@@ -67,14 +67,13 @@ class MainWindow(QMainWindow):
         self.mcu = mcu.get_by_name('k1921vkx')
         self.upd_tinfo_table()
 
-        [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
-
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
         self.about_dialog.ui.setupUi(self.about_dialog)
 
     # -- Events --
     def closeEvent(self, event):
+        test_deinit()
         event.accept()
 
     # -- Slots general --
@@ -94,34 +93,38 @@ class MainWindow(QMainWindow):
         update_gui = False
         port = self.ui.combo_port.currentText()
         baud = self.ui.combo_baud.currentText()
-        if not self.is_connected():
-            state = True
-            btn_text = "Отключиться"
-            mcu_info = test_init(port, baud)
-            if mcu_info:
-                self.timer.stop()
-                self.mcu = mcu.get_by_chipid(mcu_info['chipid'])
-                update_gui = True
+        if (not self.is_connected()):
+            if not self.ui.combo_port.count():
+                log_warn("Выберите COM-порт!")
+            else:
+                state = True
+                btn_text = "Отключиться"
+                mcu_info = test_init(port, baud)
+                if mcu_info:
+                    self.mcu = mcu.get_by_chipid(mcu_info['chipid'])
+                    update_gui = True
         else:
             state = False
             btn_text = "Подключиться"
             if test_deinit():
-                self.timer.start()
                 self.mcu = mcu.get_by_name('k1921vkx')
                 mcu_info = {'chipid': '0xFFFFFFFF', 'cpuid': '0xFFFFFFFF', 'bootver': '0.0'}
                 update_gui = True
 
         if update_gui:
             self.ui.btn_connect.setText(btn_text)
-            self.ui.frm_connect.setEnabled(state)
+            self.ui.combo_port.setEnabled(not state)
+            self.ui.combo_baud.setEnabled(not state)
+            self.ui.btn_updport.setEnabled(not state)
             self.ui.tab_info.setEnabled(state)
             self.ui.tab_write.setEnabled(state)
             self.ui.tab_erase.setEnabled(state)
             self.ui.tab_read.setEnabled(state)
             self.ui.tab_config.setEnabled(state)
-            self.ui.frm_flash.setEnabled(state)
+            self.ui.gbox_flash.setEnabled(state)
+            self.ui.gbox_region.setEnabled(state)
             self.ui.btn_exec.setEnabled(state)
-            self.upd_frm_flash()
+            self.upd_gbox_flash()
             self.upd_tinfo_values(mcu_info)
             self.upd_tinfo_table()
 
@@ -129,23 +132,21 @@ class MainWindow(QMainWindow):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if state:
             if self.ui.rbtn_flash0.isChecked():
-                self.flashn = 0
                 flash_name = "FLASH0"
             else:
-                self.flashn = 1
                 flash_name = "FLASH1"
             log_info("Выбрана флеш-память %s" % flash_name)
+            self.upd_tinfo_table()
 
-    def handle_chbox_nvr_toggled(self, state):
+    def handle_region_select_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
-        if self.ui.chbox_nvr.isChecked():
-            self.nvr = True
-            region_name = "NVR/Info"
-        else:
-            self.nvr = False
-            region_name = "основная"
-        log_info("Выбрана %s область флеш-памяти" % region_name)
-        self.upd_tinfo_table()
+        if state:
+            if self.ui.rbtn_regionmain.isChecked():
+                region_name = "основная"
+            else:
+                region_name = "NVR/Info"
+            log_info("Выбрана %s область" % region_name)
+            self.upd_tinfo_table()
 
     def handle_btn_exec_clicked(self):
         log_dbg("Handler <%s> called" % whoami())
@@ -206,7 +207,7 @@ class MainWindow(QMainWindow):
         return not self.ui.combo_port.isEnabled()
 
     def is_nvr(self):
-        return self.ui.chbox_nvr.isChecked()
+        return self.ui.rbtn_regionnvr.isChecked()
 
     def curr_flash(self):
         if self.ui.rbtn_flash0.isEnabled():
@@ -214,7 +215,7 @@ class MainWindow(QMainWindow):
         else:
             return 1
 
-    def upd_frm_flash(self):
+    def upd_gbox_flash(self):
         self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
         if len(self.mcu.flash) == 2:
             self.ui.rbtn_flash1.setEnabled(True)
