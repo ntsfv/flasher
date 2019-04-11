@@ -11,9 +11,10 @@ import logger
 import inspect
 import serport
 import mcu
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
-                             QHeaderView)
-from PyQt5.QtGui import (QIcon, QPixmap)
+                             QHeaderView, QAction)
+from PyQt5.QtGui import (QIcon, QPixmap, QCursor)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
 
@@ -47,6 +48,9 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.ui.tedit_log.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.tedit_log.customContextMenuRequested.connect(self.handle_tedit_log_context_menu)
+
         self.icon_lock = QIcon()
         self.icon_unlock = QIcon()
         self.icon_lock.addPixmap(QPixmap(":/icons/lock.png"))
@@ -77,6 +81,14 @@ class MainWindow(QMainWindow):
         event.accept()
 
     # -- Slots general --
+    def handle_tedit_log_context_menu(self, pos):
+        log_dbg("Handler <%s> called" % whoami())
+        menu = self.ui.tedit_log.createStandardContextMenu()
+        menu.act_clear = QAction("Очистить")
+        menu.act_clear.triggered.connect(self.ui.tedit_log.clear)
+        menu.insertActions(menu.actions()[0], [menu.act_clear])
+        menu.exec_(QCursor.pos())
+
     def handle_btn_updport_clicked(self):
         log_dbg("Handler <%s> called" % whoami())
         self.ui.combo_port.clear()

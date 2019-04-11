@@ -522,6 +522,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setFamily("Fixed")
         self.tedit_log.setFont(font)
+        self.tedit_log.setReadOnly(True)
         self.tedit_log.setObjectName("tedit_log")
         self.verticalLayout_12.addWidget(self.tedit_log)
         self.pbar_cmd = QtWidgets.QProgressBar(self.centralwidget)
