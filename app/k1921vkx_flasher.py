@@ -12,7 +12,9 @@ import inspect
 import serport
 import mcu
 from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
+                             QHeaderView)
+from PyQt5.QtGui import (QIcon, QPixmap)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
 
@@ -46,6 +48,26 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.icon_lock = QIcon()
+        self.icon_unlock = QIcon()
+        self.icon_lock.addPixmap(QPixmap(":/icons/lock.png"))
+        self.icon_unlock.addPixmap(QPixmap(":/icons/unlock.png"))
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(1, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(2, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(3, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(4, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(0, 120)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(1, 120)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(2, 120)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(3, 40)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(4, 40)
+        self.ui.tinfo_tbl_flash.horizontalHeaderItem(3).setToolTip("Чтение")
+        self.ui.tinfo_tbl_flash.horizontalHeaderItem(4).setToolTip("Запись")
+
+        self.mcu = mcu.get_by_name('k1921vkx')
+        self.upd_tinfo_table()
+
         [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
         self.timer = QTimer()
         self.timer.timeout.connect(self.handle_timer_tick)
@@ -54,9 +76,6 @@ class MainWindow(QMainWindow):
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
         self.about_dialog.ui.setupUi(self.about_dialog)
-
-        # Set vars
-        self.mcu = mcu.get_by_name('k1921vkx')
 
     # -- Events --
     def closeEvent(self, event):
@@ -109,6 +128,7 @@ class MainWindow(QMainWindow):
             self.ui.btn_exec.setEnabled(state)
             self.upd_frm_flash()
             self.upd_tinfo_values(mcu_info)
+            self.upd_tinfo_table()
 
     def handle_flash_select_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
@@ -130,6 +150,7 @@ class MainWindow(QMainWindow):
             self.nvr = False
             region_name = "основная"
         log_info("Выбрана %s область флеш-памяти" % region_name)
+        self.upd_tinfo_table()
 
     def handle_btn_exec_clicked(self):
         log_dbg("Handler <%s> called" % whoami())
@@ -189,6 +210,15 @@ class MainWindow(QMainWindow):
     def is_connected(self):
         return not self.ui.combo_port.isEnabled()
 
+    def is_nvr(self):
+        return self.ui.chbox_nvr.isChecked()
+
+    def curr_flash(self):
+        if self.ui.rbtn_flash0.isEnabled():
+            return 0
+        else:
+            return 1
+
     def upd_frm_flash(self):
         self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
         if len(self.mcu.flash) == 2:
@@ -203,6 +233,43 @@ class MainWindow(QMainWindow):
         self.ui.tinfo_ledit_cpuid.setText(info['cpuid'])
         self.ui.tinfo_ledit_bootver.setText(info['bootver'])
         self.ui.tinfo_lab_mcu.setText(self.mcu.name_ru)
+
+    def upd_tinfo_table(self):
+        table = self.ui.tinfo_tbl_flash
+        table.clearContents()
+        for r in reversed(range(table.rowCount())):
+            table.removeRow(r)
+        if self.is_nvr():
+            region = 'region_nvr'
+        else:
+            region = 'region_main'
+        pages = self.mcu.flash[self.curr_flash()][region].pages
+        page_size = self.mcu.flash[self.curr_flash()][region].page_size
+        rd_lock = self.mcu.flash[self.curr_flash()][region].rd_lock
+        wr_lock = self.mcu.flash[self.curr_flash()][region].wr_lock
+        for r in range(0, pages):
+            table.insertRow(r)
+            table.setItem(r, 0, QTableWidgetItem("Страница %d" % r))
+            table.setItem(r, 1, QTableWidgetItem("0x%x" % (r * page_size)))
+            if page_size < 1024:
+                page_size_str = "0x%08x (%d)" % (page_size, page_size)
+            else:
+                page_size_str = "0x%x (%dK)" % (page_size, page_size // 1024)
+            table.setItem(r, 2, QTableWidgetItem("%s" % page_size_str))
+            if rd_lock[r]:
+                rd_cell = QTableWidgetItem(self.icon_lock, "")
+                rd_cell.setToolTip("Заблокировано")
+            else:
+                rd_cell = QTableWidgetItem(self.icon_unlock, "")
+                rd_cell.setToolTip("Разблокировано")
+            table.setItem(r, 3, rd_cell)
+            if wr_lock[r]:
+                wr_cell = QTableWidgetItem(self.icon_lock, "")
+                wr_cell.setToolTip("Заблокировано")
+            else:
+                wr_cell = QTableWidgetItem(self.icon_unlock, "")
+                wr_cell.setToolTip("Разблокировано")
+            table.setItem(r, 4, wr_cell)
 
 
 # -- Standalone run -----------------------------------------------------------

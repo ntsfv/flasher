@@ -13,17 +13,19 @@ class Flash:
         self.wr_lock = [False] * pages
         self.rd_lock = [False] * pages
 
+
 class K1921VKx:
     def __init__(self):
         self.chipid = '0xFFFFFFFF'
         self.name = 'k1921vkx'
         self.name_ru = 'К1921ВКххх'
         self.flash = [{'name': 'flash0',
-                       'region': {'main': Flash(size=(64 * K), pages=64),
-                                  'nvr': Flash(size=(4 * K), pages=4)}},
+                       'region_main': Flash(size=(64 * K), pages=64),
+                       'region_nvr': Flash(size=(4 * K), pages=4)},
                       {'name': 'flash1',
-                       'region': {'main': Flash(size=(32 * K), pages=16),
-                                  'nvr': Flash(size=(8 * K), pages=4)}}]
+                       'region_main': Flash(size=(32 * K), pages=16),
+                       'region_nvr': Flash(size=(8 * K), pages=4)}]
+
 
 class K1921VK035:
     def __init__(self):
@@ -31,8 +33,8 @@ class K1921VK035:
         self.name = 'k1921vk035'
         self.name_ru = 'К1921ВК035'
         self.flash = [{'name': 'mflash',
-                       'region': {'main': Flash(size=(64 * K), pages=64),
-                                  'nvr': Flash(size=(4 * K), pages=4)}}]
+                       'region_main': Flash(size=(64 * K), pages=64),
+                       'region_nvr': Flash(size=(4 * K), pages=4)}]
 
 
 class K1921VK028:
@@ -41,11 +43,11 @@ class K1921VK028:
         self.name = 'k1921vk028'
         self.name_ru = 'К1921ВК028'
         self.flash = [{'name': 'mflash',
-                       'region': {'main': Flash(size=(2 * M), pages=128),
-                                  'nvr': Flash(size=(64 * K), pages=4)}},
+                       'region_main': Flash(size=(2 * M), pages=128),
+                       'region_nvr': Flash(size=(64 * K), pages=4)},
                       {'name': 'bflash',
-                       'region': {'main': Flash(size=(512 * K), pages=128),
-                                  'nvr': Flash(size=(16 * K), pages=4)}}]
+                       'region_main': Flash(size=(512 * K), pages=128),
+                       'region_nvr': Flash(size=(16 * K), pages=4)}]
 
 
 class K1921VK01T:
@@ -54,11 +56,11 @@ class K1921VK01T:
         self.name = 'k1921vk01t'
         self.name_ru = 'К1921ВК01Т'
         self.flash = [{'name': 'bootflash',
-                       'region': {'main': Flash(size=(1 * M), pages=128),
-                                  'nvr': Flash(size=(8 * K), pages=1)}},
+                       'region_main': Flash(size=(1 * M), pages=128),
+                       'region_nvr': Flash(size=(8 * K), pages=1)},
                       {'name': 'userflash',
-                       'region': {'main': Flash(size=(64 * K), pages=256),
-                                  'nvr': Flash(size=512, pages=2)}}]
+                       'region_main': Flash(size=(64 * K), pages=256),
+                       'region_nvr': Flash(size=512, pages=2)}]
 
 
 db = [K1921VKx(), K1921VK035(), K1921VK028(), K1921VK01T()]
