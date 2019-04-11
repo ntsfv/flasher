@@ -53,7 +53,7 @@ def init(debug=False, logfile=None):
     logging.addLevelName(logging.INFO, "[INFO]")
     logging.addLevelName(logging.WARNING, "[WARN]")
     logging.addLevelName(logging.ERROR, "[ERR]")
-    logging.addLevelName(logging.ERROR, "[CRIT]")
+    logging.addLevelName(logging.CRITICAL, "[CRIT]")
 
     rootLogger = logging.getLogger()
     if debug:
