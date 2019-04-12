@@ -14,8 +14,8 @@ import serport
 import mcu
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
-                             QHeaderView, QAction, QFileDialog,QLineEdit)
-from PyQt5.QtGui import (QIcon, QPixmap, QCursor)
+                             QHeaderView, QAction, QFileDialog, QLineEdit)
+from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
 
@@ -74,21 +74,19 @@ class MainWindow(QMainWindow):
         self.mcu = mcu.get_by_name('k1921vkx')
         self.upd_tinfo_table()
 
-        self.ui.twrite_ledit_filepath.last_text = ""
         self.ui.twrite_ledit_filepath.path_for_open = True
-        self.ui.twrite_ledit_addr.last_text = ""
-        self.ui.tread_ledit_bytes.last_text = ""
-        self.ui.tread_ledit_addrstart.last_text = ""
-        self.ui.tread_ledit_lastpage.last_text = ""
-        self.ui.tread_ledit_firstpage.last_text = ""
-        self.ui.tread_ledit_filepath.last_text = ""
         self.ui.tread_ledit_filepath.path_for_open = False
-        self.ui.tread_ledit_verif_filepath.last_text = ""
         self.ui.tread_ledit_verif_filepath.path_for_open = True
-        self.ui.terase_ledit_bytes.last_text = ""
-        self.ui.terase_ledit_addrstart.last_text = ""
-        self.ui.terase_ledit_lastpage.last_text = ""
-        self.ui.terase_ledit_firstpage.last_text = ""
+        self.ui.twrite_ledit_filepath.last_text = ""
+        self.ui.tread_ledit_filepath.last_text = ""
+        self.ui.tread_ledit_verif_filepath.last_text = ""
+
+        allowed_nums = "^((0x|)[0-9A-Fa-f]{1,8})|([0-9]{1,10})$"
+        self.ui.twrite_ledit_addrstart.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_firstpage.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_lastpage.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_addrstart.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_bytes.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
 
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
@@ -99,7 +97,7 @@ class MainWindow(QMainWindow):
         test_deinit()
         event.accept()
 
-    # -- Slots general --
+    # -- Slots --
     def handle_tedit_log_context_menu(self, pos):
         log_dbg("Handler <%s> called" % whoami())
         menu = self.ui.tedit_log.createStandardContextMenu()
@@ -126,7 +124,7 @@ class MainWindow(QMainWindow):
         baud = self.ui.combo_baud.currentText()
         if (not self.is_connected()):
             if not self.ui.combo_port.count():
-                log_warn("Выберите COM-порт!")
+                log_err("Выберите COM-порт!")
             else:
                 state = True
                 btn_text = "Отключиться"
@@ -221,41 +219,16 @@ class MainWindow(QMainWindow):
         if filename:
             linked_ledit.setText(filename)
 
-    # -- Slots for Write Tab widgets --
-    def handle_twrite_ledit_addr_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    # -- Slots for Erase Tab widgets --
-    def handle_terase_ledit_firstpage_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_terase_ledit_lastpage_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_terase_ledit_addrstart_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_terase_ledit_bytes_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    # -- Slots for Read Tab widgets --
-    def handle_tread_ledit_firstpage_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_tread_ledit_lastpage_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_tread_ledit_addrstart_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_tread_ledit_bytes_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
     def handle_tread_chbox_verif_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         self.ui.tread_ledit_verif_filepath.setEnabled(state)
         self.ui.tread_btn_verif_fileopen.setEnabled(state)
         self.ui.tread_lab_verif_fileopen.setEnabled(state)
+
+    def handle_terase_mode_select_toggled(self, state):
+        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        if state:
+            self.ui.terase_frm_addr.setEnabled(self.ui.terase_rbtn_erpages.isChecked())
 
     # -- Application specific code --
     def is_connected(self):

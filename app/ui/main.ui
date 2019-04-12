@@ -514,7 +514,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="twrite_ledit_addr">
+              <widget class="QLineEdit" name="twrite_ledit_addrstart">
                <property name="minimumSize">
                 <size>
                  <width>90</width>
@@ -703,7 +703,14 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
+            </layout>
+           </item>
+           <item>
+            <layout class="QFormLayout" name="terase_form_addr">
+             <property name="labelAlignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+             <item row="0" column="0">
               <widget class="QLabel" name="terase_lab_lastpage">
                <property name="text">
                 <string notr="true">Последняя страница</string>
@@ -713,7 +720,7 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
+             <item row="0" column="1">
               <widget class="QLineEdit" name="terase_ledit_lastpage">
                <property name="maximumSize">
                 <size>
@@ -723,78 +730,6 @@
                </property>
                <property name="text">
                 <string notr="true">0</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QLabel" name="terase_lab_or">
-             <property name="text">
-              <string notr="true">или</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QFormLayout" name="terase_form_addr">
-             <property name="labelAlignment">
-              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-             </property>
-             <item row="1" column="0">
-              <widget class="QLabel" name="terase_lab_bytes">
-               <property name="text">
-                <string notr="true">Количество байт</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="terase_ledit_bytes">
-               <property name="minimumSize">
-                <size>
-                 <width>90</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>90</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string notr="true">0</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="terase_lab_addrstart">
-               <property name="text">
-                <string notr="true">Адрес начала</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="terase_ledit_addrstart">
-               <property name="minimumSize">
-                <size>
-                 <width>90</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>90</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string notr="true">0x00000000</string>
                </property>
               </widget>
              </item>
@@ -886,66 +821,6 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="tread_lab_firstpage">
-                 <property name="text">
-                  <string notr="true">Первая страница</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLineEdit" name="tread_ledit_firstpage">
-                 <property name="maximumSize">
-                  <size>
-                   <width>50</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string notr="true">0</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="tread_lab_lastpage">
-                 <property name="text">
-                  <string notr="true">Последняя страница</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLineEdit" name="tread_ledit_lastpage">
-                 <property name="maximumSize">
-                  <size>
-                   <width>50</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string notr="true">0</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QLabel" name="tread_lab_or">
-               <property name="text">
-                <string notr="true">или</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QFormLayout" name="tread_form_addr">
-               <property name="labelAlignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-               <item row="0" column="0">
                 <widget class="QLabel" name="tread_lab_addrstart">
                  <property name="text">
                   <string notr="true">Адрес начала</string>
@@ -974,17 +849,14 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
-                <widget class="QLabel" name="tread_lab_bytes">
-                 <property name="text">
-                  <string notr="true">Количество байт</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
+              </layout>
+             </item>
+             <item>
+              <layout class="QFormLayout" name="tread_form_addr">
+               <property name="labelAlignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+               <item row="0" column="1">
                 <widget class="QLineEdit" name="tread_ledit_bytes">
                  <property name="minimumSize">
                   <size>
@@ -1000,6 +872,16 @@
                  </property>
                  <property name="text">
                   <string notr="true">0</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="tread_lab_bytes">
+                 <property name="text">
+                  <string notr="true">Количество байт</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
                 </widget>
                </item>
@@ -1320,86 +1202,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>twrite_ledit_addr</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_twrite_ledit_addr_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>162</x>
-     <y>291</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>6</x>
-     <y>247</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>terase_ledit_firstpage</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_terase_ledit_firstpage_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>195</x>
-     <y>285</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>2</x>
-     <y>237</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>terase_ledit_lastpage</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_terase_ledit_lastpage_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>174</x>
-     <y>314</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1</x>
-     <y>444</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>terase_ledit_addrstart</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_terase_ledit_addrstart_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>428</x>
-     <y>280</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>496</x>
-     <y>236</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>terase_ledit_bytes</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_terase_ledit_bytes_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>424</x>
-     <y>309</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>497</x>
-     <y>279</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>tread_ledit_filepath</sender>
    <signal>textEdited(QString)</signal>
    <receiver>MainWindow</receiver>
@@ -1432,70 +1234,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>tread_ledit_firstpage</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_tread_ledit_firstpage_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>188</x>
-     <y>293</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>5</x>
-     <y>292</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tread_ledit_lastpage</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_tread_ledit_lastpage_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>184</x>
-     <y>318</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>3</x>
-     <y>330</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tread_ledit_addrstart</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_tread_ledit_addrstart_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>423</x>
-     <y>290</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>493</x>
-     <y>273</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tread_ledit_bytes</sender>
-   <signal>editingFinished()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_tread_ledit_bytes_editing_finished()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>446</x>
-     <y>320</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>496</x>
-     <y>308</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>tread_chbox_verif</sender>
    <signal>toggled(bool)</signal>
    <receiver>MainWindow</receiver>
@@ -1503,7 +1241,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>40</x>
-     <y>370</y>
+     <y>347</y>
     </hint>
     <hint type="destinationlabel">
      <x>1</x>
@@ -1519,7 +1257,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>66</x>
-     <y>418</y>
+     <y>395</y>
     </hint>
     <hint type="destinationlabel">
      <x>3</x>
@@ -1535,7 +1273,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>461</x>
-     <y>423</y>
+     <y>400</y>
     </hint>
     <hint type="destinationlabel">
      <x>496</x>
@@ -1607,27 +1345,49 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>terase_rbtn_erpages</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_terase_mode_select_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>286</x>
+     <y>238</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>494</x>
+     <y>361</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_rbtn_erall</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_terase_mode_select_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>46</x>
+     <y>235</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>handle_act_about_triggered()</slot>
   <slot>handle_btn_connect_clicked()</slot>
   <slot>handle_flash_select_toggled(bool)</slot>
-  <slot>handle_tinfo_combo_flash_changed(int)</slot>
   <slot>handle_btn_exec_clicked()</slot>
   <slot>handle_ledit_filepath_changed(QString)</slot>
-  <slot>handle_twrite_ledit_addr_editing_finished()</slot>
   <slot>handle_btn_fileopen_clicked()</slot>
-  <slot>handle_terase_ledit_firstpage_editing_finished()</slot>
-  <slot>handle_terase_ledit_lastpage_editing_finished()</slot>
-  <slot>handle_terase_ledit_addrstart_editing_finished()</slot>
-  <slot>handle_terase_ledit_bytes_editing_finished()</slot>
-  <slot>handle_tread_ledit_firstpage_editing_finished()</slot>
-  <slot>handle_tread_ledit_lastpage_editing_finished()</slot>
-  <slot>handle_tread_ledit_addrstart_editing_finished()</slot>
-  <slot>handle_tread_ledit_bytes_editing_finished()</slot>
-  <slot>handle_tread_chbox_verif_toggled(bool)</slot>
   <slot>handle_btn_updport_clicked()</slot>
   <slot>handle_region_select_toggled(bool)</slot>
   <slot>handle_btn_filesave_clicked()</slot>
+  <slot>handle_terase_mode_select_toggled(bool)</slot>
  </slots>
 </ui>
