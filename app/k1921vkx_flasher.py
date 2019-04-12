@@ -75,13 +75,16 @@ class MainWindow(QMainWindow):
         self.upd_tinfo_table()
 
         self.ui.twrite_ledit_filepath.last_text = ""
+        self.ui.twrite_ledit_filepath.path_for_open = True
         self.ui.twrite_ledit_addr.last_text = ""
         self.ui.tread_ledit_bytes.last_text = ""
         self.ui.tread_ledit_addrstart.last_text = ""
         self.ui.tread_ledit_lastpage.last_text = ""
         self.ui.tread_ledit_firstpage.last_text = ""
         self.ui.tread_ledit_filepath.last_text = ""
+        self.ui.tread_ledit_filepath.path_for_open = False
         self.ui.tread_ledit_verif_filepath.last_text = ""
+        self.ui.tread_ledit_verif_filepath.path_for_open = True
         self.ui.terase_ledit_bytes.last_text = ""
         self.ui.terase_ledit_addrstart.last_text = ""
         self.ui.terase_ledit_lastpage.last_text = ""
@@ -179,30 +182,48 @@ class MainWindow(QMainWindow):
     def handle_btn_exec_clicked(self):
         log_dbg("Handler <%s> called" % whoami())
 
-    # -- Slots for Write Tab widgets --
     def handle_ledit_filepath_changed(self, text):
         log_dbg("Handler <%s> called" % whoami())
 
-        if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
-            log_info('Выбран файл "%s"' % self.sender().text())
-            log_info('Размер %d байт' % os.path.getsize(self.sender().text()))
-            self.ui.twrite_ledit_filepath.setStyleSheet("color: black;")
-        else:
-            self.ui.twrite_ledit_filepath.setStyleSheet("color: red;")
-        self.sender().last_text = self.sender().text()
+        if self.sender().path_for_open:
+            if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
 
-    def handle_twrite_ledit_addr_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
+                # TODO: поместить это в секцию исполнения
+                log_info('Выбран файл "%s"' % self.sender().text())
+                log_info('Размер %d байт' % os.path.getsize(self.sender().text()))
+
+                self.sender().setStyleSheet("color: black;")
+            else:
+                self.sender().setStyleSheet("color: red;")
+        self.sender().last_text = self.sender().text()
 
     def handle_btn_fileopen_clicked(self):
         log_dbg("Handler <%s> called" % whoami())
+        rexp_ledit = QtCore.QRegExp('^.*_filepath$')
+        linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
         options = QFileDialog.Options()
-        filename, _ = QFileDialog.getOpenFileName(self,
-                                                  "Открыть бинарный файл", self.sender().text(), "Бинарные файлы (*.bin)",
+        filename, _ = QFileDialog.getOpenFileName(self, "Открыть бинарный файл", linked_ledit.text(), "Бинарные файлы (*.bin)",
                                                   options=options)
         if filename:
-            rexp_ledit = QtCore.QRegExp('^.*_filepath$')
-            self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0].setText(filename)
+            linked_ledit.setText(filename)
+
+    def handle_btn_filesave_clicked(self):
+        log_dbg("Handler <%s> called" % whoami())
+        rexp_ledit = QtCore.QRegExp('^.*_filepath$')
+        linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
+        options = QFileDialog.Options()
+        if linked_ledit.text():
+            save_name = linked_ledit.text()
+        else:
+            save_name = "dump.bin"
+        filename, _ = QFileDialog.getSaveFileName(self, "Сохранить бинарный файл", save_name, "Бинарные файлы (*.bin)",
+                                                  options=options)
+        if filename:
+            linked_ledit.setText(filename)
+
+    # -- Slots for Write Tab widgets --
+    def handle_twrite_ledit_addr_editing_finished(self):
+        log_dbg("Handler <%s> called" % whoami())
 
     # -- Slots for Erase Tab widgets --
     def handle_terase_ledit_firstpage_editing_finished(self):
@@ -218,12 +239,6 @@ class MainWindow(QMainWindow):
         log_dbg("Handler <%s> called" % whoami())
 
     # -- Slots for Read Tab widgets --
-    def handle_tread_ledit_filepath_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_tread_btn_fileopen_clicked(self):
-        log_dbg("Handler <%s> called" % whoami())
-
     def handle_tread_ledit_firstpage_editing_finished(self):
         log_dbg("Handler <%s> called" % whoami())
 
@@ -238,12 +253,9 @@ class MainWindow(QMainWindow):
 
     def handle_tread_chbox_verif_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
-
-    def handle_tread_ledit_verif_filepath_editing_finished(self):
-        log_dbg("Handler <%s> called" % whoami())
-
-    def handle_tread_btn_verif_fileopen_clicked(self):
-        log_dbg("Handler <%s> called" % whoami())
+        self.ui.tread_ledit_verif_filepath.setEnabled(state)
+        self.ui.tread_btn_verif_fileopen.setEnabled(state)
+        self.ui.tread_lab_verif_fileopen.setEnabled(state)
 
     # -- Application specific code --
     def is_connected(self):

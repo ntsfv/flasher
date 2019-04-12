@@ -256,7 +256,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_info">
        <property name="enabled">
@@ -386,7 +386,7 @@
            <bool>false</bool>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>false</bool>
+           <bool>true</bool>
           </attribute>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
@@ -472,6 +472,9 @@
             <layout class="QHBoxLayout" name="twrite_hbox_file">
              <item>
               <widget class="QLineEdit" name="twrite_ledit_filepath">
+               <property name="toolTip">
+                <string>Файл для записи</string>
+               </property>
                <property name="readOnly">
                 <bool>false</bool>
                </property>
@@ -843,13 +846,19 @@
             <layout class="QHBoxLayout" name="tread_hbox_file">
              <item>
               <widget class="QLineEdit" name="tread_ledit_filepath">
+               <property name="toolTip">
+                <string>Файл для чтения</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
                <property name="readOnly">
                 <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="tread_btn_fileopen">
+              <widget class="QPushButton" name="tread_btn_filesave">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1025,6 +1034,9 @@
            </item>
            <item>
             <widget class="QLabel" name="tread_lab_verif_fileopen">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string notr="true">Выбор файла для верификации (*.bin):</string>
              </property>
@@ -1034,6 +1046,12 @@
             <layout class="QHBoxLayout" name="tread_hbox_verif_file">
              <item>
               <widget class="QLineEdit" name="tread_ledit_verif_filepath">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>Файл для верификации</string>
+               </property>
                <property name="readOnly">
                 <bool>false</bool>
                </property>
@@ -1041,6 +1059,9 @@
              </item>
              <item>
               <widget class="QPushButton" name="tread_btn_verif_fileopen">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -1293,8 +1314,8 @@
      <y>261</y>
     </hint>
     <hint type="destinationlabel">
-     <x>4</x>
-     <y>194</y>
+     <x>0</x>
+     <y>191</y>
     </hint>
    </hints>
   </connection>
@@ -1311,22 +1332,6 @@
     <hint type="destinationlabel">
      <x>6</x>
      <y>247</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>twrite_btn_fileopen</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_btn_fileopen_clicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>461</x>
-     <y>256</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>495</x>
-     <y>193</y>
     </hint>
    </hints>
   </connection>
@@ -1373,8 +1378,8 @@
      <y>280</y>
     </hint>
     <hint type="destinationlabel">
-     <x>499</x>
-     <y>233</y>
+     <x>496</x>
+     <y>236</y>
     </hint>
    </hints>
   </connection>
@@ -1396,9 +1401,9 @@
   </connection>
   <connection>
    <sender>tread_ledit_filepath</sender>
-   <signal>editingFinished()</signal>
+   <signal>textEdited(QString)</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_tread_ledit_filepath_editing_finished()</slot>
+   <slot>handle_ledit_filepath_changed(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>78</x>
@@ -1411,17 +1416,17 @@
    </hints>
   </connection>
   <connection>
-   <sender>tread_btn_fileopen</sender>
+   <sender>tread_btn_filesave</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_tread_btn_fileopen_clicked()</slot>
+   <slot>handle_btn_filesave_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>457</x>
      <y>255</y>
     </hint>
     <hint type="destinationlabel">
-     <x>495</x>
+     <x>493</x>
      <y>225</y>
     </hint>
    </hints>
@@ -1508,9 +1513,9 @@
   </connection>
   <connection>
    <sender>tread_ledit_verif_filepath</sender>
-   <signal>editingFinished()</signal>
+   <signal>textChanged(QString)</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_tread_ledit_verif_filepath_editing_finished()</slot>
+   <slot>handle_ledit_filepath_changed(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>66</x>
@@ -1526,7 +1531,7 @@
    <sender>tread_btn_verif_fileopen</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_tread_btn_verif_fileopen_clicked()</slot>
+   <slot>handle_btn_fileopen_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>461</x>
@@ -1586,6 +1591,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>twrite_btn_fileopen</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_btn_fileopen_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>459</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>494</x>
+     <y>370</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>handle_act_about_triggered()</slot>
@@ -1600,16 +1621,13 @@
   <slot>handle_terase_ledit_lastpage_editing_finished()</slot>
   <slot>handle_terase_ledit_addrstart_editing_finished()</slot>
   <slot>handle_terase_ledit_bytes_editing_finished()</slot>
-  <slot>handle_tread_ledit_filepath_editing_finished()</slot>
-  <slot>handle_tread_btn_fileopen_clicked()</slot>
   <slot>handle_tread_ledit_firstpage_editing_finished()</slot>
   <slot>handle_tread_ledit_lastpage_editing_finished()</slot>
   <slot>handle_tread_ledit_addrstart_editing_finished()</slot>
   <slot>handle_tread_ledit_bytes_editing_finished()</slot>
   <slot>handle_tread_chbox_verif_toggled(bool)</slot>
-  <slot>handle_tread_ledit_verif_filepath_editing_finished()</slot>
-  <slot>handle_tread_btn_verif_fileopen_clicked()</slot>
   <slot>handle_btn_updport_clicked()</slot>
   <slot>handle_region_select_toggled(bool)</slot>
+  <slot>handle_btn_filesave_clicked()</slot>
  </slots>
 </ui>
