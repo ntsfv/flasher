@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
 
         self.mcu = mcu.get_by_name('k1921vkx')
         self.upd_tinfo_table()
-        self.upd_tconfig_frm_cfg()
+        self.upd_tconfig_widget_cfg()
 
         self.ui.twrite_ledit_filepath.path_for_open = True
         self.ui.tread_ledit_filepath.path_for_open = False
@@ -168,7 +168,7 @@ class MainWindow(QMainWindow):
             self.upd_gbox_flash()
             self.upd_tinfo_values(mcu_info)
             self.upd_tinfo_table()
-            self.upd_tconfig_frm_cfg()
+            self.upd_tconfig_widget_cfg()
 
     def handle_flash_select_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
@@ -321,13 +321,15 @@ class MainWindow(QMainWindow):
                 wr_cell.setToolTip("Разблокировано")
             table.setItem(r, 4, wr_cell)
 
-    def upd_tconfig_frm_cfg(self):
+    def upd_tconfig_widget_cfg(self):
+        self.ui.tconfig_rbtn_read.setChecked(True)
         self.ui.tconfig_vbox.removeWidget(self.ui.tconfig_widget_cfg)
         self.ui.tconfig_widget_cfg.deleteLater()
         self.ui.tconfig_widget_cfg = None
 
         self.ui.tconfig_widget_cfg = QWidget(self.ui.tab_config)
         self.ui.tconfig_vbox.addWidget(self.ui.tconfig_widget_cfg)
+        # pre-setup
         if self.mcu.name == 'k1921vk035':
             self.ui.tconfig_widget_cfg.ui = Ui_Config035()
         elif self.mcu.name == 'k1921vk028':
@@ -336,7 +338,22 @@ class MainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui = Ui_Config01T()
         elif self.mcu.name == 'k1921vkx':
             self.ui.tconfig_widget_cfg.ui = Ui_Config1921()
+        # setup
         self.ui.tconfig_widget_cfg.ui.setupUi(self.ui.tconfig_widget_cfg)
+        # post-setup
+        if self.mcu.name == 'k1921vk035':
+            pass
+        elif self.mcu.name == 'k1921vk028':
+            allowed_nums = "^((0x|)[0-9A-Fa-f]{1,3})|([0-9]{1,4})$"
+            self.ui.tconfig_widget_cfg.ui.ledit_mask.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+            allowed_nums = "^((0x|)[0-9A-Fa-f]{1})|([0-9]{1,2})$"
+            self.ui.tconfig_widget_cfg.ui.ledit_wrc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+            self.ui.tconfig_widget_cfg.ui.ledit_rdc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+            self.ui.tconfig_widget_cfg.ui.ledit_tac.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        elif self.mcu.name == 'k1921vk01t':
+            pass
+        elif self.mcu.name == 'k1921vkx':
+            pass
 
 
 # -- Standalone run -----------------------------------------------------------
