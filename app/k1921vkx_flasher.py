@@ -14,10 +14,14 @@ import serport
 import mcu
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
-                             QHeaderView, QAction, QFileDialog, QLineEdit)
+                             QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget)
 from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
+from ui_config035 import Ui_Config035
+from ui_config028 import Ui_Config028
+from ui_config01t import Ui_Config01T
+from ui_config1921 import Ui_Config1921
 
 
 # -- Global variables ---------------------------------------------------------
@@ -32,7 +36,9 @@ def whoami():
 # -- Test functions -----------------------------------------------------------
 def test_init(port, baud):
     log_info("Открываю порт %s %s" % (port, baud))
-    return {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+    # return {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+    return {'chipid': '0x3ABF2FD1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+    #return {'chipid': '0x00000000', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
 
 
 def test_deinit():
@@ -48,6 +54,11 @@ class MainWindow(QMainWindow):
         # Set up the user interface from QtDesigner
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        self.ui.tconfig_widget_cfg = QWidget(self.ui.tab_config)
+        self.ui.tconfig_vbox.addWidget(self.ui.tconfig_widget_cfg)
+
+        self.ui.tconfig_frm_cfg = QFrame(self.ui.tab_config)
 
         self.ui.btn_updport.clicked.emit()
 
@@ -73,6 +84,7 @@ class MainWindow(QMainWindow):
 
         self.mcu = mcu.get_by_name('k1921vkx')
         self.upd_tinfo_table()
+        self.upd_tconfig_frm_cfg()
 
         self.ui.twrite_ledit_filepath.path_for_open = True
         self.ui.tread_ledit_filepath.path_for_open = False
@@ -156,14 +168,15 @@ class MainWindow(QMainWindow):
             self.upd_gbox_flash()
             self.upd_tinfo_values(mcu_info)
             self.upd_tinfo_table()
+            self.upd_tconfig_frm_cfg()
 
     def handle_flash_select_toggled(self, state):
         log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if state:
             if self.ui.rbtn_flash0.isChecked():
-                flash_name = "FLASH0"
+                flash_name = self.ui.rbtn_flash0.text()
             else:
-                flash_name = "FLASH1"
+                flash_name = self.ui.rbtn_flash1.text()
             log_info("Выбрана флеш-память %s" % flash_name)
             self.upd_tinfo_table()
 
@@ -230,6 +243,11 @@ class MainWindow(QMainWindow):
         if state:
             self.ui.terase_frm_addr.setEnabled(self.ui.terase_rbtn_erpages.isChecked())
 
+    def handle_tconfig_mode_select_toggled(self, state):
+        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        if state:
+            self.ui.tconfig_widget_cfg.ui.tconfig_frm_cfg.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
+
     # -- Application specific code --
     def is_connected(self):
         return not self.ui.combo_port.isEnabled()
@@ -238,10 +256,18 @@ class MainWindow(QMainWindow):
         return self.ui.rbtn_regionnvr.isChecked()
 
     def curr_flash(self):
-        if self.ui.rbtn_flash0.isEnabled():
+        if self.ui.rbtn_flash0.isChecked():
             return 0
         else:
             return 1
+
+    def upd_tconfig(self, state):
+        if state:
+            pass
+        else:
+            for child in self.ui.tconfig_frm_cfg.children():
+                if not (child.objectName() == 'tconfig_lbl_warn0'):
+                    child.deleteLater()
 
     def upd_gbox_flash(self):
         self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
@@ -294,6 +320,23 @@ class MainWindow(QMainWindow):
                 wr_cell = QTableWidgetItem(self.icon_unlock, "")
                 wr_cell.setToolTip("Разблокировано")
             table.setItem(r, 4, wr_cell)
+
+    def upd_tconfig_frm_cfg(self):
+        self.ui.tconfig_vbox.removeWidget(self.ui.tconfig_widget_cfg)
+        self.ui.tconfig_widget_cfg.deleteLater()
+        self.ui.tconfig_widget_cfg = None
+
+        self.ui.tconfig_widget_cfg = QWidget(self.ui.tab_config)
+        self.ui.tconfig_vbox.addWidget(self.ui.tconfig_widget_cfg)
+        if self.mcu.name == 'k1921vk035':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config035()
+        elif self.mcu.name == 'k1921vk028':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config028()
+        elif self.mcu.name == 'k1921vk01t':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config01T()
+        elif self.mcu.name == 'k1921vkx':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config1921()
+        self.ui.tconfig_widget_cfg.ui.setupUi(self.ui.tconfig_widget_cfg)
 
 
 # -- Standalone run -----------------------------------------------------------

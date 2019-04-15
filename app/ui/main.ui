@@ -988,19 +988,47 @@
        <attribute name="title">
         <string notr="true">Конфигурация</string>
        </attribute>
-       <widget class="QLabel" name="tconf_lab_test">
-        <property name="geometry">
-         <rect>
-          <x>9</x>
-          <y>9</y>
-          <width>57</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>TextLabel</string>
-        </property>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_16">
+        <item>
+         <layout class="QVBoxLayout" name="tconfig_vbox">
+          <item>
+           <widget class="QFrame" name="tconfig_frm_oper">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <item>
+              <widget class="QRadioButton" name="tconfig_rbtn_read">
+               <property name="text">
+                <string notr="true">Прочитать</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="tconfig_rbtn_write">
+               <property name="text">
+                <string notr="true">Записать</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -1377,6 +1405,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>tconfig_rbtn_read</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tconfig_mode_select_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>59</x>
+     <y>238</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>268</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tconfig_rbtn_write</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tconfig_mode_select_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>335</x>
+     <y>234</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>495</x>
+     <y>306</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>handle_act_about_triggered()</slot>
@@ -1389,5 +1449,6 @@
   <slot>handle_region_select_toggled(bool)</slot>
   <slot>handle_btn_filesave_clicked()</slot>
   <slot>handle_terase_mode_select_toggled(bool)</slot>
+  <slot>handle_tconfig_mode_select_toggled(bool)</slot>
  </slots>
 </ui>
