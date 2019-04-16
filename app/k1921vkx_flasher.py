@@ -30,9 +30,6 @@ VERSION = "1.0"
 
 
 # -- Misc functions -----------------------------------------------------------
-def whoami():
-    return inspect.getouterframes(inspect.currentframe())[1].function
-
 
 # -- Main window --------------------------------------------------------------
 class MyMainWindow(QMainWindow):
@@ -93,6 +90,9 @@ class MyMainWindow(QMainWindow):
         self.about_dialog.ui.setupUi(self.about_dialog)
 
     # -- Log --
+    def whoami(self):
+        return inspect.getouterframes(inspect.currentframe())[1].function
+
     def log_dbg(self, msg):
         logger.debug(msg)
 
@@ -119,7 +119,7 @@ class MyMainWindow(QMainWindow):
 
     # -- Slots --
     def handle_tedit_log_context_menu(self, pos):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
         menu = self.ui.tedit_log.createStandardContextMenu()
         menu.act_clear = QAction("Очистить")
         menu.act_clear.triggered.connect(self.ui.tedit_log.clear)
@@ -127,18 +127,18 @@ class MyMainWindow(QMainWindow):
         menu.exec_(QCursor.pos())
 
     def handle_btn_updport_clicked(self):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
         self.ui.combo_port.clear()
         [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
 
     def handle_act_about_triggered(self):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
         text = self.about_dialog.ui.lab_version.text().replace("x.x", VERSION)
         self.about_dialog.ui.lab_version.setText(text)
         self.about_dialog.exec_()
 
     def handle_btn_connect_clicked(self):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
         update_gui = False
         port = self.ui.combo_port.currentText()
         baud = self.ui.combo_baud.currentText()
@@ -179,7 +179,7 @@ class MyMainWindow(QMainWindow):
             self.upd_tconfig_widget_cfg()
 
     def handle_flash_select_toggled(self, state):
-        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
             if self.ui.rbtn_flash0.isChecked():
                 flash_name = self.ui.rbtn_flash0.text()
@@ -189,7 +189,7 @@ class MyMainWindow(QMainWindow):
             self.upd_tinfo_table()
 
     def handle_region_select_toggled(self, state):
-        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
             if self.ui.rbtn_regionmain.isChecked():
                 region_name = "основная"
@@ -199,10 +199,10 @@ class MyMainWindow(QMainWindow):
             self.upd_tinfo_table()
 
     def handle_btn_exec_clicked(self):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
 
     def handle_ledit_filepath_changed(self, text):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
 
         if self.sender().path_for_open:
             if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
@@ -217,7 +217,7 @@ class MyMainWindow(QMainWindow):
         self.sender().last_text = self.sender().text()
 
     def handle_btn_fileopen_clicked(self):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
         rexp_ledit = QtCore.QRegExp('^.*_filepath$')
         linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
         options = QFileDialog.Options()
@@ -227,7 +227,7 @@ class MyMainWindow(QMainWindow):
             linked_ledit.setText(filename)
 
     def handle_btn_filesave_clicked(self):
-        self.log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % self.whoami())
         rexp_ledit = QtCore.QRegExp('^.*_filepath$')
         linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
         options = QFileDialog.Options()
@@ -241,18 +241,18 @@ class MyMainWindow(QMainWindow):
             linked_ledit.setText(filename)
 
     def handle_tread_chbox_verif_toggled(self, state):
-        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         self.ui.tread_ledit_verif_filepath.setEnabled(state)
         self.ui.tread_btn_verif_fileopen.setEnabled(state)
         self.ui.tread_lab_verif_fileopen.setEnabled(state)
 
     def handle_terase_mode_select_toggled(self, state):
-        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
             self.ui.terase_frm_addr.setEnabled(self.ui.terase_rbtn_erpages.isChecked())
 
     def handle_tconfig_mode_select_toggled(self, state):
-        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
             self.ui.tconfig_widget_cfg.ui.tconfig_frm_cfg.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
 
