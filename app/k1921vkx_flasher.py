@@ -92,14 +92,34 @@ class MyMainWindow(QMainWindow):
         self.about_dialog.ui = Ui_AboutDialog()
         self.about_dialog.ui.setupUi(self.about_dialog)
 
+    # -- Log --
+    def log_dbg(self, msg):
+        logger.debug(msg)
+
+    def log_info(self, msg):
+        logger.info(msg)
+        self.ui.tedit_log.appendHtml('[<span style=" color:#4e9a06;">INFO</span>]: %s' % msg)
+
+    def log_warn(self, msg):
+        logger.warning(msg)
+        self.ui.tedit_log.appendHtml('[<span style=" color:#e9b96e;">WARN</span>]: %s' % msg)
+
+    def log_err(self, msg):
+        logger.error(msg)
+        self.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
+
+    def log_crit(self, msg):
+        logger.critical(msg)
+        self.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
+
     # -- Events --
     def closeEvent(self, event):
-        prot.deinit()
+        prot.deinit(self)
         event.accept()
 
     # -- Slots --
     def handle_tedit_log_context_menu(self, pos):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
         menu = self.ui.tedit_log.createStandardContextMenu()
         menu.act_clear = QAction("Очистить")
         menu.act_clear.triggered.connect(self.ui.tedit_log.clear)
@@ -107,35 +127,35 @@ class MyMainWindow(QMainWindow):
         menu.exec_(QCursor.pos())
 
     def handle_btn_updport_clicked(self):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
         self.ui.combo_port.clear()
         [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
 
     def handle_act_about_triggered(self):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
         text = self.about_dialog.ui.lab_version.text().replace("x.x", VERSION)
         self.about_dialog.ui.lab_version.setText(text)
         self.about_dialog.exec_()
 
     def handle_btn_connect_clicked(self):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
         update_gui = False
         port = self.ui.combo_port.currentText()
         baud = self.ui.combo_baud.currentText()
         if (not self.is_connected()):
             if not self.ui.combo_port.count():
-                log_err("Выберите COM-порт!")
+                self.log_err("Выберите COM-порт!")
             else:
                 state = True
                 btn_text = "Отключиться"
-                mcu_info = prot.init(port=port, baud=baud)
+                mcu_info = prot.init(self, port=port, baud=baud)
                 if mcu_info:
                     self.mcu = mcu.get_by_chipid(mcu_info['chipid'])
                     update_gui = True
         else:
             state = False
             btn_text = "Подключиться"
-            if prot.deinit():
+            if prot.deinit(self):
                 self.mcu = mcu.get_by_name('k1921vkx')
                 mcu_info = {'chipid': '0xFFFFFFFF', 'cpuid': '0xFFFFFFFF', 'bootver': '0.0'}
                 update_gui = True
@@ -159,37 +179,37 @@ class MyMainWindow(QMainWindow):
             self.upd_tconfig_widget_cfg()
 
     def handle_flash_select_toggled(self, state):
-        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if state:
             if self.ui.rbtn_flash0.isChecked():
                 flash_name = self.ui.rbtn_flash0.text()
             else:
                 flash_name = self.ui.rbtn_flash1.text()
-            log_info("Выбрана флеш-память %s" % flash_name)
+            self.log_info("Выбрана флеш-память %s" % flash_name)
             self.upd_tinfo_table()
 
     def handle_region_select_toggled(self, state):
-        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if state:
             if self.ui.rbtn_regionmain.isChecked():
                 region_name = "основная"
             else:
                 region_name = "NVR/Info"
-            log_info("Выбрана %s область" % region_name)
+            self.log_info("Выбрана %s область" % region_name)
             self.upd_tinfo_table()
 
     def handle_btn_exec_clicked(self):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
 
     def handle_ledit_filepath_changed(self, text):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
 
         if self.sender().path_for_open:
             if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
 
                 # TODO: поместить это в секцию исполнения
-                log_info('Выбран файл "%s"' % self.sender().text())
-                log_info('Размер %d байт' % os.path.getsize(self.sender().text()))
+                self.log_info('Выбран файл "%s"' % self.sender().text())
+                self.log_info('Размер %d байт' % os.path.getsize(self.sender().text()))
 
                 self.sender().setStyleSheet("color: black;")
             else:
@@ -197,7 +217,7 @@ class MyMainWindow(QMainWindow):
         self.sender().last_text = self.sender().text()
 
     def handle_btn_fileopen_clicked(self):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
         rexp_ledit = QtCore.QRegExp('^.*_filepath$')
         linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
         options = QFileDialog.Options()
@@ -207,7 +227,7 @@ class MyMainWindow(QMainWindow):
             linked_ledit.setText(filename)
 
     def handle_btn_filesave_clicked(self):
-        log_dbg("Handler <%s> called" % whoami())
+        self.log_dbg("Handler <%s> called" % whoami())
         rexp_ledit = QtCore.QRegExp('^.*_filepath$')
         linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
         options = QFileDialog.Options()
@@ -221,18 +241,18 @@ class MyMainWindow(QMainWindow):
             linked_ledit.setText(filename)
 
     def handle_tread_chbox_verif_toggled(self, state):
-        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         self.ui.tread_ledit_verif_filepath.setEnabled(state)
         self.ui.tread_btn_verif_fileopen.setEnabled(state)
         self.ui.tread_lab_verif_fileopen.setEnabled(state)
 
     def handle_terase_mode_select_toggled(self, state):
-        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if state:
             self.ui.terase_frm_addr.setEnabled(self.ui.terase_rbtn_erpages.isChecked())
 
     def handle_tconfig_mode_select_toggled(self, state):
-        log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
+        self.log_dbg("Handler <%s> called" % (whoami() + "(%d)" % state))
         if state:
             self.ui.tconfig_widget_cfg.ui.tconfig_frm_cfg.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
 
@@ -337,36 +357,10 @@ class MyMainWindow(QMainWindow):
             pass
 
 
-def log_dbg(msg):
-    logger.debug(msg)
-
-
-def log_info(msg):
-    logger.info(msg)
-    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#4e9a06;">INFO</span>]: %s' % msg)
-
-
-def log_warn(msg):
-    logger.warning(msg)
-    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#e9b96e;">WARN</span>]: %s' % msg)
-
-
-def log_err(msg):
-    logger.error(msg)
-    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
-
-
-def log_crit(msg):
-    logger.critical(msg)
-    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
-
-
-logger.init(debug=True, logfile="flasher.log")
-App = QApplication(sys.argv)
-MainWindow = MyMainWindow()
-
-
 # -- Standalone run -----------------------------------------------------------
 if __name__ == '__main__':
+    logger.init(debug=True, logfile="flasher.log")
+    App = QApplication(sys.argv)
+    MainWindow = MyMainWindow()
     MainWindow.show()
     sys.exit(App.exec_())

@@ -1,16 +1,36 @@
 #!/user/bin/env python
 # coding:utf-8
 
-from k1921vkx_flasher import log_info
+
+# -- Misc functions -----------------------------------------------------------
+def log_dbg(win, msg):
+    win.log_dbg(msg)
 
 
-def init(port, baud):
-    log_info("Открываю порт %s %s" % (port, baud))
+def log_info(win, msg):
+    win.log_info(msg)
+
+
+def log_warn(win, msg):
+    win.log_warn(msg)
+
+
+def log_err(win, msg):
+    win.log_err(msg)
+
+
+def log_crit(win, msg):
+    win.log_dbg(msg)
+
+
+# -- API --------------------------------------------------------------------
+def init(win, port, baud):
+    log_info(win, "Открываю порт %s %s" % (port, baud))
     # return {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
     # return {'chipid': '0x3ABF2FD1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
     return {'chipid': '0x00000000', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
 
 
-def deinit():
-    log_info("Закрываю порт")
+def deinit(win):
+    log_info(win, "Закрываю порт")
     return True
