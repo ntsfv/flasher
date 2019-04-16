@@ -256,7 +256,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab_info">
        <property name="enabled">
@@ -386,7 +386,7 @@
            <bool>false</bool>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
@@ -1412,8 +1412,8 @@
    <slot>handle_tconfig_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>59</x>
-     <y>238</y>
+     <x>60</x>
+     <y>354</y>
     </hint>
     <hint type="destinationlabel">
      <x>1</x>
@@ -1429,11 +1429,27 @@
    <hints>
     <hint type="sourcelabel">
      <x>335</x>
-     <y>234</y>
+     <y>350</y>
     </hint>
     <hint type="destinationlabel">
      <x>495</x>
      <y>306</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tabs_cmd</sender>
+   <signal>currentChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_tabs_cmd_changed(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>453</x>
+     <y>244</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>497</x>
+     <y>268</y>
     </hint>
    </hints>
   </connection>
@@ -1450,5 +1466,6 @@
   <slot>handle_btn_filesave_clicked()</slot>
   <slot>handle_terase_mode_select_toggled(bool)</slot>
   <slot>handle_tconfig_mode_select_toggled(bool)</slot>
+  <slot>handle_tabs_cmd_changed(int)</slot>
  </slots>
 </ui>

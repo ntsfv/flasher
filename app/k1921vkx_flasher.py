@@ -200,6 +200,18 @@ class MyMainWindow(QMainWindow):
 
     def handle_btn_exec_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
+        curr_tab = self.ui.tabs_cmd.currentWidget().objectName()
+        self.log_dbg("Tab <%s> active" % curr_tab)
+        if curr_tab == "tab_info":
+            self.exec_tab_info()
+        elif curr_tab == "tab_write":
+            self.exec_tab_write()
+        elif curr_tab == "tab_read":
+            self.exec_tab_read()
+        elif curr_tab == "tab_erase":
+            self.exec_tab_erase()
+        elif curr_tab == "tab_config":
+            self.exec_tab_config()
 
     def handle_ledit_filepath_changed(self, text):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -255,6 +267,12 @@ class MyMainWindow(QMainWindow):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
             self.ui.tconfig_widget_cfg.ui.tconfig_frm_cfg.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
+
+    def handle_tabs_cmd_changed(self, num):
+        if self.ui.tabs_cmd.currentWidget().objectName() == 'tab_info':
+            self.ui.btn_exec.setEnabled(False)
+        else:
+            self.ui.btn_exec.setEnabled(True)
 
     # -- Application specific code --
     def is_connected(self):
@@ -355,6 +373,21 @@ class MyMainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui.ledit_pinnum.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
         elif self.mcu.name == 'k1921vkx':
             pass
+
+    def exec_tab_info(self):
+        pass
+
+    def exec_tab_write(self):
+        pass
+
+    def exec_tab_read(self):
+        pass
+
+    def exec_tab_erase(self):
+        pass
+
+    def exec_tab_config(self):
+        pass
 
 
 # -- Standalone run -----------------------------------------------------------

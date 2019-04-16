@@ -191,7 +191,7 @@ class Ui_MainWindow(object):
         item = QtWidgets.QTableWidgetItem()
         item.setText("З")
         self.tinfo_tbl_flash.setHorizontalHeaderItem(4, item)
-        self.tinfo_tbl_flash.horizontalHeader().setVisible(True)
+        self.tinfo_tbl_flash.horizontalHeader().setVisible(False)
         self.tinfo_tbl_flash.horizontalHeader().setCascadingSectionResizes(False)
         self.tinfo_tbl_flash.horizontalHeader().setDefaultSectionSize(84)
         self.tinfo_tbl_flash.horizontalHeader().setStretchLastSection(False)
@@ -529,7 +529,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.combo_baud.setCurrentIndex(4)
-        self.tabs_cmd.setCurrentIndex(0)
+        self.tabs_cmd.setCurrentIndex(4)
         self.act_exit.triggered.connect(MainWindow.close)
         self.act_about.triggered.connect(MainWindow.handle_act_about_triggered)
         self.btn_connect.clicked.connect(MainWindow.handle_btn_connect_clicked)
@@ -550,6 +550,7 @@ class Ui_MainWindow(object):
         self.terase_rbtn_erall.toggled['bool'].connect(MainWindow.handle_terase_mode_select_toggled)
         self.tconfig_rbtn_read.toggled['bool'].connect(MainWindow.handle_tconfig_mode_select_toggled)
         self.tconfig_rbtn_write.toggled['bool'].connect(MainWindow.handle_tconfig_mode_select_toggled)
+        self.tabs_cmd.currentChanged['int'].connect(MainWindow.handle_tabs_cmd_changed)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
