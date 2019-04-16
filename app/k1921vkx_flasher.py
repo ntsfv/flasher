@@ -12,6 +12,7 @@ import logger
 import inspect
 import serport
 import mcu
+import protocol as prot
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget)
@@ -33,21 +34,8 @@ def whoami():
     return inspect.getouterframes(inspect.currentframe())[1].function
 
 
-# -- Test functions -----------------------------------------------------------
-def test_init(port, baud):
-    log_info("Открываю порт %s %s" % (port, baud))
-    # return {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-    # return {'chipid': '0x3ABF2FD1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-    return {'chipid': '0x00000000', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-
-
-def test_deinit():
-    log_info("Закрываю порт")
-    return True
-
-
 # -- Main window --------------------------------------------------------------
-class MainWindow(QMainWindow):
+class MyMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
@@ -106,7 +94,7 @@ class MainWindow(QMainWindow):
 
     # -- Events --
     def closeEvent(self, event):
-        test_deinit()
+        prot.deinit()
         event.accept()
 
     # -- Slots --
@@ -140,14 +128,14 @@ class MainWindow(QMainWindow):
             else:
                 state = True
                 btn_text = "Отключиться"
-                mcu_info = test_init(port, baud)
+                mcu_info = prot.init(port=port, baud=baud)
                 if mcu_info:
                     self.mcu = mcu.get_by_chipid(mcu_info['chipid'])
                     update_gui = True
         else:
             state = False
             btn_text = "Подключиться"
-            if test_deinit():
+            if prot.deinit():
                 self.mcu = mcu.get_by_name('k1921vkx')
                 mcu_info = {'chipid': '0xFFFFFFFF', 'cpuid': '0xFFFFFFFF', 'bootver': '0.0'}
                 update_gui = True
@@ -351,35 +339,42 @@ class MainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui.ledit_rdc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
             self.ui.tconfig_widget_cfg.ui.ledit_tac.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
         elif self.mcu.name == 'k1921vk01t':
-            pass
+            allowed_nums = "^((0x|)[0-9A-Fa-f]{1})|([0-9]{1,2})$"
+            self.ui.tconfig_widget_cfg.ui.ledit_pinnum.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
         elif self.mcu.name == 'k1921vkx':
             pass
 
 
+def log_dbg(msg):
+    logger.debug(msg)
+
+
+def log_info(msg):
+    logger.info(msg)
+    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#4e9a06;">INFO</span>]: %s' % msg)
+
+
+def log_warn(msg):
+    logger.warning(msg)
+    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#e9b96e;">WARN</span>]: %s' % msg)
+
+
+def log_err(msg):
+    logger.error(msg)
+    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
+
+
+def log_crit(msg):
+    logger.critical(msg)
+    MainWindow.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
+
+
+logger.init(debug=True, logfile="flasher.log")
+App = QApplication(sys.argv)
+MainWindow = MyMainWindow()
+
+
 # -- Standalone run -----------------------------------------------------------
 if __name__ == '__main__':
-    logger.init(debug=True, logfile="flasher.log")
-
-    def log_dbg(msg):
-        logger.debug(msg)
-
-    def log_info(msg):
-        logger.info(msg)
-        main_window.ui.tedit_log.appendHtml('[<span style=" color:#4e9a06;">INFO</span>]: %s' % msg)
-
-    def log_warn(msg):
-        logger.warning(msg)
-        main_window.ui.tedit_log.appendHtml('[<span style=" color:#e9b96e;">WARN</span>]: %s' % msg)
-
-    def log_err(msg):
-        logger.error(msg)
-        main_window.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
-
-    def log_crit(msg):
-        logger.critical(msg)
-        main_window.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
-
-    app = QApplication(sys.argv)
-    main_window = MainWindow()
-    main_window.show()
-    sys.exit(app.exec_())
+    MainWindow.show()
+    sys.exit(App.exec_())
