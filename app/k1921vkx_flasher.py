@@ -249,14 +249,6 @@ class MyMainWindow(QMainWindow):
         else:
             return 1
 
-    def upd_tconfig(self, state):
-        if state:
-            pass
-        else:
-            for child in self.ui.tconfig_frm_cfg.children():
-                if not (child.objectName() == 'tconfig_lbl_warn0'):
-                    child.deleteLater()
-
     def upd_gbox_flash(self):
         self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
         if len(self.mcu.flash) == 2:
