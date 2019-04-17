@@ -15,7 +15,7 @@ import mcu
 import protocol as prot
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
-                             QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget)
+                             QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox)
 from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
@@ -68,7 +68,7 @@ class MyMainWindow(QMainWindow):
         self.ui.tinfo_tbl_flash.horizontalHeaderItem(4).setToolTip("Запись")
 
         self.mcu = mcu.get_by_name('k1921vkx')
-        self.upd_tinfo_table()
+        self.upd_flash_selected()
         self.upd_tconfig_widget_cfg()
 
         self.ui.twrite_ledit_filepath.path_for_open = True
@@ -77,13 +77,6 @@ class MyMainWindow(QMainWindow):
         self.ui.twrite_ledit_filepath.last_text = ""
         self.ui.tread_ledit_filepath.last_text = ""
         self.ui.tread_ledit_verif_filepath.last_text = ""
-
-        allowed_nums = "^((0x|)[0-9A-Fa-f]{1,8})|([0-9]{1,10})$"
-        self.ui.twrite_ledit_addrstart.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
-        self.ui.terase_ledit_firstpage.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
-        self.ui.terase_ledit_lastpage.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
-        self.ui.tread_ledit_addrstart.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
-        self.ui.tread_ledit_bytes.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
 
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
@@ -118,6 +111,17 @@ class MyMainWindow(QMainWindow):
         event.accept()
 
     # -- Slots --
+    def handle_twrite_combo_lastpage_changed(self, num):
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
+        if (self.is_valid_path(self.ui.twrite_ledit_filepath) and
+           (self.ui.twrite_combo_firstpage.currentIndex() != -1) and
+           (num != -1)):
+            filesize = os.path.getsize(self.ui.twrite_ledit_filepath.text())
+            firstpage = int(self.ui.twrite_combo_firstpage.currentText().split(':')[0])
+            page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+            lastpage = ((firstpage * page_size + filesize - 1) // page_size)
+            self.ui.twrite_combo_lastpage.setCurrentIndex(lastpage - firstpage)
+
     def handle_tedit_log_context_menu(self, pos):
         self.log_dbg("Handler <%s> called" % self.whoami())
         menu = self.ui.tedit_log.createStandardContextMenu()
@@ -175,7 +179,7 @@ class MyMainWindow(QMainWindow):
             self.ui.btn_exec.setEnabled(state)
             self.upd_gbox_flash()
             self.upd_tinfo_values(mcu_info)
-            self.upd_tinfo_table()
+            self.upd_flash_selected()
             self.upd_tconfig_widget_cfg()
 
     def handle_flash_select_toggled(self, state):
@@ -186,7 +190,7 @@ class MyMainWindow(QMainWindow):
             else:
                 flash_name = self.ui.rbtn_flash1.text()
             self.log_info("Выбрана флеш-память %s" % flash_name)
-            self.upd_tinfo_table()
+            self.upd_flash_selected()
 
     def handle_region_select_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
@@ -196,7 +200,7 @@ class MyMainWindow(QMainWindow):
             else:
                 region_name = "NVR/Info"
             self.log_info("Выбрана %s область" % region_name)
-            self.upd_tinfo_table()
+            self.upd_flash_selected()
 
     def handle_btn_exec_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -215,6 +219,7 @@ class MyMainWindow(QMainWindow):
 
     def handle_ledit_filepath_changed(self, text):
         self.log_dbg("Handler <%s> called" % self.whoami())
+        self.log_dbg("Sender <%s>" % self.sender().objectName())
 
         if self.sender().path_for_open:
             if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
@@ -223,6 +228,9 @@ class MyMainWindow(QMainWindow):
             else:
                 self.sender().setStyleSheet("color: red;")
         self.sender().last_text = self.sender().text()
+
+        if "twrite" in self.sender().objectName():
+            self.handle_twrite_combo_lastpage_changed(0)
 
     def handle_btn_fileopen_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -265,14 +273,31 @@ class MyMainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui.tconfig_frm_cfg.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
 
     def handle_tabs_cmd_changed(self, num):
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
         if self.ui.tabs_cmd.currentWidget().objectName() == 'tab_info':
             self.ui.btn_exec.setEnabled(False)
         else:
             self.ui.btn_exec.setEnabled(True)
 
+    def handle_firstpage_select_changed(self, num):
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
+        self.log_dbg("Sender <%s>" % self.sender().objectName())
+        if num != -1:
+            rexp_combo = QtCore.QRegExp('^.*_lastpage$')
+            combo_firstpage = self.sender()
+            combo_lastpage = self.sender().parent().findChildren(QComboBox, rexp_combo)[0]
+            combo_lastpage.clear()
+            for i in range(combo_firstpage.currentIndex(), combo_firstpage.count()):
+                combo_lastpage.addItem(combo_firstpage.itemText(i))
+            if "twrite" in self.sender().objectName():
+                self.handle_twrite_combo_lastpage_changed(0)
+
     # -- Application specific code --
     def is_connected(self):
         return not self.ui.combo_port.isEnabled()
+
+    def is_valid_path(self, ledit_path):
+        return False if ('red' in ledit_path.styleSheet()) or (not ledit_path.text()) else True
 
     def get_curr_flash(self):
         if self.ui.rbtn_flash0.isChecked():
@@ -301,9 +326,17 @@ class MyMainWindow(QMainWindow):
         self.ui.tinfo_ledit_bootver.setText(info['bootver'])
         self.ui.tinfo_lab_mcu.setText(self.mcu.name_ru)
 
-    def upd_tinfo_table(self):
+    def upd_flash_selected(self):
+        write_firstpage = self.ui.twrite_combo_firstpage
+        read_firstpage = self.ui.tread_combo_firstpage
+        erase_firstpage = self.ui.terase_combo_firstpage
         table = self.ui.tinfo_tbl_flash
+
         table.clearContents()
+        write_firstpage.clear()
+        read_firstpage.clear()
+        erase_firstpage.clear()
+
         for r in reversed(range(table.rowCount())):
             table.removeRow(r)
         pages = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
@@ -314,6 +347,9 @@ class MyMainWindow(QMainWindow):
             table.insertRow(r)
             table.setItem(r, 0, QTableWidgetItem("Страница %d" % r))
             table.setItem(r, 1, QTableWidgetItem("0x%x" % (r * page_size)))
+            write_firstpage.addItem("%d: 0x%x" % (r, r * page_size))
+            read_firstpage.addItem("%d: 0x%x" % (r, r * page_size))
+            erase_firstpage.addItem("%d: 0x%x" % (r, r * page_size))
             if page_size < 1024:
                 page_size_str = "0x%08x (%d)" % (page_size, page_size)
             else:
@@ -333,6 +369,9 @@ class MyMainWindow(QMainWindow):
                 wr_cell = QTableWidgetItem(self.icon_unlock, "")
                 wr_cell.setToolTip("Разблокировано")
             table.setItem(r, 4, wr_cell)
+        write_firstpage.currentIndexChanged.emit(0)
+        read_firstpage.currentIndexChanged.emit(0)
+        erase_firstpage.currentIndexChanged.emit(0)
 
     def upd_tconfig_widget_cfg(self):
         self.ui.tconfig_rbtn_read.setChecked(True)
@@ -375,7 +414,7 @@ class MyMainWindow(QMainWindow):
     def exec_tab_write(self):
         self.log_info('Подготовка к выполнению команды записи. Чтение опций ...')
         filepath = self.ui.twrite_ledit_filepath.text()
-        fileexist = False if ('red' in self.ui.twrite_ledit_filepath.styleSheet()) or (not filepath) else True
+        filevalid = self.is_valid_path(self.ui.twrite_ledit_filepath)
         try:
             addrstart = int(self.ui.twrite_ledit_addrstart.text(), 10)
         except ValueError:
@@ -386,7 +425,7 @@ class MyMainWindow(QMainWindow):
         verif = True if self.ui.twrite_chbox_verif.isChecked() else False
         go = True if self.ui.twrite_chbox_go.isChecked() else False
 
-        if fileexist:
+        if filevalid:
             self.log_info('Файл - "%s", размер %d байт' % (filepath, os.path.getsize(filepath)))
         else:
             return self.log_err('Не выполнено - файла "%s" не существует!' % filepath)
