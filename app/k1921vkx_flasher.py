@@ -415,10 +415,12 @@ class MyMainWindow(QMainWindow):
         self.log_info('Подготовка к выполнению команды записи. Чтение опций ...')
         filepath = self.ui.twrite_ledit_filepath.text()
         filevalid = self.is_valid_path(self.ui.twrite_ledit_filepath)
+        firstpage = int(self.ui.twrite_combo_firstpage.currentText().split(":")[0], 10)
         try:
-            addrstart = int(self.ui.twrite_ledit_addrstart.text(), 10)
+            lastpage = int(self.ui.twrite_combo_lastpage.currentText().split(":")[0], 10)
         except ValueError:
-            addrstart = int(self.ui.twrite_ledit_addrstart.text(), 16)
+            lastpage = None
+
         ernone = True if self.ui.twrite_rbtn_ernone.isChecked() else False
         erall = True if self.ui.twrite_rbtn_erall.isChecked() else False
         erpages = True if self.ui.twrite_rbtn_erpages.isChecked() else False
@@ -430,13 +432,15 @@ class MyMainWindow(QMainWindow):
         else:
             return self.log_err('Не выполнено - файла "%s" не существует!' % filepath)
 
-        if addrstart < self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].size:
-            self.log_info('Начальный адрес - 0x%08X' % addrstart)
+        if lastpage is None:
+            return self.log_err('Не выполнено - размер файла превышает размер выбранной области!')
+        else:
+            self.log_info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
 
         if ernone:
             self.log_info('Стирание - не выполняется')
         elif erall:
-            self.log_info('Стирание - полностью вся флеш')
+            self.log_info('Стирание - всей области')
         elif erpages:
             self.log_info('Стирание - только необходимые страницы')
         else:
@@ -445,7 +449,13 @@ class MyMainWindow(QMainWindow):
         self.log_info('Верификация - %sвыполняется' % ("" if verif else "не "))
         self.log_info('Переход к исполнению программы - %sвыполняется' % ("" if go else "не "))
 
-        if prot.write(self, filepath=filepath, addrstart=addrstart,
+        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
+        for p in range(firstpage, lastpage + 1):
+            if curr_flash.wr_lock[p]:
+                return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи')
+        self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+
+        if prot.write(self, filepath=filepath, firstpage=firstpage, lastpage=lastpage,
                       ernone=ernone, erall=erall, erpages=erpages,
                       verif=verif, go=go):
             self.log_info('Команда записи успешно выполнена')
