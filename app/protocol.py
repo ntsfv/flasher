@@ -46,3 +46,15 @@ def write(win, **kwargs):
     log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
     log_dbg(win, kwargs)
     return True
+
+
+def erase(win, **kwargs):
+    log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
+    log_dbg(win, kwargs)
+    return True
+
+
+def read(win, **kwargs):
+    log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
+    log_dbg(win, kwargs)
+    return True

@@ -903,80 +903,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QFrame" name="tread_frm_verif">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>100</height>
-           </size>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::StyledPanel</enum>
-          </property>
-          <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_9">
-           <item>
-            <widget class="QCheckBox" name="tread_chbox_verif">
-             <property name="text">
-              <string notr="true">Верификация</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="tread_lab_verif_fileopen">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="text">
-              <string notr="true">Выбор файла для верификации (*.bin):</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="tread_hbox_verif_file">
-             <item>
-              <widget class="QLineEdit" name="tread_ledit_verif_filepath">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>Файл для верификации</string>
-               </property>
-               <property name="readOnly">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="tread_btn_verif_fileopen">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>20</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="text">
-                <string notr="true">...</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
          <spacer name="tread_vspacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -1108,6 +1034,17 @@
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_help"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
   </widget>
   <action name="act_exit">
    <property name="text">
@@ -1268,54 +1205,6 @@
     <hint type="destinationlabel">
      <x>493</x>
      <y>225</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tread_chbox_verif</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_tread_chbox_verif_toggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>40</x>
-     <y>347</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1</x>
-     <y>387</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tread_ledit_verif_filepath</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_ledit_filepath_changed(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>66</x>
-     <y>395</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>3</x>
-     <y>433</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tread_btn_verif_fileopen</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_btn_fileopen_clicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>461</x>
-     <y>400</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>496</x>
-     <y>382</y>
     </hint>
    </hints>
   </connection>

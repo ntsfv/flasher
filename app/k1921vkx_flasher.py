@@ -73,10 +73,8 @@ class MyMainWindow(QMainWindow):
 
         self.ui.twrite_ledit_filepath.path_for_open = True
         self.ui.tread_ledit_filepath.path_for_open = False
-        self.ui.tread_ledit_verif_filepath.path_for_open = True
         self.ui.twrite_ledit_filepath.last_text = ""
         self.ui.tread_ledit_filepath.last_text = ""
-        self.ui.tread_ledit_verif_filepath.last_text = ""
 
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
@@ -256,12 +254,6 @@ class MyMainWindow(QMainWindow):
         if filename:
             linked_ledit.setText(filename)
 
-    def handle_tread_chbox_verif_toggled(self, state):
-        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
-        self.ui.tread_ledit_verif_filepath.setEnabled(state)
-        self.ui.tread_btn_verif_fileopen.setEnabled(state)
-        self.ui.tread_lab_verif_fileopen.setEnabled(state)
-
     def handle_terase_mode_select_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
@@ -413,6 +405,8 @@ class MyMainWindow(QMainWindow):
 
     def exec_tab_write(self):
         self.log_info('Подготовка к выполнению команды записи. Чтение опций ...')
+        self.log_info('Флеш - %s' % self.mcu.flash[self.get_curr_flash()]["name"].upper())
+        self.log_info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
         filepath = self.ui.twrite_ledit_filepath.text()
         filevalid = self.is_valid_path(self.ui.twrite_ledit_filepath)
         firstpage = int(self.ui.twrite_combo_firstpage.currentText().split(":")[0], 10)
@@ -440,7 +434,7 @@ class MyMainWindow(QMainWindow):
         if ernone:
             self.log_info('Стирание - не выполняется')
         elif erall:
-            self.log_info('Стирание - всей области')
+            self.log_info('Стирание - вся область')
         elif erpages:
             self.log_info('Стирание - только необходимые страницы')
         else:
@@ -452,8 +446,11 @@ class MyMainWindow(QMainWindow):
         curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
-                return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи')
-        self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+                return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+        if erall:
+            for page_locked in curr_flash.wr_lock:
+                if page_locked:
+                    return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
         if prot.write(self, filepath=filepath, firstpage=firstpage, lastpage=lastpage,
                       ernone=ernone, erall=erall, erpages=erpages,
@@ -462,11 +459,60 @@ class MyMainWindow(QMainWindow):
         else:
             return self.log_err('Не выполнено - ошибка протокола!')
 
-    def exec_tab_read(self):
-        pass
-
     def exec_tab_erase(self):
-        pass
+        self.log_info('Подготовка к выполнению команды стирания. Чтение опций ...')
+        self.log_info('Флеш - %s' % self.mcu.flash[self.get_curr_flash()]["name"].upper())
+        self.log_info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
+
+        erall = True if self.ui.terase_rbtn_erall.isChecked() else False
+        erpages = True if self.ui.terase_rbtn_erpages.isChecked() else False
+
+        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
+        if erall:
+            firstpage = 0
+            lastpage = curr_flash.pages - 1
+            self.log_info('Стирание - вся область')
+        elif erpages:
+            firstpage = int(self.ui.terase_combo_firstpage.currentText().split(":")[0], 10)
+            lastpage = int(self.ui.terase_combo_lastpage.currentText().split(":")[0], 10)
+            self.log_info('Стирание - только необходимые страницы')
+        else:
+            return self.log_err('Не выполнено - режим стирания не определён')
+
+        self.log_info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
+
+        for p in range(firstpage, lastpage + 1):
+            if curr_flash.wr_lock[p]:
+                return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+
+        if prot.erase(self, firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages):
+            self.log_info('Команда стирания успешно выполнена')
+        else:
+            return self.log_err('Не выполнено - ошибка протокола!')
+
+    def exec_tab_read(self):
+        self.log_info('Подготовка к выполнению команды чтения. Чтение опций ...')
+        self.log_info('Флеш - %s' % self.mcu.flash[self.get_curr_flash()]["name"].upper())
+        self.log_info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
+        filepath = self.ui.tread_ledit_filepath.text()
+        try:
+            open(filepath, 'w')
+        except (FileNotFoundError, IsADirectoryError, PermissionError):
+            return self.log_err('Не выполнено - некорректный путь для сохранения')
+        firstpage = int(self.ui.tread_combo_firstpage.currentText().split(":")[0], 10)
+        lastpage = int(self.ui.tread_combo_lastpage.currentText().split(":")[0], 10)
+
+        self.log_info('Считываемые страницы - %d ... %d' % (firstpage, lastpage))
+
+        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
+        for p in range(firstpage, lastpage + 1):
+            if curr_flash.rd_lock[p]:
+                return self.log_err('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
+
+        if prot.read(self, filepath=filepath, firstpage=firstpage, lastpage=lastpage):
+            self.log_info('Команда чтения успешно выполнена')
+        else:
+            return self.log_err('Не выполнено - ошибка протокола!')
 
     def exec_tab_config(self):
         pass
