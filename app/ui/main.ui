@@ -256,7 +256,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_info">
        <property name="enabled">
@@ -386,7 +386,7 @@
            <bool>false</bool>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>false</bool>
+           <bool>true</bool>
           </attribute>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
@@ -593,10 +593,16 @@
              <property name="text">
               <string notr="true">Верификация</string>
              </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QCheckBox" name="twrite_chbox_go">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string notr="true">Переход к исполнению загруженного кода</string>
              </property>

@@ -219,10 +219,6 @@ class MyMainWindow(QMainWindow):
         if self.sender().path_for_open:
             if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
 
-                # TODO: поместить это в секцию исполнения
-                self.log_info('Выбран файл "%s"' % self.sender().text())
-                self.log_info('Размер %d байт' % os.path.getsize(self.sender().text()))
-
                 self.sender().setStyleSheet("color: black;")
             else:
                 self.sender().setStyleSheet("color: red;")
@@ -278,14 +274,17 @@ class MyMainWindow(QMainWindow):
     def is_connected(self):
         return not self.ui.combo_port.isEnabled()
 
-    def is_nvr(self):
-        return self.ui.rbtn_regionnvr.isChecked()
-
-    def curr_flash(self):
+    def get_curr_flash(self):
         if self.ui.rbtn_flash0.isChecked():
             return 0
         else:
             return 1
+
+    def get_curr_region(self):
+        if self.ui.rbtn_regionnvr.isChecked():
+            return 'region_nvr'
+        else:
+            return 'region_main'
 
     def upd_gbox_flash(self):
         self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
@@ -307,14 +306,10 @@ class MyMainWindow(QMainWindow):
         table.clearContents()
         for r in reversed(range(table.rowCount())):
             table.removeRow(r)
-        if self.is_nvr():
-            region = 'region_nvr'
-        else:
-            region = 'region_main'
-        pages = self.mcu.flash[self.curr_flash()][region].pages
-        page_size = self.mcu.flash[self.curr_flash()][region].page_size
-        rd_lock = self.mcu.flash[self.curr_flash()][region].rd_lock
-        wr_lock = self.mcu.flash[self.curr_flash()][region].wr_lock
+        pages = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+        rd_lock = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].rd_lock
+        wr_lock = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].wr_lock
         for r in range(0, pages):
             table.insertRow(r)
             table.setItem(r, 0, QTableWidgetItem("Страница %d" % r))
@@ -378,7 +373,45 @@ class MyMainWindow(QMainWindow):
         pass
 
     def exec_tab_write(self):
-        pass
+        self.log_info('Подготовка к выполнению команды записи. Чтение опций ...')
+        filepath = self.ui.twrite_ledit_filepath.text()
+        fileexist = False if ('red' in self.ui.twrite_ledit_filepath.styleSheet()) or (not filepath) else True
+        try:
+            addrstart = int(self.ui.twrite_ledit_addrstart.text(), 10)
+        except ValueError:
+            addrstart = int(self.ui.twrite_ledit_addrstart.text(), 16)
+        ernone = True if self.ui.twrite_rbtn_ernone.isChecked() else False
+        erall = True if self.ui.twrite_rbtn_erall.isChecked() else False
+        erpages = True if self.ui.twrite_rbtn_erpages.isChecked() else False
+        verif = True if self.ui.twrite_chbox_verif.isChecked() else False
+        go = True if self.ui.twrite_chbox_go.isChecked() else False
+
+        if fileexist:
+            self.log_info('Файл - "%s", размер %d байт' % (filepath, os.path.getsize(filepath)))
+        else:
+            return self.log_err('Не выполнено - файла "%s" не существует!' % filepath)
+
+        if addrstart < self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].size:
+            self.log_info('Начальный адрес - 0x%08X' % addrstart)
+
+        if ernone:
+            self.log_info('Стирание - не выполняется')
+        elif erall:
+            self.log_info('Стирание - полностью вся флеш')
+        elif erpages:
+            self.log_info('Стирание - только необходимые страницы')
+        else:
+            return self.log_err('Не выполнено - режим стирания не определён')
+
+        self.log_info('Верификация - %sвыполняется' % ("" if verif else "не "))
+        self.log_info('Переход к исполнению программы - %sвыполняется' % ("" if go else "не "))
+
+        if prot.write(self, filepath=filepath, addrstart=addrstart,
+                      ernone=ernone, erall=erall, erpages=erpages,
+                      verif=verif, go=go):
+            self.log_info('Команда записи успешно выполнена')
+        else:
+            return self.log_err('Не выполнено - ошибка протокола!')
 
     def exec_tab_read(self):
         pass
