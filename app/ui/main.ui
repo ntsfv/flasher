@@ -464,7 +464,7 @@
            <item>
             <widget class="QLabel" name="twrite_lab_fileopen">
              <property name="text">
-              <string notr="true">Выбор файла для записи (*.bin):</string>
+              <string notr="true">Выбор файла для постраничной записи (*.bin):</string>
              </property>
             </widget>
            </item>
@@ -801,7 +801,7 @@
            <item>
             <widget class="QLabel" name="tread_lab_fileopen">
              <property name="text">
-              <string notr="true">Выбор файла для сохранения (*.bin):</string>
+              <string notr="true">Выбор файла для сохранения страниц (*.bin):</string>
              </property>
             </widget>
            </item>
