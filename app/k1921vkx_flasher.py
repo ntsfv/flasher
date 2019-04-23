@@ -8,6 +8,7 @@ K1921VKx Flasher Utility
 # -- Imports ------------------------------------------------------------------
 import sys
 import os
+import getopt
 import logger
 import inspect
 import serport
@@ -26,7 +27,7 @@ from ui_config1921 import Ui_Config1921
 
 
 # -- Global variables ---------------------------------------------------------
-VERSION = "1.0"
+VERSION = "0.1"
 
 
 # -- Misc functions -----------------------------------------------------------
@@ -35,6 +36,8 @@ VERSION = "1.0"
 class MyMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
+
+        self.debug = False;
 
         self.serport = serport.SerPort(self)
 
@@ -87,7 +90,8 @@ class MyMainWindow(QMainWindow):
         return inspect.getouterframes(inspect.currentframe())[1].function
 
     def log_dbg(self, msg):
-        logger.debug(msg)
+        if self.debug:
+            logger.debug(msg)
 
     def log_info(self, msg):
         logger.info(msg)
@@ -525,10 +529,104 @@ class MyMainWindow(QMainWindow):
         pass
 
 
+class ArgParser:
+    def help(self):
+        print("""Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921ВКх.
+Версия v.%s
+
+Доступные ключи: [-hDсeEwvr] [-f flash] [-n region] [-j addr] [-F first] [-L last] [-p port] [-b baud] [file.bin]
+        -h          Вывод этого сообщения
+        -D          Включить вывод отладочной информации
+        -с          Командный режим (без графического интерфейса). Наличие ключа необходимо для выполнения любой команды.
+        -f flash    Выбор флеш-памяти. Допустимые значения 'flash' для разных микроконтроллеров:
+                    bootflash, userflash, mflash, bflash
+        -n region   Выбор области флеш-памяти. Допустимые значения 'region' для разных микроконтроллеров:
+                    main, nvr, info
+        -e          Стереть страницы от 'first' по 'last' включительно
+        -E          Полное стирание
+        -w          Записать 'file.bin' начиная со страницы 'first'. Если добавлены ключи -e или -E - перед записью будет проведено стирание.
+        -v          Верифицировать записанный 'file.bin' (может быть использовано только в паре с -w)
+        -r          Прочитать в файл 'file.bin' страницы от 'first' по 'last' включительно
+        -j addr     Переход на исполнение по глобальному адресу (по этому адресу расположена таблица векторов прерываний)
+        -F first    Номер первой страницы для выполнения команд
+        -L last     Номер последней страницы для выполнения команд
+        -p port     COM-порт
+        -b baud     Баудрейт
+
+        Запись файла led.bin в основную область MFLASH К1921ВК035 с 0 страницы с полным стиранием, верификацией записанного:
+        python k1921vk035_loader.py -wEv -f mflash -n main -F 0 -p /dev/ttyUSB0 -b 115200 led.bin
+
+НИИЭТ, 2019""" % (VERSION))
+
+    def do(self, app, win):
+        conf = {
+            "port": None,
+            "baud": None,
+            "flash": None,
+            "region": None,
+            "first_page": None,
+            "last_page": None,
+            "cmd_mode": None,
+            "debug": None,
+            "erase": None,
+            "mass_erase": None,
+            "write": None,
+            "verify": None,
+            "read": None,
+            "jump_prog": None,
+        }
+
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "hDceEwvrf:n:j:F:L:p:b")
+        except getopt.GetoptError:
+            self.help()
+            sys.exit(2)
+
+        for o, a in opts:
+            if o == '-h':
+                self.help()
+                sys.exit(0)
+            elif o == '-c':
+                conf['cmd_mode'] = True
+            elif o == '-D':
+                conf['debug'] = True
+            elif o == '-e':
+                conf['erase'] = True
+            elif o == '-E':
+                conf['mass_erase'] = True
+            elif o == '-w':
+                conf['write'] = True
+            elif o == '-v':
+                conf['verify'] = True
+            elif o == '-r':
+                conf['read'] = True
+            elif o == '-j':
+                conf['jump_prog'] = eval(a)
+            elif o == '-p':
+                conf['port'] = a
+            elif o == '-b':
+                conf['baud'] = eval(a)
+            elif o == '-F':
+                conf['first_page'] = eval(a)
+            elif o == '-L':
+                conf['last_page'] = eval(a)
+            else:
+                self.help()
+                sys.exit(1)
+        return conf
+
+
 # -- Standalone run -----------------------------------------------------------
 if __name__ == '__main__':
     logger.init(debug=True, logfile="flasher.log")
-    App = QApplication(sys.argv)
-    MainWindow = MyMainWindow()
-    MainWindow.show()
-    sys.exit(App.exec_())
+    app = QApplication(sys.argv)
+    main_window = MyMainWindow()
+    arg_parser = ArgParser()
+    conf = arg_parser.do(app, main_window)
+    if conf['cmd_mode'] is None:
+        main_window.debug = conf['debug']
+        main_window.show()
+        sys.exit(app.exec_())
+    else:
+        main_window.log_info("Режим без графического интерфейса")
+        pass
