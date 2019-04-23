@@ -12,6 +12,10 @@ class Ui_Config035(object):
     def setupUi(self, Config035):
         Config035.setObjectName("Config035")
         Config035.resize(534, 191)
+        font = QtGui.QFont()
+        font.setFamily("DejaVu Sans")
+        font.setPointSize(10)
+        Config035.setFont(font)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Config035)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")

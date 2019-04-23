@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>428</width>
+    <width>548</width>
     <height>555</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>DejaVu Sans</family>
+    <pointsize>10</pointsize>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -45,8 +51,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>449</width>
-        <height>5515</height>
+        <width>530</width>
+        <height>6801</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -119,6 +125,12 @@
            </item>
            <item row="2" column="1">
             <widget class="QComboBox" name="combo_extmemsel">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="currentIndex">
               <number>3</number>
              </property>
@@ -200,6 +212,12 @@
            </item>
            <item row="2" column="1">
             <widget class="QComboBox" name="combo_portnum">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="currentIndex">
               <number>7</number>
              </property>
@@ -260,7 +278,7 @@
              <property name="maximumSize">
               <size>
                <width>50</width>
-               <height>16777215</height>
+               <height>23</height>
               </size>
              </property>
              <property name="text">

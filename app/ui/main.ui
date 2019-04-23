@@ -22,6 +22,12 @@
     <height>650</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <family>DejaVu Sans</family>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string notr="true">K1921VKx Flasher</string>
   </property>
@@ -39,6 +45,18 @@
          <string>Подключение</string>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="hbox_port">
            <item>
@@ -51,8 +69,8 @@
              </property>
              <property name="maximumSize">
               <size>
-               <width>21</width>
-               <height>16777215</height>
+               <width>24</width>
+               <height>24</height>
               </size>
              </property>
              <property name="toolTip">
@@ -72,7 +90,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>16777215</height>
+               <height>23</height>
               </size>
              </property>
             </widget>
@@ -81,8 +99,8 @@
             <widget class="QComboBox" name="combo_baud">
              <property name="maximumSize">
               <size>
-               <width>70</width>
-               <height>16777215</height>
+               <width>80</width>
+               <height>23</height>
               </size>
              </property>
              <property name="currentIndex">
@@ -143,7 +161,7 @@
            <property name="maximumSize">
             <size>
              <width>150</width>
-             <height>16777215</height>
+             <height>23</height>
             </size>
            </property>
            <property name="text">
@@ -165,10 +183,31 @@
            <string>Выбор флеш</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <layout class="QHBoxLayout" name="hbox_flash_select">
              <item>
               <widget class="QRadioButton" name="rbtn_flash0">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>21</height>
+                </size>
+               </property>
                <property name="layoutDirection">
                 <enum>Qt::LeftToRight</enum>
                </property>
@@ -185,6 +224,12 @@
              </item>
              <item>
               <widget class="QRadioButton" name="rbtn_flash1">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>21</height>
+                </size>
+               </property>
                <property name="text">
                 <string notr="true">FLASH1</string>
                </property>
@@ -204,10 +249,28 @@
            <string>Выбор области</string>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_10">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <layout class="QHBoxLayout" name="hbox_region">
              <item>
               <widget class="QRadioButton" name="rbtn_regionmain">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>21</height>
+                </size>
+               </property>
                <property name="layoutDirection">
                 <enum>Qt::LeftToRight</enum>
                </property>
@@ -224,6 +287,12 @@
              </item>
              <item>
               <widget class="QRadioButton" name="rbtn_regionnvr">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>21</height>
+                </size>
+               </property>
                <property name="text">
                 <string notr="true">NVR / Info</string>
                </property>
@@ -255,6 +324,11 @@
         <height>16777215</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -272,6 +346,12 @@
            <layout class="QFormLayout" name="tinfo_hbox_info_values">
             <item row="0" column="0">
              <widget class="QLabel" name="tinfo_lab_chipid">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>23</height>
+               </size>
+              </property>
               <property name="text">
                <string notr="true">CHIPID</string>
               </property>
@@ -288,7 +368,7 @@
               <property name="maximumSize">
                <size>
                 <width>90</width>
-                <height>16777215</height>
+                <height>23</height>
                </size>
               </property>
               <property name="text">
@@ -301,6 +381,12 @@
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="tinfo_lab_cpuid">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>23</height>
+               </size>
+              </property>
               <property name="text">
                <string notr="true">CPUID</string>
               </property>
@@ -317,7 +403,7 @@
               <property name="maximumSize">
                <size>
                 <width>90</width>
-                <height>16777215</height>
+                <height>23</height>
                </size>
               </property>
               <property name="text">
@@ -330,6 +416,12 @@
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="tinfo_lab_bootver">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>23</height>
+               </size>
+              </property>
               <property name="text">
                <string notr="true">Версия загрузчика</string>
               </property>
@@ -346,7 +438,7 @@
               <property name="maximumSize">
                <size>
                 <width>90</width>
-                <height>16777215</height>
+                <height>23</height>
                </size>
               </property>
               <property name="text">
@@ -472,6 +564,12 @@
             <layout class="QHBoxLayout" name="twrite_hbox_file">
              <item>
               <widget class="QLineEdit" name="twrite_ledit_filepath">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>23</height>
+                </size>
+               </property>
                <property name="toolTip">
                 <string>Файл для записи</string>
                </property>
@@ -491,7 +589,7 @@
                <property name="maximumSize">
                 <size>
                  <width>20</width>
-                 <height>16777215</height>
+                 <height>23</height>
                 </size>
                </property>
                <property name="text">
@@ -523,7 +621,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>110</width>
-                   <height>16777215</height>
+                   <height>23</height>
                   </size>
                  </property>
                 </widget>
@@ -553,7 +651,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>110</width>
-                   <height>16777215</height>
+                   <height>23</height>
                   </size>
                  </property>
                 </widget>
@@ -582,6 +680,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <item>
             <widget class="QRadioButton" name="twrite_rbtn_ernone">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="text">
               <string notr="true">Не стирать</string>
              </property>
@@ -589,6 +693,12 @@
            </item>
            <item>
             <widget class="QRadioButton" name="twrite_rbtn_erall">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="text">
               <string notr="true">Стереть всё</string>
              </property>
@@ -596,6 +706,12 @@
            </item>
            <item>
             <widget class="QRadioButton" name="twrite_rbtn_erpages">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="text">
               <string notr="true">Стереть страницы</string>
              </property>
@@ -618,6 +734,12 @@
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
             <widget class="QCheckBox" name="twrite_chbox_verif">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="text">
               <string notr="true">Верификация</string>
              </property>
@@ -630,6 +752,12 @@
             <widget class="QCheckBox" name="twrite_chbox_go">
              <property name="enabled">
               <bool>false</bool>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
              </property>
              <property name="text">
               <string notr="true">Переход к исполнению загруженного кода</string>
@@ -679,6 +807,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
             <widget class="QRadioButton" name="terase_rbtn_erall">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="text">
               <string notr="true">Стереть всё</string>
              </property>
@@ -689,6 +823,12 @@
            </item>
            <item>
             <widget class="QRadioButton" name="terase_rbtn_erpages">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>23</height>
+              </size>
+             </property>
              <property name="text">
               <string notr="true">Стереть страницы</string>
              </property>
@@ -729,7 +869,7 @@
                <property name="maximumSize">
                 <size>
                  <width>110</width>
-                 <height>16777215</height>
+                 <height>23</height>
                 </size>
                </property>
               </widget>
@@ -756,7 +896,7 @@
                <property name="maximumSize">
                 <size>
                  <width>110</width>
-                 <height>16777215</height>
+                 <height>23</height>
                 </size>
                </property>
               </widget>
@@ -809,6 +949,12 @@
             <layout class="QHBoxLayout" name="tread_hbox_file">
              <item>
               <widget class="QLineEdit" name="tread_ledit_filepath">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>23</height>
+                </size>
+               </property>
                <property name="toolTip">
                 <string>Файл для чтения</string>
                </property>
@@ -831,7 +977,7 @@
                <property name="maximumSize">
                 <size>
                  <width>20</width>
-                 <height>16777215</height>
+                 <height>23</height>
                 </size>
                </property>
                <property name="text">
@@ -863,7 +1009,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>110</width>
-                   <height>16777215</height>
+                   <height>23</height>
                   </size>
                  </property>
                 </widget>
@@ -890,7 +1036,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>110</width>
-                   <height>16777215</height>
+                   <height>23</height>
                   </size>
                  </property>
                 </widget>
@@ -944,6 +1090,12 @@
             <layout class="QHBoxLayout" name="horizontalLayout_8">
              <item>
               <widget class="QRadioButton" name="tconfig_rbtn_read">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>23</height>
+                </size>
+               </property>
                <property name="text">
                 <string notr="true">Прочитать</string>
                </property>
@@ -954,6 +1106,12 @@
              </item>
              <item>
               <widget class="QRadioButton" name="tconfig_rbtn_write">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>23</height>
+                </size>
+               </property>
                <property name="text">
                 <string notr="true">Записать</string>
                </property>
@@ -972,6 +1130,12 @@
      <widget class="QPushButton" name="btn_exec">
       <property name="enabled">
        <bool>false</bool>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>23</height>
+       </size>
       </property>
       <property name="text">
        <string notr="true">Выполнить</string>
@@ -998,6 +1162,12 @@
     </item>
     <item>
      <widget class="QProgressBar" name="pbar_cmd">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>23</height>
+       </size>
+      </property>
       <property name="value">
        <number>0</number>
       </property>
@@ -1017,7 +1187,7 @@
      <x>0</x>
      <y>0</y>
      <width>500</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
