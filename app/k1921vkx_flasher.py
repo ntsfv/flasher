@@ -36,6 +36,8 @@ class MyMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
+        self.serport = serport.SerPort(self)
+
         # Set up the user interface from QtDesigner
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -131,7 +133,7 @@ class MyMainWindow(QMainWindow):
     def handle_btn_updport_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
         self.ui.combo_port.clear()
-        [self.ui.combo_port.addItem(port) for port in serport.list_ports()]
+        [self.ui.combo_port.addItem(port) for port in self.serport.list_ports()]
 
     def handle_act_about_triggered(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -440,10 +442,15 @@ class MyMainWindow(QMainWindow):
         else:
             return self.log_err('Не выполнено - режим стирания не определён')
 
+        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
+        if verif:
+            for p in range(firstpage, lastpage + 1):
+                if curr_flash.rd_lock[p]:
+                    verif = False
+                    self.log_warn('Верификация невозможна - одна или несколько считываемых страниц защищены от чтения')
         self.log_info('Верификация - %sвыполняется' % ("" if verif else "не "))
         self.log_info('Переход к исполнению программы - %sвыполняется' % ("" if go else "не "))
 
-        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
