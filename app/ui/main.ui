@@ -607,9 +607,9 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="twrite_lab_firstpage">
+                <widget class="QLabel" name="twrite_lab_addr">
                  <property name="text">
-                  <string notr="true">Первая стр.</string>
+                  <string notr="true">Адрес</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -617,12 +617,56 @@
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QComboBox" name="twrite_combo_firstpage">
+                <widget class="QLineEdit" name="twrite_ledit_addr">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>110</width>
+                   <width>90</width>
                    <height>23</height>
                   </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0x00000000</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="twrite_lab_page">
+                 <property name="text">
+                  <string notr="true">Номер стр.:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="twrite_ledit_page">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>90</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -634,9 +678,9 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="twrite_lab_lastpage">
+                <widget class="QLabel" name="twrite_lab_size">
                  <property name="text">
-                  <string notr="true">Последняя стр.</string>
+                  <string notr="true">Размер (байт)</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -644,15 +688,56 @@
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QComboBox" name="twrite_combo_lastpage">
-                 <property name="enabled">
-                  <bool>false</bool>
+                <widget class="QLineEdit" name="twrite_ledit_size">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>110</width>
+                   <width>90</width>
                    <height>23</height>
                   </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0x00000000</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="twrite_lab_pages">
+                 <property name="text">
+                  <string notr="true">Кол-во стр.:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="twrite_ledit_pages">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>90</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -749,20 +834,46 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="twrite_chbox_go">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>23</height>
-              </size>
-             </property>
-             <property name="text">
-              <string notr="true">Переход к исполнению загруженного кода</string>
-             </property>
-            </widget>
+            <layout class="QFormLayout" name="formLayout">
+             <item row="0" column="0">
+              <widget class="QCheckBox" name="twrite_chbox_jump">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="text">
+                <string notr="true">Переход к исполнению по адресу</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="twrite_ledit_jumpaddr">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>90</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>90</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="text">
+                <string notr="true">0x00000000</string>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </widget>
@@ -855,9 +966,9 @@
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
              <item row="0" column="0">
-              <widget class="QLabel" name="terase_lab_firstpage">
+              <widget class="QLabel" name="terase_lab_addr">
                <property name="text">
-                <string notr="true">Первая стр.</string>
+                <string notr="true">Адрес</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -865,12 +976,56 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QComboBox" name="terase_combo_firstpage">
+              <widget class="QLineEdit" name="terase_ledit_addr">
+               <property name="minimumSize">
+                <size>
+                 <width>90</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
-                 <width>110</width>
+                 <width>90</width>
                  <height>23</height>
                 </size>
+               </property>
+               <property name="text">
+                <string notr="true">0x00000000</string>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="terase_lab_page">
+               <property name="text">
+                <string notr="true">Номер стр.:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="terase_ledit_page">
+               <property name="minimumSize">
+                <size>
+                 <width>90</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>90</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="text">
+                <string notr="true">0</string>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -882,9 +1037,9 @@
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
              <item row="0" column="0">
-              <widget class="QLabel" name="terase_lab_lastpage">
+              <widget class="QLabel" name="terase_lab_size">
                <property name="text">
-                <string notr="true">Последняя стр.</string>
+                <string notr="true">Размер (байт)</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -892,12 +1047,56 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QComboBox" name="terase_combo_lastpage">
+              <widget class="QLineEdit" name="terase_ledit_size">
+               <property name="minimumSize">
+                <size>
+                 <width>90</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
-                 <width>110</width>
+                 <width>90</width>
                  <height>23</height>
                 </size>
+               </property>
+               <property name="text">
+                <string notr="true">0x00000000</string>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="terase_lab_pages">
+               <property name="text">
+                <string notr="true">Кол-во стр.:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="terase_ledit_pages">
+               <property name="minimumSize">
+                <size>
+                 <width>90</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>90</width>
+                 <height>23</height>
+                </size>
+               </property>
+               <property name="text">
+                <string notr="true">0</string>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -995,9 +1194,9 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="tread_lab_firstpage">
+                <widget class="QLabel" name="tread_lab_addr">
                  <property name="text">
-                  <string notr="true">Первая стр.</string>
+                  <string notr="true">Адрес</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1005,12 +1204,56 @@
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QComboBox" name="tread_combo_firstpage">
+                <widget class="QLineEdit" name="tread_ledit_addr">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>110</width>
+                   <width>90</width>
                    <height>23</height>
                   </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0x00000000</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="tread_lab_page">
+                 <property name="text">
+                  <string notr="true">Номер стр.:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="tread_ledit_page">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>90</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -1022,9 +1265,9 @@
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
                <item row="0" column="0">
-                <widget class="QLabel" name="tread_lab_lastpage">
+                <widget class="QLabel" name="tread_lab_size">
                  <property name="text">
-                  <string notr="true">Последняя стр.</string>
+                  <string notr="true">Размер (байт)</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1032,12 +1275,56 @@
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QComboBox" name="tread_combo_lastpage">
+                <widget class="QLineEdit" name="tread_ledit_size">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>110</width>
+                   <width>90</width>
                    <height>23</height>
                   </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0x00000000</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="tread_lab_pages">
+                 <property name="text">
+                  <string notr="true">Кол-во стр.:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="tread_ledit_pages">
+                 <property name="minimumSize">
+                  <size>
+                   <width>90</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>90</width>
+                   <height>23</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -1321,8 +1608,8 @@
    <slot>handle_btn_exec_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>437</x>
-     <y>516</y>
+     <x>443</x>
+     <y>508</y>
     </hint>
     <hint type="destinationlabel">
      <x>496</x>
@@ -1353,8 +1640,8 @@
    <slot>handle_ledit_filepath_changed(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>78</x>
-     <y>256</y>
+     <x>99</x>
+     <y>261</y>
     </hint>
     <hint type="destinationlabel">
      <x>4</x>
@@ -1369,8 +1656,8 @@
    <slot>handle_btn_filesave_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>457</x>
-     <y>255</y>
+     <x>472</x>
+     <y>261</y>
     </hint>
     <hint type="destinationlabel">
      <x>493</x>
@@ -1449,8 +1736,8 @@
    <slot>handle_terase_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>286</x>
-     <y>238</y>
+     <x>352</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
      <x>494</x>
@@ -1465,8 +1752,8 @@
    <slot>handle_terase_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>46</x>
-     <y>235</y>
+     <x>76</x>
+     <y>227</y>
     </hint>
     <hint type="destinationlabel">
      <x>3</x>
@@ -1481,8 +1768,8 @@
    <slot>handle_tconfig_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>60</x>
-     <y>354</y>
+     <x>102</x>
+     <y>346</y>
     </hint>
     <hint type="destinationlabel">
      <x>1</x>
@@ -1497,8 +1784,8 @@
    <slot>handle_tconfig_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>335</x>
-     <y>350</y>
+     <x>352</x>
+     <y>346</y>
     </hint>
     <hint type="destinationlabel">
      <x>495</x>
@@ -1523,66 +1810,178 @@
    </hints>
   </connection>
   <connection>
-   <sender>twrite_combo_firstpage</sender>
-   <signal>currentIndexChanged(int)</signal>
+   <sender>twrite_ledit_addr</sender>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_firstpage_select_changed(int)</slot>
+   <slot>handle_ledit_addr_edited()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>129</x>
-     <y>289</y>
+     <x>136</x>
+     <y>281</y>
     </hint>
     <hint type="destinationlabel">
-     <x>2</x>
-     <y>312</y>
+     <x>-2</x>
+     <y>447</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>terase_combo_firstpage</sender>
-   <signal>currentIndexChanged(int)</signal>
+   <sender>terase_ledit_addr</sender>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_firstpage_select_changed(int)</slot>
+   <slot>handle_ledit_addr_edited()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>128</x>
+     <x>164</x>
      <y>284</y>
     </hint>
     <hint type="destinationlabel">
-     <x>2</x>
-     <y>349</y>
+     <x>3</x>
+     <y>352</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>tread_combo_firstpage</sender>
-   <signal>currentIndexChanged(int)</signal>
+   <sender>terase_ledit_size</sender>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_firstpage_select_changed(int)</slot>
+   <slot>handle_ledit_size_edited()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>150</x>
-     <y>286</y>
+     <x>444</x>
+     <y>284</y>
     </hint>
     <hint type="destinationlabel">
-     <x>2</x>
-     <y>538</y>
+     <x>498</x>
+     <y>408</y>
     </hint>
    </hints>
   </connection>
   <connection>
-   <sender>tread_combo_lastpage</sender>
-   <signal>currentIndexChanged(int)</signal>
+   <sender>tread_ledit_addr</sender>
+   <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
-   <slot>handle_twrite_combo_lastpage_changed(int)</slot>
+   <slot>handle_ledit_addr_edited()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>385</x>
-     <y>288</y>
+     <x>165</x>
+     <y>293</y>
     </hint>
     <hint type="destinationlabel">
-     <x>493</x>
-     <y>539</y>
+     <x>2</x>
+     <y>315</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_size</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_size_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>444</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>501</x>
+     <y>451</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twrite_ledit_page</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_page_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>168</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>505</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_ledit_page</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_page_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>135</x>
+     <y>301</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>431</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_ledit_pages</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_pages_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>437</x>
+     <y>305</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>498</x>
+     <y>340</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_page</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_page_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>142</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-2</x>
+     <y>606</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_pages</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_pages_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>408</x>
+     <y>312</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>500</x>
+     <y>591</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twrite_chbox_jump</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_twrite_chbox_jump_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>109</x>
+     <y>436</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>486</y>
     </hint>
    </hints>
   </connection>
@@ -1601,6 +2000,10 @@
   <slot>handle_tconfig_mode_select_toggled(bool)</slot>
   <slot>handle_tabs_cmd_changed(int)</slot>
   <slot>handle_firstpage_select_changed(int)</slot>
-  <slot>handle_twrite_combo_lastpage_changed(int)</slot>
+  <slot>handle_ledit_addr_edited()</slot>
+  <slot>handle_ledit_size_edited()</slot>
+  <slot>handle_ledit_page_edited()</slot>
+  <slot>handle_ledit_pages_edited()</slot>
+  <slot>handle_twrite_chbox_jump_toggled(bool)</slot>
  </slots>
 </ui>

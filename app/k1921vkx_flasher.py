@@ -37,7 +37,7 @@ class MyMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
-        self.debug = False;
+        self.debug = False
 
         self.serport = serport.SerPort(self)
 
@@ -54,6 +54,21 @@ class MyMainWindow(QMainWindow):
 
         self.ui.tedit_log.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.tedit_log.customContextMenuRequested.connect(self.handle_tedit_log_context_menu)
+
+        allowed_nums = "^((0x|)[0-9A-Fa-f]{1,8})|([0-9]{1,10})$"
+        self.ui.twrite_ledit_addr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_size.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_page.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_pages.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_jumpaddr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_addr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_size.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_page.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_pages.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_addr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_size.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_page.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_pages.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
 
         self.icon_lock = QIcon()
         self.icon_unlock = QIcon()
@@ -85,7 +100,7 @@ class MyMainWindow(QMainWindow):
         self.about_dialog.ui = Ui_AboutDialog()
         self.about_dialog.ui.setupUi(self.about_dialog)
 
-    # -- Log --
+    # -- Helpers --
     def whoami(self):
         return inspect.getouterframes(inspect.currentframe())[1].function
 
@@ -109,22 +124,100 @@ class MyMainWindow(QMainWindow):
         logger.critical(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
 
+    def text2int(self, qobject):
+        try:
+            num = int(qobject.text(), 10)
+            num_format = 'dec'
+        except ValueError:
+            num = int(qobject.text(), 16)
+            num_format = 'hex'
+        return (num, num_format)
+
     # -- Events --
     def closeEvent(self, event):
         prot.deinit(self)
         event.accept()
 
     # -- Slots --
-    def handle_twrite_combo_lastpage_changed(self, num):
-        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
-        if (self.is_valid_path(self.ui.twrite_ledit_filepath) and
-           (self.ui.twrite_combo_firstpage.currentIndex() != -1) and
-           (num != -1)):
-            filesize = os.path.getsize(self.ui.twrite_ledit_filepath.text())
-            firstpage = int(self.ui.twrite_combo_firstpage.currentText().split(':')[0])
-            page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
-            lastpage = ((firstpage * page_size + filesize - 1) // page_size)
-            self.ui.twrite_combo_lastpage.setCurrentIndex(lastpage - firstpage)
+    def handle_ledit_addr_edited(self):
+        self.log_dbg("Handler <%s> called" % self.whoami())
+        ledit_addr = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_addr$'))[0]
+        ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
+        self.log_dbg("Object <%s>" % ledit_addr.objectName())
+        addr, addr_format = self.text2int(ledit_addr)
+        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+        pages = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+
+        if addr >= (page_size * pages):
+            self.log_warn("Адрес выходит за границы диапазона 0x00000000-0x%08X" % ((page_size * pages) - 1))
+            addr = 0
+
+        aligned_addr = ((addr & 0xFFFFFF) // page_size) * page_size
+        ledit_addr.setText("%s" % ("%d" % aligned_addr if addr_format == 'dec' else "0x%08X" % aligned_addr))
+        if addr != aligned_addr:
+            self.log_info("Адрес 0x%08X был выровнен по размеру страницы (0x%X) - 0x%08X" % (addr, page_size, aligned_addr))
+
+        ledit_page.setText("%d" % (aligned_addr // page_size))
+
+    def handle_ledit_size_edited(self):
+        self.log_dbg("Handler <%s> called" % self.whoami())
+        ledit_addr = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_addr$'))[0]
+        ledit_size = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_size$'))[0]
+        ledit_pages = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_pages$'))[0]
+        self.log_dbg("Object <%s>" % ledit_size.objectName())
+        addr, addr_format = self.text2int(ledit_addr)
+        size, size_format = self.text2int(ledit_size)
+        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+        pages_total = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+
+        if size > ((page_size * pages_total) - addr):
+            self.log_warn("Размер области должен быть не более 0x%X байт" % ((page_size * pages_total) - addr))
+            size = 0
+
+        aligned_size = ((size // page_size) + (1 if size % page_size else 0)) * page_size
+        ledit_size.setText("%s" % ("%d" % aligned_size if size_format == 'dec' else "0x%08X" % aligned_size))
+        if size != aligned_size:
+            self.log_info("Размер 0x%X был выровнен по размеру страницы (0x%X) - 0x%X" % (size, page_size, aligned_size))
+
+        ledit_pages.setText("%d" % (aligned_size // page_size))
+
+    def handle_ledit_page_edited(self):
+        self.log_dbg("Handler <%s> called" % self.whoami())
+        ledit_addr = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_addr$'))[0]
+        ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
+        self.log_dbg("Object <%s>" % ledit_page.objectName())
+        page, page_format = self.text2int(ledit_page)
+        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+        pages = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+
+        if page >= pages:
+            self.log_warn("Номер страницы выходит за границы диапазона 0-%d" % (pages - 1))
+            page = 0
+
+        ledit_page.setText("%d" % page)
+        ledit_addr.setText("0x%08X" % (page * page_size))
+
+    def handle_ledit_pages_edited(self):
+        self.log_dbg("Handler <%s> called" % self.whoami())
+        ledit_size = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_size$'))[0]
+        ledit_pages = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_pages$'))[0]
+        ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
+        self.log_dbg("Object <%s>" % ledit_pages.objectName())
+        pages, pages_format = self.text2int(ledit_pages)
+        page, page_format = self.text2int(ledit_page)
+        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+        pages_total = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+
+        if pages > (pages_total - page):
+            self.log_warn("Указанное количество страниц больше максимального (%d)" % (pages_total - page))
+            pages = 0
+
+        ledit_pages.setText("%d" % pages)
+        ledit_size.setText("0x%08X" % (pages * page_size))
+
+    def handle_twrite_chbox_jump_toggled(self, state):
+        self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
+        self.ui.twrite_ledit_jumpaddr.setEnabled(state)
 
     def handle_tedit_log_context_menu(self, pos):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -152,7 +245,7 @@ class MyMainWindow(QMainWindow):
         baud = self.ui.combo_baud.currentText()
         if (not self.is_connected()):
             if not self.ui.combo_port.count():
-                self.log_err("Выберите COM-порт!")
+                self.log_warn("Выберите COM-порт!")
             else:
                 state = True
                 btn_text = "Отключиться"
@@ -233,8 +326,18 @@ class MyMainWindow(QMainWindow):
                 self.sender().setStyleSheet("color: red;")
         self.sender().last_text = self.sender().text()
 
-        if "twrite" in self.sender().objectName():
-            self.handle_twrite_combo_lastpage_changed(0)
+        if ("twrite" in self.sender().objectName() and
+           self.is_valid_path(self.ui.twrite_ledit_filepath)):
+            filesize = os.path.getsize(self.ui.twrite_ledit_filepath.text())
+            page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+            addr, addr_format = self.text2int(self.ui.twrite_ledit_addr)
+            pages_total = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+            if filesize > ((page_size * pages_total) - addr):
+                self.ui.twrite_ledit_size.setText("ошибка")
+                self.ui.twrite_ledit_pages.setText("ошибка")
+            else:
+                self.ui.twrite_ledit_size.setText("0x%08X" % (((filesize // page_size) + (1 if filesize % page_size else 0)) * page_size))
+                self.ui.twrite_ledit_pages.setText("%d" % ((filesize // page_size) + (1 if filesize % page_size else 0)))
 
     def handle_btn_fileopen_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -325,15 +428,9 @@ class MyMainWindow(QMainWindow):
         self.ui.tinfo_lab_mcu.setText(self.mcu.name_ru)
 
     def upd_flash_selected(self):
-        write_firstpage = self.ui.twrite_combo_firstpage
-        read_firstpage = self.ui.tread_combo_firstpage
-        erase_firstpage = self.ui.terase_combo_firstpage
         table = self.ui.tinfo_tbl_flash
 
         table.clearContents()
-        write_firstpage.clear()
-        read_firstpage.clear()
-        erase_firstpage.clear()
 
         for r in reversed(range(table.rowCount())):
             table.removeRow(r)
@@ -345,9 +442,6 @@ class MyMainWindow(QMainWindow):
             table.insertRow(r)
             table.setItem(r, 0, QTableWidgetItem("Страница %d" % r))
             table.setItem(r, 1, QTableWidgetItem("0x%x" % (r * page_size)))
-            write_firstpage.addItem("%d: 0x%x" % (r, r * page_size))
-            read_firstpage.addItem("%d: 0x%x" % (r, r * page_size))
-            erase_firstpage.addItem("%d: 0x%x" % (r, r * page_size))
             if page_size < 1024:
                 page_size_str = "0x%08x (%d)" % (page_size, page_size)
             else:
@@ -367,9 +461,6 @@ class MyMainWindow(QMainWindow):
                 wr_cell = QTableWidgetItem(self.icon_unlock, "")
                 wr_cell.setToolTip("Разблокировано")
             table.setItem(r, 4, wr_cell)
-        write_firstpage.currentIndexChanged.emit(0)
-        read_firstpage.currentIndexChanged.emit(0)
-        erase_firstpage.currentIndexChanged.emit(0)
 
     def upd_tconfig_widget_cfg(self):
         self.ui.tconfig_rbtn_read.setChecked(True)
@@ -415,27 +506,26 @@ class MyMainWindow(QMainWindow):
         self.log_info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
         filepath = self.ui.twrite_ledit_filepath.text()
         filevalid = self.is_valid_path(self.ui.twrite_ledit_filepath)
-        firstpage = int(self.ui.twrite_combo_firstpage.currentText().split(":")[0], 10)
-        try:
-            lastpage = int(self.ui.twrite_combo_lastpage.currentText().split(":")[0], 10)
-        except ValueError:
-            lastpage = None
+        addr = self.text2int(self.ui.twrite_ledit_addr)[0]
+        firstpage = self.text2int(self.ui.twrite_ledit_page)[0]
+        if self.ui.twrite_ledit_size.text() == 'ошибка':
+            return self.log_err('Не выполнено - размер файла превышает размер выбранной области!')
+        else:
+            lastpage = firstpage + self.text2int(self.ui.twrite_ledit_pages)[0] - 1
 
         ernone = True if self.ui.twrite_rbtn_ernone.isChecked() else False
         erall = True if self.ui.twrite_rbtn_erall.isChecked() else False
         erpages = True if self.ui.twrite_rbtn_erpages.isChecked() else False
         verif = True if self.ui.twrite_chbox_verif.isChecked() else False
-        go = True if self.ui.twrite_chbox_go.isChecked() else False
+        jump = True if self.ui.twrite_chbox_jump.isChecked() else False
+        jumpaddr = self.text2int(self.ui.twrite_ledit_jumpaddr)[0]
 
         if filevalid:
             self.log_info('Файл - "%s", размер %d байт' % (filepath, os.path.getsize(filepath)))
         else:
             return self.log_err('Не выполнено - файла "%s" не существует!' % filepath)
 
-        if lastpage is None:
-            return self.log_err('Не выполнено - размер файла превышает размер выбранной области!')
-        else:
-            self.log_info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
+        self.log_info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
 
         if ernone:
             self.log_info('Стирание - не выполняется')
@@ -453,7 +543,10 @@ class MyMainWindow(QMainWindow):
                     verif = False
                     self.log_warn('Верификация невозможна - одна или несколько считываемых страниц защищены от чтения')
         self.log_info('Верификация - %sвыполняется' % ("" if verif else "не "))
-        self.log_info('Переход к исполнению программы - %sвыполняется' % ("" if go else "не "))
+        if jump:
+            self.log_info('Переход к исполнению программы - адрес 0x%08X' % jumpaddr)
+        else:
+            self.log_info('Переход к исполнению программы - не выполняется')
 
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
@@ -463,9 +556,9 @@ class MyMainWindow(QMainWindow):
                 if page_locked:
                     return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
-        if prot.write(self, filepath=filepath, firstpage=firstpage, lastpage=lastpage,
+        if prot.write(self, filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
                       ernone=ernone, erall=erall, erpages=erpages,
-                      verif=verif, go=go):
+                      verif=verif, jump=jump, jumpaddr=jumpaddr):
             self.log_info('Команда записи успешно выполнена')
         else:
             return self.log_err('Не выполнено - ошибка протокола!')
@@ -484,13 +577,17 @@ class MyMainWindow(QMainWindow):
             lastpage = curr_flash.pages - 1
             self.log_info('Стирание - вся область')
         elif erpages:
-            firstpage = int(self.ui.terase_combo_firstpage.currentText().split(":")[0], 10)
-            lastpage = int(self.ui.terase_combo_lastpage.currentText().split(":")[0], 10)
-            self.log_info('Стирание - только необходимые страницы')
+            firstpage = self.text2int(self.ui.terase_ledit_page)[0]
+            pages = self.text2int(self.ui.terase_ledit_pages)[0]
+            if pages:
+                lastpage = firstpage + pages - 1
+            else:
+                return self.log_err('Не выполнено - не определён размер стираемой области')
         else:
             return self.log_err('Не выполнено - режим стирания не определён')
 
-        self.log_info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
+        size = self.text2int(self.ui.terase_ledit_size)[0]
+        self.log_info('Модифицируемые страницы - %d ... %d (%d байт)' % (firstpage, lastpage, size))
 
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
@@ -510,8 +607,14 @@ class MyMainWindow(QMainWindow):
             open(filepath, 'w')
         except (FileNotFoundError, IsADirectoryError, PermissionError):
             return self.log_err('Не выполнено - некорректный путь для сохранения')
-        firstpage = int(self.ui.tread_combo_firstpage.currentText().split(":")[0], 10)
-        lastpage = int(self.ui.tread_combo_lastpage.currentText().split(":")[0], 10)
+        size = self.text2int(self.ui.tread_ledit_size)[0]
+        self.log_info('Файл - "%s", размер %d байт' % (filepath, size))
+        firstpage = self.text2int(self.ui.tread_ledit_page)[0]
+        pages = self.text2int(self.ui.tread_ledit_pages)[0]
+        if pages:
+            lastpage = firstpage + pages - 1
+        else:
+            return self.log_err('Не выполнено - не определён размер считываемой области')
 
         self.log_info('Считываемые страницы - %d ... %d' % (firstpage, lastpage))
 
@@ -534,7 +637,7 @@ class ArgParser:
         print("""Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921ВКх.
 Версия v.%s
 
-Доступные ключи: [-hDсeEwvr] [-f flash] [-n region] [-j addr] [-F first] [-L last] [-p port] [-b baud] [file.bin]
+Доступные ключи: [-hDсeEwvr] [-f flash] [-n region] [-j addr] [-F first] [-L last] [-a addr] [-s size] [-p port] [-b baud] [file.bin]
         -h          Вывод этого сообщения
         -D          Включить вывод отладочной информации
         -с          Командный режим (без графического интерфейса). Наличие ключа необходимо для выполнения любой команды.
@@ -550,6 +653,8 @@ class ArgParser:
         -j addr     Переход на исполнение по глобальному адресу (по этому адресу расположена таблица векторов прерываний)
         -F first    Номер первой страницы для выполнения команд
         -L last     Номер последней страницы для выполнения команд
+        -a addr     Выбор адреса для выполнения команд
+        -s size     Выбор размера области для выполнения команд
         -p port     COM-порт
         -b baud     Баудрейт
 
@@ -566,6 +671,8 @@ class ArgParser:
             "region": None,
             "first_page": None,
             "last_page": None,
+            "addr": None,
+            "size": None,
             "cmd_mode": None,
             "debug": None,
             "erase": None,
@@ -577,7 +684,7 @@ class ArgParser:
         }
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hDceEwvrf:n:j:F:L:p:b")
+            opts, args = getopt.getopt(sys.argv[1:], "hDceEwvrf:n:j:F:L:a:s:p:b")
         except getopt.GetoptError:
             self.help()
             sys.exit(2)
@@ -610,6 +717,10 @@ class ArgParser:
                 conf['first_page'] = eval(a)
             elif o == '-L':
                 conf['last_page'] = eval(a)
+            elif o == '-a':
+                conf['addr'] = eval(a)
+            elif o == '-s':
+                conf['size'] = eval(a)
             else:
                 self.help()
                 sys.exit(1)
