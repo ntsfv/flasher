@@ -7,26 +7,17 @@ import serial
 
 
 class SerPort(serial.Serial):
-    def __init__(self, win=None):
+    def __init__(self, win):
         self.win = win
 
     def log_dbg(self, msg):
-        if self.win:
-            self.win.log_dbg(msg)
-        else:
-            print("DBG: %s" % msg)
+        self.win.log_dbg(msg)
 
     def log_info(self, msg):
-        if self.win:
-            self.win.log_info(msg)
-        else:
-            print("INFO: %s" % msg)
+        self.win.log_info(msg)
 
     def log_err(self, msg):
-        if self.win:
-            self.win.log_err(msg)
-        else:
-            print("ERR: %s" % msg)
+        self.win.log_err(msg)
 
     def open_port(self, port='/dev/ttyUSB0', baudrate=115200, quiet=False):
         self.port = port

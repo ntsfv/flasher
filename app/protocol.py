@@ -51,27 +51,18 @@ def dictKey(mydict, dict_value):
 
 # -- Classes ----------------------------------------------------------------
 class Protocol:
-    def __init__(self, win=None):
+    def __init__(self, win):
         self.win = win
 
     # -- Helpers --
     def log_dbg(self, msg):
-        if self.win:
-            self.win.log_dbg(msg)
-        else:
-            print("DBG: %s" % msg)
+        self.win.log_dbg(msg)
 
     def log_info(self, msg):
-        if self.win:
-            self.win.log_info(msg)
-        else:
-            print("INFO: %s" % msg)
+        self.win.log_info(msg)
 
     def log_err(self, msg):
-        if self.win:
-            self.win.log_err(msg)
-        else:
-            print("ERR: %s" % msg)
+        self.win.log_err(msg)
 
     def save_bin(self, name, data):
         self.log_dbg("Save %0d bytes of data to %s" % (len(data), name))
