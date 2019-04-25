@@ -49,77 +49,72 @@ def dictKey(mydict, dict_value):
     return list(mydict.keys())[list(mydict.values()).index(dict_value)]
 
 
-def log_dbg(win, msg):
-    win.log_dbg(msg)
-
-
-def log_info(win, msg):
-    win.log_info(msg)
-
-
-def log_warn(win, msg):
-    win.log_warn(msg)
-
-
-def log_err(win, msg):
-    win.log_err(msg)
-
-
-def log_crit(win, msg):
-    win.log_dbg(msg)
-
 # -- Classes ----------------------------------------------------------------
+class Protocol:
+    def __init__(self, win=None):
+        self.win = win
 
+    # -- Helpers --
+    def log_dbg(self, msg):
+        if self.win:
+            self.win.log_dbg(msg)
+        else:
+            print("DBG: %s" % msg)
 
-# -- API --------------------------------------------------------------------
-def save_bin(win, name, data):
-    log_dbg(win, "Save %0d bytes of data to %s" % (len(data), name))
-    binfile = open(name, "wb")
-    binfile.write(bytes(data))
-    binfile.close()
+    def log_info(self, msg):
+        if self.win:
+            self.win.log_info(msg)
+        else:
+            print("INFO: %s" % msg)
 
+    def log_err(self, msg):
+        if self.win:
+            self.win.log_err(msg)
+        else:
+            print("ERR: %s" % msg)
 
-def open_bin(win, name):
-    binfile = open(name, "rb")
-    data = []
-    while True:
-        current_byte = binfile.read(1)
-        if (not current_byte):
-            break
-        data += [ord(current_byte)]
-    binfile.close()
-    log_dbg(win, "Loaded %0d bytes of data from %s" % (len(data), name))
-    return data
+    def save_bin(self, name, data):
+        self.log_dbg("Save %0d bytes of data to %s" % (len(data), name))
+        binfile = open(name, "wb")
+        binfile.write(bytes(data))
+        binfile.close()
 
+    def open_bin(self, name):
+        binfile = open(name, "rb")
+        data = []
+        while True:
+            current_byte = binfile.read(1)
+            if (not current_byte):
+                break
+            data += [ord(current_byte)]
+        binfile.close()
+        self.log_dbg("Loaded %0d bytes of data from %s" % (len(data), name))
+        return data
 
-def init(win, **kwargs):
-    log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
-    log_dbg(win, kwargs)
-    return {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-    # return {'chipid': '0x3ABF2FD1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-    # return {'chipid': '0x00000000', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+    # -- API --
+    def init(self, **kwargs):
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        return {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+        # return {'chipid': '0x3ABF2FD1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+        # return {'chipid': '0x00000000', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
 
+    def deinit(self, **kwargs):
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        return True
 
-def deinit(win, **kwargs):
-    log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
-    log_dbg(win, kwargs)
-    log_info(win, "Закрываю порт")
-    return True
+    def write(self, **kwargs):
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        return True
 
+    def erase(self, **kwargs):
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        return True
 
-def write(win, **kwargs):
-    log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
-    log_dbg(win, kwargs)
-    return True
-
-
-def erase(win, **kwargs):
-    log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
-    log_dbg(win, kwargs)
-    return True
-
-
-def read(win, **kwargs):
-    log_dbg(win, "%s->%s()" % (os.path.basename(__file__), win.whoami()))
-    log_dbg(win, kwargs)
-    return True
+    def read(self, **kwargs):
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        return True

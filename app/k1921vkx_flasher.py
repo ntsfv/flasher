@@ -13,7 +13,7 @@ import logger
 import inspect
 import serport
 import mcu
-import protocol as prot
+import protocol
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox)
@@ -40,6 +40,7 @@ class MyMainWindow(QMainWindow):
         self.debug = False
 
         self.serport = serport.SerPort(self)
+        self.prot = protocol.Protocol(self)
 
         # Set up the user interface from QtDesigner
         self.ui = Ui_MainWindow()
@@ -138,7 +139,7 @@ class MyMainWindow(QMainWindow):
 
     # -- Events --
     def closeEvent(self, event):
-        prot.deinit(self)
+        self.prot.deinit()
         event.accept()
 
     # -- Slots --
@@ -252,14 +253,14 @@ class MyMainWindow(QMainWindow):
             else:
                 state = True
                 btn_text = "Отключиться"
-                mcu_info = prot.init(self, port=port, baud=baud)
+                mcu_info = self.prot.init(port=port, baud=baud)
                 if mcu_info:
                     self.mcu = mcu.get_by_chipid(mcu_info['chipid'])
                     update_gui = True
         else:
             state = False
             btn_text = "Подключиться"
-            if prot.deinit(self):
+            if self.prot.deinit():
                 self.mcu = mcu.get_by_name('k1921vkx')
                 mcu_info = {'chipid': '0xFFFFFFFF', 'cpuid': '0xFFFFFFFF', 'bootver': '0.0'}
                 update_gui = True
@@ -558,9 +559,9 @@ class MyMainWindow(QMainWindow):
                 if page_locked:
                     return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
-        if prot.write(self, filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
-                      ernone=ernone, erall=erall, erpages=erpages,
-                      verif=verif, jump=jump, jumpaddr=jumpaddr):
+        if self.prot.write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
+                           ernone=ernone, erall=erall, erpages=erpages,
+                           verif=verif, jump=jump, jumpaddr=jumpaddr):
             self.log_info('Команда записи успешно выполнена')
         else:
             return self.log_err('Не выполнено - ошибка протокола!')
@@ -595,7 +596,7 @@ class MyMainWindow(QMainWindow):
             if curr_flash.wr_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
-        if prot.erase(self, firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages):
+        if self.prot.erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages):
             self.log_info('Команда стирания успешно выполнена')
         else:
             return self.log_err('Не выполнено - ошибка протокола!')
@@ -625,7 +626,7 @@ class MyMainWindow(QMainWindow):
             if curr_flash.rd_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
 
-        if prot.read(self, filepath=filepath, firstpage=firstpage, lastpage=lastpage):
+        if self.prot.read(filepath=filepath, firstpage=firstpage, lastpage=lastpage):
             self.log_info('Команда чтения успешно выполнена')
         else:
             return self.log_err('Не выполнено - ошибка протокола!')
