@@ -257,6 +257,7 @@ class MyMainWindow(QMainWindow):
                     self.mcu = self.prot.init(port=port, baud=baud)
                     update_gui = True
                 except:
+                    self.prot.deinit()
                     self.log_err("Подключиться не удалось. Убедитесь что загрузчик разрешён и сбросьте устройство.")
         else:
             state = False

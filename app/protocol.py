@@ -141,109 +141,120 @@ class RxPacket(Packet):
         self.rxcmd_code = CmdCode["NONE"]
         self.msg_code = MsgCode["NONE"]
 
-    def _msgErrCRC(self):
+    def msg_err_crc(self):
         self.log_dbg(LogId["DEVICE"] + "%s - ERR_CRC - CRC error in HOST command!" % self.dict_key(CmdCode, self.rxcmd_code))
         raise ProtException("Ошибка CRC в команде от хоста!", self.win)
 
-    def _parseMsg(self):
-            self.msg_code = self.data[0]
-            self.rxcmd_code = self.data[1]
+    def parse_msg(self):
+        info = {}
+        self.msg_code = self.data[0]
+        self.rxcmd_code = self.data[1]
 
-            if (self.rxcmd_code == CmdCode["NONE"]):
-                if (self.msg_code == MsgCode["ERR_CMD"]):
-                    self.log_dbg(LogId["DEVICE"] + "ERR_CMD - wrong command from HOST!")
-                    raise ProtException("Принята некорректная команда от хоста!", self.win)
-                elif (self.msg_code == MsgCode["READY"]):
-                    result = "Устройство готово!"
-                    self.log_info(LogId["PROG"] + "%s" % result)
-                    self.log_dbg(LogId["DEVICE"] + "READY - %s" % result)
+        if (self.rxcmd_code == CmdCode["NONE"]):
+            if (self.msg_code == MsgCode["ERR_CMD"]):
+                self.log_dbg(LogId["DEVICE"] + "ERR_CMD - wrong command from HOST!")
+                raise ProtException("Принята некорректная команда от хоста!", self.win)
+            elif (self.msg_code == MsgCode["READY"]):
+                info['cmd_code'] = CmdCode["NONE"]
+                info['msg_code'] = MsgCode["READY"]
+                result = "Устройство готово!"
+                self.log_info(LogId["PROG"] + "%s" % result)
+                self.log_dbg(LogId["DEVICE"] + "READY - %s" % result)
 
-            elif (self.rxcmd_code == CmdCode["GET_INFO"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"]):
-                    result = ("SIU.CHIPID=[0x%08x] SCB.CPUID=[0x%08x] BOOTVER=[0x%08x]" %
-                              ((self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24),
-                               (self.data[8] << 0) | (self.data[9] << 8) | (self.data[10] << 16) | (self.data[11] << 24),
-                               (self.data[12] << 0) | (self.data[13] << 8) | (self.data[14] << 16) | (self.data[15] << 24)))
-                    self.log_info(LogId["PROG"] + "\t%s" % result)
-                    self.log_dbg(LogId["DEVICE"] + "GET_INFO - OK | %s" % result)
+        elif (self.rxcmd_code == CmdCode["GET_INFO"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"]):
+                chipid = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
+                cpuid = (self.data[8] << 0) | (self.data[9] << 8) | (self.data[10] << 16) | (self.data[11] << 24)
+                bootver = (self.data[12] << 0) | (self.data[13] << 8) | (self.data[14] << 16) | (self.data[15] << 24)
+                result = ("SIU.CHIPID=[0x%08x] SCB.CPUID=[0x%08x] BOOTVER=[0x%08x]" %
+                          (chipid, cpuid, bootver))
+                info['cmd_code'] = CmdCode["GET_INFO"]
+                info['msg_code'] = MsgCode["OK"]
+                info['chipid'] = "0x%08X" % chipid
+                info['cpuid'] = "0x%08X" % cpuid
+                info['bootver'] = "%d.%d" % ((bootver & 0xFFFF0000) >> 16, (bootver & 0x0000FFFF) >> 0)
+                self.log_info(LogId["PROG"] + result)
+                self.log_dbg(LogId["DEVICE"] + "GET_INFO - OK | %s" % result)
 
-            elif (self.rxcmd_code == CmdCode["GET_CFGWORD"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"]):
-                    result = ("READEN=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
-                              ((self.data[4] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS,
-                               (self.data[4] & CFGWORD_JTAGEN_MSK) >> CFGWORD_JTAGEN_POS,
-                               (self.data[4] & CFGWORD_DEBUGEN_MSK) >> CFGWORD_DEBUGEN_POS,
-                               (self.data[4] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS,
-                               (self.data[4] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS,
-                               (self.data[4] & CFGWORD_BMODEDIS_MSK) >> CFGWORD_BMODEDIS_POS))
-                    self.log_info(LogId["PROG"] + "\t%s" % result)
-                    self.log_dbg(LogId["DEVICE"] + "GET_CFGWORD - OK | %s" % result)
+        elif (self.rxcmd_code == CmdCode["GET_CFGWORD"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"]):
+                result = ("READEN=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
+                          ((self.data[4] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS,
+                           (self.data[4] & CFGWORD_JTAGEN_MSK) >> CFGWORD_JTAGEN_POS,
+                           (self.data[4] & CFGWORD_DEBUGEN_MSK) >> CFGWORD_DEBUGEN_POS,
+                           (self.data[4] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS,
+                           (self.data[4] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS,
+                           (self.data[4] & CFGWORD_BMODEDIS_MSK) >> CFGWORD_BMODEDIS_POS))
+                self.log_info(LogId["PROG"] + "\t%s" % result)
+                self.log_dbg(LogId["DEVICE"] + "GET_CFGWORD - OK | %s" % result)
 
-            elif (self.rxcmd_code == CmdCode["SET_CFGWORD"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                    self.log_dbg(LogId["DEVICE"] + "SET_CFGWORD - %s | READEN=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
-                        (dict_key(MsgCode, self.msg_code),
-                        (self.data[4] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS,
-                        (self.data[4] & CFGWORD_JTAGEN_MSK) >> CFGWORD_JTAGEN_POS,
-                        (self.data[4] & CFGWORD_DEBUGEN_MSK) >> CFGWORD_DEBUGEN_POS,
-                        (self.data[4] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS,
-                        (self.data[4] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS,
-                        (self.data[4] & CFGWORD_BMODEDIS_MSK) >> CFGWORD_BMODEDIS_POS))
-                    if (self.msg_code == MsgCode["FAIL"]):
-                        raise ProtException("Command failed!", self.win)
+        elif (self.rxcmd_code == CmdCode["SET_CFGWORD"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
+                self.log_dbg(LogId["DEVICE"] + "SET_CFGWORD - %s | READEN=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
+                    (dict_key(MsgCode, self.msg_code),
+                    (self.data[4] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS,
+                    (self.data[4] & CFGWORD_JTAGEN_MSK) >> CFGWORD_JTAGEN_POS,
+                    (self.data[4] & CFGWORD_DEBUGEN_MSK) >> CFGWORD_DEBUGEN_POS,
+                    (self.data[4] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS,
+                    (self.data[4] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS,
+                    (self.data[4] & CFGWORD_BMODEDIS_MSK) >> CFGWORD_BMODEDIS_POS))
+                if (self.msg_code == MsgCode["FAIL"]):
+                    raise ProtException("Command failed!", self.win)
 
-            elif (self.rxcmd_code == CmdCode["WRITE_PAGE"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                    temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
-                    self.log_dbg(LogId["DEVICE"] + "WRITE_PAGE - %s | NVR=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                                 (dict_key(MsgCode, self.msg_code),
-                                 ((temp >> 31) & 0x1), ((temp >> 30) & 0x1), (temp & 0x3FFFFFFF), (temp & 0x3FFFFFFF) // FLASH_PAGE_SIZE))
-                    if (self.msg_code == MsgCode["FAIL"]):
-                        raise ProtException("Command failed!", self.win)
+        elif (self.rxcmd_code == CmdCode["WRITE_PAGE"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
+                temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
+                self.log_dbg(LogId["DEVICE"] + "WRITE_PAGE - %s | NVR=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                             (dict_key(MsgCode, self.msg_code),
+                             ((temp >> 31) & 0x1), ((temp >> 30) & 0x1), (temp & 0x3FFFFFFF), (temp & 0x3FFFFFFF) // FLASH_PAGE_SIZE))
+                if (self.msg_code == MsgCode["FAIL"]):
+                    raise ProtException("Command failed!", self.win)
 
-            elif (self.rxcmd_code == CmdCode["READ_PAGE"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                    temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
-                    self.log_dbg(LogId["DEVICE"] + "READ_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                                 (dict_key(MsgCode, self.msg_code),
-                                 ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // FLASH_PAGE_SIZE))
-                    if (self.msg_code == MsgCode["FAIL"]):
-                        raise ProtException("Command failed!", self.win)
+        elif (self.rxcmd_code == CmdCode["READ_PAGE"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
+                temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
+                self.log_dbg(LogId["DEVICE"] + "READ_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                             (dict_key(MsgCode, self.msg_code),
+                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // FLASH_PAGE_SIZE))
+                if (self.msg_code == MsgCode["FAIL"]):
+                    raise ProtException("Command failed!", self.win)
 
-            elif (self.rxcmd_code == CmdCode["ERASE_FULL"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                    self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s" % self.dict_key(MsgCode, self.msg_code))
-                    if (self.msg_code == MsgCode["FAIL"]):
-                        raise ProtException("Command failed!", self.win)
+        elif (self.rxcmd_code == CmdCode["ERASE_FULL"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
+                self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s" % self.dict_key(MsgCode, self.msg_code))
+                if (self.msg_code == MsgCode["FAIL"]):
+                    raise ProtException("Command failed!", self.win)
 
-            elif (self.rxcmd_code == CmdCode["ERASE_PAGE"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                    temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
-                    self.log_dbg(LogId["DEVICE"] + "ERASE_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                                 (dict_key(MsgCode, self.msg_code),
-                                 ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // FLASH_PAGE_SIZE))
-                    if (self.msg_code == MsgCode["FAIL"]):
-                        raise ProtException("Command failed!", self.win)
+        elif (self.rxcmd_code == CmdCode["ERASE_PAGE"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
+                temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
+                self.log_dbg(LogId["DEVICE"] + "ERASE_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                             (dict_key(MsgCode, self.msg_code),
+                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // FLASH_PAGE_SIZE))
+                if (self.msg_code == MsgCode["FAIL"]):
+                    raise ProtException("Command failed!", self.win)
 
-            elif (self.rxcmd_code == CmdCode["EXIT_BOOTLOADER"]):
-                if (self.msg_code == MsgCode["ERR_CRC"]):
-                    self._msgErrCRC()
-                elif (self.msg_code == MsgCode["OK"]):
-                    self.log_dbg(LogId["DEVICE"] + "EXIT_BOOTLOADER - OK")
+        elif (self.rxcmd_code == CmdCode["EXIT_BOOTLOADER"]):
+            if (self.msg_code == MsgCode["ERR_CRC"]):
+                self.msg_err_crc()
+            elif (self.msg_code == MsgCode["OK"]):
+                self.log_dbg(LogId["DEVICE"] + "EXIT_BOOTLOADER - OK")
+
+        return info
 
     def receive(self):
         # device signature detection
@@ -277,7 +288,7 @@ class RxPacket(Packet):
             self.cmd_code = rx_cmd
             self.data8_n = rx_data_n
             if (self.cmd_code == CmdCode["MSG"]):
-                    self._parseMsg()
+                    return self.parse_msg()
             else:
                 self.log_dbg(LogId["HOST"], "Error! Waiting for MSG but recieve %s command" % self.dict_key(CmdCode, self.cmd_code))
                 raise ProtException("Wrong command received!", self.win)
@@ -317,36 +328,35 @@ class CmdInterface:
         self.serport.dtr = False
         time.sleep(0.1)
 
-    def initDevice(self):
-        self.log_info(LogId["PROG"] + "Init device")
+    def init_device(self):
+        self.log_info(LogId["PROG"] + "Подключение к устройству ...")
         self.serport.rts = True
         self.reset_chip()
         self.serport.write_bytes([0x7F])
         ack = self.serport.read_int(2)
+        self.log_dbg(LogId["DEVICE"] + "ack = 0x%04X" % ack)
         if (ack == ((((SignCode["DEVICE"]) >> 8) & 0x00FF) | (((SignCode["DEVICE"]) << 8) & 0xFF00))):
-            self.log_info(LogId["PROG"] + "Device is connected!")
+            self.log_info(LogId["PROG"] + "Устройство подключено!")
         else:
-            self.log_info(LogId["PROG"] + "Unknown response from device!")
-            raise ProtException("Unknown response from device!", self.win)
+            raise ProtException("Неизвестный ответ от устройства", self.win)
         self.serport.rts = False
-        rxpacket = self.cmd_msg()
-        if ((rxpacket.rxcmd_code != CmdCode["NONE"]) or (rxpacket.msg_code != MsgCode["READY"])):
-            self.log_info(LogId["PROG"] + "Wait for DEVICE ready, but other message received!")
-            raise ProtException("Wait for DEVICE ready, but other message received!", self.win)
+        rx_info = self.cmd_msg()
+        if ((rx_info['cmd_code'] != CmdCode["NONE"]) or (rx_info['msg_code'] != MsgCode["READY"])):
+            raise ProtException("Получено неизвестное сообщение, когда ожидался ответ о готовности", self.win)
 
     def release_device(self):
-        self.log_info(LogId["PROG"] + "Release device")
+        self.log_info(LogId["PROG"] + "Отключение от устройства")
         self.serport.rts = False
         self.reset_chip()
 
     def cmd_get_info(self):
-        self.log_info(LogId["PROG"] + "Read device ID's:")
+        self.log_info(LogId["PROG"] + "Чтение идентификаторов устройства ...")
         packet = TxPacket(self.mcu, self.serport, self.win)
         packet.cmd_code = CmdCode["GET_INFO"]
         packet.data8_n = 0
         self.log_dbg(LogId["HOST"] + "GET_INFO")
         packet.transmit()
-        self.cmd_msg()
+        return self.cmd_msg()
 
     def cmd_get_cfgword(self):
         self.log_info(LogId["PROG"] + "Read device CFGWORD:")
@@ -427,10 +437,11 @@ class CmdInterface:
         self.log_dbg(LogId["HOST"] + "READ_PAGE - NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
             (nvr, addr, page))
         packet.transmit()
-        rx_packet = self.cmd_msg()
+        # TODO: нужно засунуть в словарь данные страницы
+        rx_info = self.cmd_msg()
         page_data = []
-        for i in range(0, rx_packet.data8_n - 8):
-            page_data += [rx_packet.data[i + 8]]
+        for i in range(0, rx_info['data8_n'] - 8):
+            page_data += [rx_info['data'][i + 8]]
         return page_data
 
     def cmd_exit_bootloader(self):
@@ -442,9 +453,8 @@ class CmdInterface:
         packet.transmit()
 
     def cmd_msg(self):
-        packet = TxPacket(self.mcu, self.serport, self.win)
-        packet.receive()
-        return packet
+        packet = RxPacket(self.mcu, self.serport, self.win)
+        return packet.receive()
 
 
 class Protocol:
@@ -494,7 +504,16 @@ class Protocol:
     def init(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
-        mcu_info = {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
+
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+
+        self.serport.open_port(port=kwargs['port'], baudrate=kwargs['baud'])
+        cmd.init_device()
+        mcu_info = cmd.cmd_get_info()
+        #cmd.cmd_get_cfgword()
+
+
+        #mcu_info = {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
         #mcu_info = {'chipid': '0x3ABF2FD1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
         #mcu_info = {'chipid': '0x00000000', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
 
@@ -510,6 +529,9 @@ class Protocol:
     def deinit(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+        self.serport.close_port()
+        cmd.release_device()
         return True
 
     def write(self, **kwargs):

@@ -9,6 +9,7 @@ import serial
 class SerPort(serial.Serial):
     def __init__(self, win=None):
         self.win = win
+        super().__init__()
 
     def log_dbg(self, msg):
         if self.win:
@@ -40,7 +41,7 @@ class SerPort(serial.Serial):
 
     def close_port(self, quiet=False):
         if not quiet:
-            self.log_info("закрываю порт")
+            self.log_info("Закрываю порт")
         self.close()
 
     def write_bytes(self, blist):
