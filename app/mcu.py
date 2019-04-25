@@ -17,8 +17,10 @@ class Flash:
 class K1921VKx:
     def __init__(self):
         self.chipid = '0xFFFFFFFF'
+        self.cpuid = '0xFFFFFFFF'
         self.name = 'k1921vkx'
         self.name_ru = 'К1921ВКххх'
+        self.bootver = '0.0'
         self.flash = [{'name': 'flash0',
                        'region_main': Flash(size=(64 * K), pages=64),
                        'region_nvr': Flash(size=(4 * K), pages=4)},
@@ -45,6 +47,8 @@ class K1921VK035:
         self.chipid = '0x5A298FE1'
         self.name = 'k1921vk035'
         self.name_ru = 'К1921ВК035'
+        self.cpuid = '0xFFFFFFFF'
+        self.bootver = '0.0'
         self.flash = [{'name': 'mflash',
                        'region_main': Flash(size=(64 * K), pages=64),
                        'region_nvr': Flash(size=(4 * K), pages=4)}]
@@ -55,6 +59,8 @@ class K1921VK028:
         self.chipid = '0x3ABF2FD1'
         self.name = 'k1921vk028'
         self.name_ru = 'К1921ВК028'
+        self.cpuid = '0xFFFFFFFF'
+        self.bootver = '0.0'
         self.flash = [{'name': 'mflash',
                        'region_main': Flash(size=(2 * M), pages=128),
                        'region_nvr': Flash(size=(64 * K), pages=4)},
@@ -68,6 +74,8 @@ class K1921VK01T:
         self.chipid = '0x00000000'
         self.name = 'k1921vk01t'
         self.name_ru = 'К1921ВК01Т'
+        self.cpuid = '0xFFFFFFFF'
+        self.bootver = '0.0'
         self.flash = [{'name': 'bootflash',
                        'region_main': Flash(size=(1 * M), pages=128),
                        'region_nvr': Flash(size=(8 * K), pages=1)},

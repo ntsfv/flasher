@@ -39,8 +39,9 @@ class MyMainWindow(QMainWindow):
 
         self.debug = False
 
+        self.mcu = mcu.get_by_name('k1921vkx')
         self.serport = serport.SerPort(self)
-        self.prot = protocol.Protocol(self)
+        self.prot = protocol.Protocol(serport=self.serport, win=self)
 
         # Set up the user interface from QtDesigner
         self.ui = Ui_MainWindow()
@@ -91,10 +92,6 @@ class MyMainWindow(QMainWindow):
         self.ui.tinfo_tbl_flash.horizontalHeaderItem(3).setToolTip("Защита страницы от чтения")
         self.ui.tinfo_tbl_flash.horizontalHeaderItem(4).setToolTip("Защита страницы от записи")
 
-        self.mcu = mcu.get_by_name('k1921vkx')
-        self.upd_flash_selected()
-        self.upd_tconfig_widget_cfg()
-
         self.ui.twrite_ledit_filepath.path_for_open = True
         self.ui.tread_ledit_filepath.path_for_open = False
         self.ui.twrite_ledit_filepath.last_text = ""
@@ -103,6 +100,9 @@ class MyMainWindow(QMainWindow):
         self.about_dialog = QDialog(self)
         self.about_dialog.ui = Ui_AboutDialog()
         self.about_dialog.ui.setupUi(self.about_dialog)
+
+        self.upd_flash_selected()
+        self.upd_tconfig_widget_cfg()
 
     # -- Helpers --
     def whoami(self):
@@ -253,17 +253,17 @@ class MyMainWindow(QMainWindow):
             else:
                 state = True
                 btn_text = "Отключиться"
-                mcu_info = self.prot.init(port=port, baud=baud)
-                if mcu_info:
-                    self.mcu = mcu.get_by_chipid(mcu_info['chipid'])
+                try:
+                    self.mcu = self.prot.init(port=port, baud=baud)
                     update_gui = True
+                except:
+                    self.log_err("Подключиться не удалось. Убедитесь что загрузчик разрешён и сбросьте устройство.")
         else:
             state = False
             btn_text = "Подключиться"
-            if self.prot.deinit():
-                self.mcu = mcu.get_by_name('k1921vkx')
-                mcu_info = {'chipid': '0xFFFFFFFF', 'cpuid': '0xFFFFFFFF', 'bootver': '0.0'}
-                update_gui = True
+            self.prot.deinit()
+            self.mcu = mcu.get_by_name('k1921vkx')
+            update_gui = True
 
         if update_gui:
             self.ui.btn_connect.setText(btn_text)
@@ -278,7 +278,7 @@ class MyMainWindow(QMainWindow):
             self.ui.gbox_flash.setEnabled(state)
             self.ui.gbox_region.setEnabled(state)
             self.upd_gbox_flash()
-            self.upd_tinfo_values(mcu_info)
+            self.upd_tinfo_values()
             self.upd_flash_selected()
             self.upd_tconfig_widget_cfg()
 
@@ -424,10 +424,10 @@ class MyMainWindow(QMainWindow):
             self.ui.rbtn_flash1.setEnabled(False)
             self.ui.rbtn_flash1.setText('')
 
-    def upd_tinfo_values(self, info):
-        self.ui.tinfo_ledit_chipid.setText(info['chipid'])
-        self.ui.tinfo_ledit_cpuid.setText(info['cpuid'])
-        self.ui.tinfo_ledit_bootver.setText(info['bootver'])
+    def upd_tinfo_values(self):
+        self.ui.tinfo_ledit_chipid.setText(self.mcu.chipid)
+        self.ui.tinfo_ledit_cpuid.setText(self.mcu.cpuid)
+        self.ui.tinfo_ledit_bootver.setText(self.mcu.bootver)
         self.ui.tinfo_lab_mcu.setText(self.mcu.name_ru)
 
     def upd_flash_selected(self):
@@ -559,12 +559,13 @@ class MyMainWindow(QMainWindow):
                 if page_locked:
                     return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
-        if self.prot.write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
-                           ernone=ernone, erall=erall, erpages=erpages,
-                           verif=verif, jump=jump, jumpaddr=jumpaddr):
+        try:
+            self.prot.write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
+                            ernone=ernone, erall=erall, erpages=erpages,
+                            verif=verif, jump=jump, jumpaddr=jumpaddr)
             self.log_info('Команда записи успешно выполнена')
-        else:
-            return self.log_err('Не выполнено - ошибка протокола!')
+        except:
+            return self.log_err('Команда записи не выполнена - ошибка протокола!')
 
     def exec_tab_erase(self):
         self.log_info('Подготовка к выполнению команды стирания. Чтение опций ...')
@@ -596,10 +597,11 @@ class MyMainWindow(QMainWindow):
             if curr_flash.wr_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
-        if self.prot.erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages):
+        try:
+            self.prot.erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages)
             self.log_info('Команда стирания успешно выполнена')
-        else:
-            return self.log_err('Не выполнено - ошибка протокола!')
+        except:
+            return self.log_err('Команда стирания не выполнена - ошибка протокола!')
 
     def exec_tab_read(self):
         self.log_info('Подготовка к выполнению команды чтения. Чтение опций ...')
@@ -626,10 +628,11 @@ class MyMainWindow(QMainWindow):
             if curr_flash.rd_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
 
-        if self.prot.read(filepath=filepath, firstpage=firstpage, lastpage=lastpage):
+        try:
+            self.prot.read(filepath=filepath, firstpage=firstpage, lastpage=lastpage)
             self.log_info('Команда чтения успешно выполнена')
-        else:
-            return self.log_err('Не выполнено - ошибка протокола!')
+        except:
+            return self.log_err('Команда чтения не выполнена - ошибка протокола!')
 
     def exec_tab_config(self):
         pass
