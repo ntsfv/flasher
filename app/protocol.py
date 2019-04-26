@@ -157,7 +157,7 @@ class RxPacket(Packet):
             elif (self.msg_code == MsgCode["READY"]):
                 info['cmd_code'] = CmdCode["NONE"]
                 info['msg_code'] = MsgCode["READY"]
-                result = "Устройство готово!"
+                result = "Устройство ответило о готовности"
                 self.log_info(LogId["PROG"] + "%s" % result)
                 self.log_dbg(LogId["DEVICE"] + "READY - %s" % result)
 
@@ -274,14 +274,14 @@ class RxPacket(Packet):
         if (rx_data_n > self.device_data_n_max):
             self.log_dbg(LogId["HOST"], "MSG_CMD - ERR_N - wrong N number from DEVICE!")
             raise ProtException("Wrong N received!", self.win)
-        # start data load and _crc16 calculation
-        crc = self._crc16(rx_cmd)
-        crc = self._crc16(rx_cmd_inv, crc)
-        crc = self._crc16((rx_data_n >> 0) & 0xFF, crc)
-        crc = self._crc16((rx_data_n >> 8) & 0xFF, crc)
+        # start data load and crc16 calculation
+        crc = self.crc16(rx_cmd)
+        crc = self.crc16(rx_cmd_inv, crc)
+        crc = self.crc16((rx_data_n >> 0) & 0xFF, crc)
+        crc = self.crc16((rx_data_n >> 8) & 0xFF, crc)
         for i in range(0, rx_data_n):
             self.data += [self.serport.read_int()]
-            crc = self._crc16(self.data[i], crc)
+            crc = self.crc16(self.data[i], crc)
         rx_crc = self.serport.read_int(2)
         # check crc
         if (rx_crc == crc):
@@ -336,7 +336,7 @@ class CmdInterface:
         ack = self.serport.read_int(2)
         self.log_dbg(LogId["DEVICE"] + "ack = 0x%04X" % ack)
         if (ack == ((((SignCode["DEVICE"]) >> 8) & 0x00FF) | (((SignCode["DEVICE"]) << 8) & 0xFF00))):
-            self.log_info(LogId["PROG"] + "Устройство подключено!")
+            self.log_info(LogId["PROG"] + "Устройство подключено")
         else:
             raise ProtException("Неизвестный ответ от устройства", self.win)
         self.serport.rts = False
@@ -512,11 +512,6 @@ class Protocol:
         mcu_info = cmd.cmd_get_info()
         #cmd.cmd_get_cfgword()
 
-
-        #mcu_info = {'chipid': '0x5A298FE1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-        #mcu_info = {'chipid': '0x3ABF2FD1', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-        #mcu_info = {'chipid': '0x00000000', 'cpuid': '0xDEADBEEF', 'bootver': '0.1'}
-
         inited_mcu = mcu.get_by_chipid(mcu_info["chipid"])
         if inited_mcu is None:
             raise ProtException("Неизвестный CHIPID!", self.win)
@@ -524,14 +519,16 @@ class Protocol:
             self.mcu = inited_mcu
         self.mcu.cpuid = mcu_info['cpuid']
         self.mcu.bootver = mcu_info['bootver']
+        self.log_info("Обнаружен %s с версией загрузчика v%s" % (self.mcu.name_ru, self.mcu.bootver))
         return self.mcu
 
     def deinit(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
-        self.serport.close_port()
         cmd.release_device()
+        self.serport.close_port()
+        self.log_info("Произведено отключение от устройства")
         return True
 
     def write(self, **kwargs):
