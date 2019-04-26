@@ -182,15 +182,11 @@ class RxPacket(Packet):
             if (self.msg_code == MsgCode["ERR_CRC"]):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"]):
-                result = ("READEN=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
-                          ((self.data[4] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS,
-                           (self.data[4] & CFGWORD_JTAGEN_MSK) >> CFGWORD_JTAGEN_POS,
-                           (self.data[4] & CFGWORD_DEBUGEN_MSK) >> CFGWORD_DEBUGEN_POS,
-                           (self.data[4] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS,
-                           (self.data[4] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS,
-                           (self.data[4] & CFGWORD_BMODEDIS_MSK) >> CFGWORD_BMODEDIS_POS))
-                self.log_info(LogId["PROG"] + "\t%s" % result)
-                self.log_dbg(LogId["DEVICE"] + "GET_CFGWORD - OK | %s" % result)
+                info['cmd_code'] = CmdCode["GET_INFO"]
+                info['msg_code'] = MsgCode["OK"]
+                info.update(self.mcu.parse_cfgword(self.data[4:]))
+                self.log_info(LogId["PROG"] + "%s" % info["res_str"])
+                self.log_dbg(LogId["DEVICE"] + "GET_CFGWORD - OK | %s" % info["res_str"])
 
         elif (self.rxcmd_code == CmdCode["SET_CFGWORD"]):
             if (self.msg_code == MsgCode["ERR_CRC"]):
@@ -359,13 +355,13 @@ class CmdInterface:
         return self.cmd_msg()
 
     def cmd_get_cfgword(self):
-        self.log_info(LogId["PROG"] + "Read device CFGWORD:")
+        self.log_info(LogId["PROG"] + "Чтение CFGWORD ...")
         packet = TxPacket(self.mcu, self.serport, self.win)
         packet.cmd_code = CmdCode["GET_CFGWORD"]
         packet.data8_n = 0
         self.log_dbg(LogId["HOST"] + "GET_CFGWORD")
         packet.transmit()
-        self.cmd_msg()
+        return self.cmd_msg()
 
     def cmd_set_cfgword(self, cfgword):
         self.log_info(LogId["PROG"] + "Set new CFGWORD 0x%08x" % cfgword)
@@ -510,13 +506,14 @@ class Protocol:
         self.serport.open_port(port=kwargs['port'], baudrate=kwargs['baud'])
         cmd.init_device()
         mcu_info = cmd.cmd_get_info()
-        #cmd.cmd_get_cfgword()
-
         inited_mcu = mcu.get_by_chipid(mcu_info["chipid"])
         if inited_mcu is None:
             raise ProtException("Неизвестный CHIPID!", self.win)
         else:
             self.mcu = inited_mcu
+            cmd.mcu = self.mcu
+        mcu_cfgword = cmd.cmd_get_cfgword()
+        self.mcu.apply_cfgword(mcu_cfgword)
         self.mcu.cpuid = mcu_info['cpuid']
         self.mcu.bootver = mcu_info['bootver']
         self.log_info("Обнаружен %s с версией загрузчика v%s" % (self.mcu.name_ru, self.mcu.bootver))
@@ -543,6 +540,17 @@ class Protocol:
         return True
 
     def read(self, **kwargs):
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        return True
+
+    def get_cfgword(self, **kwargs):
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+        return cmd.cmd_get_cfgword()
+
+    def set_cfgword(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         return True

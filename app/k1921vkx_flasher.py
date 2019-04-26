@@ -14,6 +14,7 @@ import inspect
 import serport
 import mcu
 import protocol
+import traceback
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox)
@@ -139,7 +140,8 @@ class MyMainWindow(QMainWindow):
 
     # -- Events --
     def closeEvent(self, event):
-        self.prot.deinit()
+        if self.serport.is_open:
+            self.prot.deinit()
         event.accept()
 
     # -- Slots --
@@ -259,6 +261,7 @@ class MyMainWindow(QMainWindow):
                 except:
                     self.prot.deinit()
                     self.log_err("Подключиться не удалось. Убедитесь что загрузчик разрешён и сбросьте устройство.")
+                    traceback.print_exc()
         else:
             state = False
             btn_text = "Подключиться"
@@ -286,21 +289,11 @@ class MyMainWindow(QMainWindow):
     def handle_flash_select_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
-            if self.ui.rbtn_flash0.isChecked():
-                flash_name = self.ui.rbtn_flash0.text()
-            else:
-                flash_name = self.ui.rbtn_flash1.text()
-            self.log_info("Выбрана флеш-память %s" % flash_name)
             self.upd_flash_selected()
 
     def handle_region_select_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
-            if self.ui.rbtn_regionmain.isChecked():
-                region_name = "основная"
-            else:
-                region_name = "NVR/Info"
-            self.log_info("Выбрана %s область" % region_name)
             self.upd_flash_selected()
 
     def handle_btn_exec_clicked(self):
@@ -487,7 +480,7 @@ class MyMainWindow(QMainWindow):
         self.ui.tconfig_widget_cfg.ui.setupUi(self.ui.tconfig_widget_cfg)
         # post-setup
         if self.mcu.name == 'k1921vk035':
-            pass
+            self.exec_tab_config_035(self.mcu.cfgword)
         elif self.mcu.name == 'k1921vk028':
             allowed_nums = "^((0x|)[0-9A-Fa-f]{1,3})|([0-9]{1,4})$"
             self.ui.tconfig_widget_cfg.ui.ledit_mask.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
@@ -636,6 +629,40 @@ class MyMainWindow(QMainWindow):
             return self.log_err('Команда чтения не выполнена - ошибка протокола!')
 
     def exec_tab_config(self):
+        if self.ui.tconfig_rbtn_read.isChecked():
+            cfgword = self.prot.get_cfgword()
+            if self.mcu.name == 'k1921vk035':
+                self.exec_tab_config_035(cfgword)
+            elif self.mcu.name == 'k1921vk028':
+                self.exec_tab_config_028(cfgword)
+            elif self.mcu.name == 'k1921vk01t':
+                self.exec_tab_config_01t(cfgword)
+        else:
+            if self.mcu.name == 'k1921vk035':
+                cfgword = self.exec_tab_config_035()
+            elif self.mcu.name == 'k1921vk028':
+                cfgword = self.exec_tab_config_028()
+            elif self.mcu.name == 'k1921vk01t':
+                cfgword = self.exec_tab_config_01t()
+            self.prot.get_cfgword(cfgword)
+
+    def exec_tab_config_035(self, cfgword=None):
+        widget035 = self.ui.tconfig_widget_cfg
+        if cfgword:
+            widget035.ui.chbox_bmodedis.setChecked(cfgword['bmodedis'])
+            widget035.ui.chbox_flashwe.setChecked(cfgword['flashwe'])
+            widget035.ui.chbox_nvrwe.setChecked(cfgword['nvrwe'])
+            widget035.ui.chbox_debugen.setChecked(cfgword['debugen'])
+            widget035.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
+            widget035.ui.chbox_flashre.setChecked(cfgword['flashre'])
+            widget035.ui.chbox_nvrre.setChecked(cfgword['nvrre'])
+        else:
+            pass
+
+    def exec_tab_config_028(self):
+        pass
+
+    def exec_tab_config_01t(self):
         pass
 
 

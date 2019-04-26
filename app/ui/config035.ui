@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>534</width>
-    <height>191</height>
+    <height>607</height>
    </rect>
   </property>
   <property name="font">
@@ -20,18 +20,6 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
    <item>
     <widget class="QFrame" name="tconfig_frm_cfg">
      <property name="enabled">
@@ -58,51 +46,17 @@
        </widget>
       </item>
       <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>CFGWORD</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QGridLayout" name="grid_cfgword">
-        <item row="0" column="1">
-         <layout class="QFormLayout" name="form_col1">
-          <item row="1" column="0">
-           <widget class="QLabel" name="lbl_debugen">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение работы функции отладки внутри ядра&lt;/p&gt;&lt;p&gt;1 - разрешение работы функции отладки внутри ядра&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>DEBUGEN</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="chbox_debugen">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="lbl_nvrwe">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение записи и стирания NVR области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания NVR области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>NVRWE</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="chbox_nvrwe">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
         <item row="0" column="0">
          <layout class="QFormLayout" name="form_col0">
           <item row="0" column="0">
@@ -125,16 +79,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="chbox_flashwe">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="lbl_flashwe">
             <property name="toolTip">
@@ -145,8 +89,8 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="chbox_jtagen">
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="chbox_flashwe">
             <property name="text">
              <string/>
             </property>
@@ -162,6 +106,122 @@
             </property>
             <property name="text">
              <string>JTAGEN</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="chbox_jtagen">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="1">
+         <layout class="QFormLayout" name="form_col1">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lbl_nvrwe">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение записи и стирания NVR области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания NVR области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>NVRWE</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="chbox_nvrwe">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lbl_debugen">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение работы функции отладки внутри ядра&lt;/p&gt;&lt;p&gt;1 - разрешение работы функции отладки внутри ядра&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>DEBUGEN</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="chbox_debugen">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Дополнительные биты конфигурации</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="grid_cfgword_2">
+        <item row="0" column="1">
+         <layout class="QFormLayout" name="form_col1_2">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lbl_nvrre">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение записи и стирания NVR области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания NVR области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>NVRRE</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="chbox_nvrre">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <layout class="QFormLayout" name="form_col0_2">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lbl_flashre">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>FLASHRE</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="chbox_flashre">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

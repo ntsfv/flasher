@@ -30,13 +30,15 @@ class K1921VKx:
 
 
 class K1921VK035:
-    CFGWORD_READEN_POS = 7
+    CFGWORD_FLASHRE_POS = 7
+    CFGWORD_NVRRE_POS = 6
     CFGWORD_BMODEDIS_POS = 4
     CFGWORD_FLASHWE_POS = 3
     CFGWORD_NVRWE_POS = 2
     CFGWORD_DEBUGEN_POS = 1
     CFGWORD_JTAGEN_POS = 0
-    CFGWORD_READEN_MSK = 1 << CFGWORD_READEN_POS
+    CFGWORD_FLASHRE_MSK = 1 << CFGWORD_FLASHRE_POS
+    CFGWORD_NVRRE_MSK = 1 << CFGWORD_NVRRE_POS
     CFGWORD_BMODEDIS_MSK = 1 << CFGWORD_BMODEDIS_POS
     CFGWORD_FLASHWE_MSK = 1 << CFGWORD_FLASHWE_POS
     CFGWORD_NVRWE_MSK = 1 << CFGWORD_NVRWE_POS
@@ -52,6 +54,35 @@ class K1921VK035:
         self.flash = [{'name': 'mflash',
                        'region_main': Flash(size=(64 * K), pages=64),
                        'region_nvr': Flash(size=(4 * K), pages=4)}]
+        self.cfgword = {}
+
+    def parse_cfgword(self, data):
+        cfgword = {}
+        cfgword['flashre'] = (data[0] & self.CFGWORD_FLASHRE_MSK) >> self.CFGWORD_FLASHRE_POS
+        cfgword['nvrre'] = (data[0] & self.CFGWORD_NVRRE_MSK) >> self.CFGWORD_NVRRE_POS
+        cfgword['jtagen'] = (data[0] & self.CFGWORD_JTAGEN_MSK) >> self.CFGWORD_JTAGEN_POS
+        cfgword['debugen'] = (data[0] & self.CFGWORD_DEBUGEN_MSK) >> self.CFGWORD_DEBUGEN_POS
+        cfgword['nvrwe'] = (data[0] & self.CFGWORD_NVRWE_MSK) >> self.CFGWORD_NVRWE_POS
+        cfgword['flashwe'] = (data[0] & self.CFGWORD_FLASHWE_MSK) >> self.CFGWORD_FLASHWE_POS
+        cfgword['bmodedis'] = (data[0] & self.CFGWORD_BMODEDIS_MSK) >> self.CFGWORD_BMODEDIS_POS
+        cfgword['res_str'] = ("FLASHRE=[%01d] NVRRE=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
+                              (cfgword['flashre'], cfgword['nvrre'], cfgword['jtagen'], cfgword['debugen'], cfgword['nvrwe'], cfgword['flashwe'], cfgword['bmodedis']))
+        return cfgword
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        if not cfgword['flashre']:
+            for p in range(self.flash[0]['region_main'].pages):
+                self.flash[0]['region_main'].rd_lock[p] = True
+        if not cfgword['nvrre']:
+            for p in range(self.flash[0]['region_nvr'].pages):
+                self.flash[0]['region_nvr'].rd_lock[p] = True
+        if not cfgword['flashwe']:
+            for p in range(self.flash[0]['region_main'].pages):
+                self.flash[0]['region_main'].wr_lock[p] = True
+        if not cfgword['nvrwe']:
+            for p in range(self.flash[0]['region_nvr'].pages):
+                self.flash[0]['region_nvr'].wr_lock[p] = True
 
 
 class K1921VK028:
