@@ -563,7 +563,8 @@ class MyMainWindow(QMainWindow):
                             verif=verif, jump=jump, jumpaddr=jumpaddr)
             self.log_info('Команда записи успешно выполнена')
         except:
-            return self.log_err('Команда записи не выполнена - ошибка протокола!')
+            self.log_err('Команда записи не выполнена - ошибка протокола!')
+            traceback.print_exc()
 
     def exec_tab_erase(self):
         self.log_info('Подготовка к выполнению команды стирания. Чтение опций ...')
@@ -599,7 +600,8 @@ class MyMainWindow(QMainWindow):
             self.prot.erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages)
             self.log_info('Команда стирания успешно выполнена')
         except:
-            return self.log_err('Команда стирания не выполнена - ошибка протокола!')
+            self.log_err('Команда стирания не выполнена - ошибка протокола!')
+            traceback.print_exc()
 
     def exec_tab_read(self):
         self.log_info('Подготовка к выполнению команды чтения. Чтение опций ...')
@@ -630,7 +632,8 @@ class MyMainWindow(QMainWindow):
             self.prot.read(filepath=filepath, firstpage=firstpage, lastpage=lastpage)
             self.log_info('Команда чтения успешно выполнена')
         except:
-            return self.log_err('Команда чтения не выполнена - ошибка протокола!')
+            self.log_err('Команда чтения не выполнена - ошибка протокола!')
+            traceback.print_exc()
 
     def exec_tab_config(self):
         if self.ui.tconfig_rbtn_read.isChecked():
@@ -646,7 +649,8 @@ class MyMainWindow(QMainWindow):
                 elif self.mcu.name == 'k1921vk01t':
                     self.exec_tab_config_01t(cfgword)
             except:
-                return self.log_err('Команда чтения CFGWORD не выполнена!')
+                self.log_err('Команда чтения CFGWORD не выполнена!')
+                traceback.print_exc()
         else:
             try:
                 if self.mcu.name == 'k1921vk035':
@@ -660,7 +664,8 @@ class MyMainWindow(QMainWindow):
                 self.mcu.apply_cfgword(cfgword)
                 self.upd_flash_selected()
             except:
-                return self.log_err('Команда записи CFGWORD не выполнена!')
+                self.log_err('Команда записи CFGWORD не выполнена!')
+                traceback.print_exc()
 
     def exec_tab_config_035(self, cfgword=None):
         widget035 = self.ui.tconfig_widget_cfg

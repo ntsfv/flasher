@@ -146,6 +146,7 @@ class RxPacket(Packet):
         raise ProtException("Ошибка CRC в команде от хоста!", self.win)
 
     def parse_msg(self):
+        flash_page_size = self.mcu.flash[self.win.get_curr_flash()][self.win.get_curr_region()].page_size
         info = {}
         self.msg_code = self.data[0]
         self.rxcmd_code = self.data[1]
@@ -208,7 +209,7 @@ class RxPacket(Packet):
                 temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
                 self.log_dbg(LogId["DEVICE"] + "WRITE_PAGE - %s | NVR=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                              (dict_key(MsgCode, self.msg_code),
-                             ((temp >> 31) & 0x1), ((temp >> 30) & 0x1), (temp & 0x3FFFFFFF), (temp & 0x3FFFFFFF) // FLASH_PAGE_SIZE))
+                             ((temp >> 31) & 0x1), ((temp >> 30) & 0x1), (temp & 0x3FFFFFFF), (temp & 0x3FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
                     raise ProtException("Command failed!", self.win)
 
@@ -217,11 +218,12 @@ class RxPacket(Packet):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
                 temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
+                info['data'] = self.data[8:]
                 self.log_dbg(LogId["DEVICE"] + "READ_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                              (dict_key(MsgCode, self.msg_code),
-                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // FLASH_PAGE_SIZE))
+                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
-                    raise ProtException("Command failed!", self.win)
+                    raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
         elif (self.rxcmd_code == CmdCode["ERASE_FULL"]):
             if (self.msg_code == MsgCode["ERR_CRC"]):
@@ -238,7 +240,7 @@ class RxPacket(Packet):
                 temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
                 self.log_dbg(LogId["DEVICE"] + "ERASE_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                              (dict_key(MsgCode, self.msg_code),
-                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // FLASH_PAGE_SIZE))
+                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
                     raise ProtException("Command failed!", self.win)
 
@@ -413,25 +415,23 @@ class CmdInterface:
             (nvr, erase, addr, page))
         packet.transmit()
 
-    def cmd_read_page(self, page, nvr=0):
-        self.log_info(LogId["PROG"] + "Read page %d" % page)
-        addr = page * FLASH_PAGE_SIZE
+    def cmd_read_page(self, page, flash, region):
+        self.log_info(LogId["PROG"] + "Чтение страницы %d ..." % page)
+        addr = page * self.mcu.flash[flash][region].page_size
         packet = TxPacket(self.mcu, self.serport, self.win)
+        packet.flash_page_size = self.mcu.flash[flash][region].page_size
         packet.cmd_code = CmdCode["READ_PAGE"]
         packet.data8_n = 4
         packet.data += [(addr >> 0) & 0xFF]
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
-        packet.data += [(nvr >> 7) & 0xFF]
+        nvr = 1 if 'nvr' in region else 0
+        packet.data += [(nvr << 7) & 0xFF]
         self.log_dbg(LogId["HOST"] + "READ_PAGE - NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-            (nvr, addr, page))
+                     (nvr, addr, page))
         packet.transmit()
-        # TODO: нужно засунуть в словарь данные страницы
         rx_info = self.cmd_msg()
-        page_data = []
-        for i in range(0, rx_info['data8_n'] - 8):
-            page_data += [rx_info['data'][i + 8]]
-        return page_data
+        return rx_info['data']
 
     def cmd_exit_bootloader(self):
         self.log_info(LogId["PROG"] + "Software reset and exit from bootloader")
@@ -472,7 +472,7 @@ class Protocol:
             print("ERR: %s" % msg)
 
     def save_bin(self, name, data):
-        self.log_dbg("Save %0d bytes of data to %s" % (len(data), name))
+        self.log_info("Сохранение %0d байт данных в файл %s" % (len(data), name))
         binfile = open(name, "wb")
         binfile.write(bytes(data))
         binfile.close()
@@ -535,7 +535,13 @@ class Protocol:
     def read(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
-        return True
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+        region = self.win.get_curr_region()
+        flash = self.win.get_curr_flash()
+        page_data = []
+        for page in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
+            page_data += cmd.cmd_read_page(page, flash, region)
+        self.save_bin(kwargs['filepath'], page_data)
 
     def get_cfgword(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
