@@ -187,21 +187,19 @@ class RxPacket(Packet):
                 info.update(self.mcu.parse_cfgword(self.data[4:]))
                 self.log_info(LogId["PROG"] + "%s" % info["res_str"])
                 self.log_dbg(LogId["DEVICE"] + "GET_CFGWORD - OK | %s" % info["res_str"])
+            elif (self.msg_code == MsgCode["FAIL"]):
+                    raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
         elif (self.rxcmd_code == CmdCode["SET_CFGWORD"]):
             if (self.msg_code == MsgCode["ERR_CRC"]):
                 self.msg_err_crc()
-            elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                self.log_dbg(LogId["DEVICE"] + "SET_CFGWORD - %s | READEN=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
-                    (dict_key(MsgCode, self.msg_code),
-                    (self.data[4] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS,
-                    (self.data[4] & CFGWORD_JTAGEN_MSK) >> CFGWORD_JTAGEN_POS,
-                    (self.data[4] & CFGWORD_DEBUGEN_MSK) >> CFGWORD_DEBUGEN_POS,
-                    (self.data[4] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS,
-                    (self.data[4] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS,
-                    (self.data[4] & CFGWORD_BMODEDIS_MSK) >> CFGWORD_BMODEDIS_POS))
-                if (self.msg_code == MsgCode["FAIL"]):
-                    raise ProtException("Command failed!", self.win)
+            elif (self.msg_code == MsgCode["OK"]):
+                info['cmd_code'] = CmdCode["SET_CFGWORD"]
+                info['msg_code'] = MsgCode["OK"]
+                info.update(self.mcu.parse_cfgword(self.data[4:]))
+                self.log_dbg(LogId["DEVICE"] + "SET_CFGWORD - OK | %s" % info["res_str"])
+            elif (self.msg_code == MsgCode["FAIL"]):
+                    raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
         elif (self.rxcmd_code == CmdCode["WRITE_PAGE"]):
             if (self.msg_code == MsgCode["ERR_CRC"]):
@@ -366,21 +364,14 @@ class CmdInterface:
         return self.cmd_msg()
 
     def cmd_set_cfgword(self, cfgword):
-        self.log_info(LogId["PROG"] + "Set new CFGWORD 0x%08x" % cfgword)
+        self.log_info(LogId["PROG"] + "Запись CFGWORD ...")
         packet = TxPacket(self.mcu, self.serport, self.win)
+        data, dbg_str = self.mcu.pack_cfgword(cfgword)
         packet.cmd_code = CmdCode["SET_CFGWORD"]
         packet.data8_n = 4
-        packet.data += [(cfgword >> 0) & 0xFF]
-        packet.data += [(cfgword >> 8) & 0xFF]
-        packet.data += [(cfgword >> 16) & 0xFF]
-        packet.data += [(cfgword >> 24) & 0xFF]
-        self.log_dbg(LogId["HOST"] + "SET_CFGWORD - READEN=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
-            ((packet.data[0] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS,
-            (packet.data[0] & CFGWORD_JTAGEN_MSK) >> CFGWORD_JTAGEN_POS,
-            (packet.data[0] & CFGWORD_DEBUGEN_MSK) >> CFGWORD_DEBUGEN_POS,
-            (packet.data[0] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS,
-            (packet.data[0] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS,
-            (packet.data[0] & CFGWORD_BMODEDIS_MSK) >> CFGWORD_BMODEDIS_POS))
+        packet.data += data
+        self.log_dbg("data: 0x%x 0x%x 0x%x 0x%x" % (packet.data[0], packet.data[1], packet.data[2], packet.data[3]))
+        self.log_dbg(LogId["HOST"] + "%s" % dbg_str)
         packet.transmit()
         self.cmd_msg()
 
@@ -555,4 +546,5 @@ class Protocol:
     def set_cfgword(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
-        return True
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+        cmd.cmd_set_cfgword(kwargs['cfgword'])

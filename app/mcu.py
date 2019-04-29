@@ -71,6 +71,19 @@ class K1921VK035:
                               (cfgword['flashre'], cfgword['nvrre'], cfgword['jtagen'], cfgword['debugen'], cfgword['nvrwe'], cfgword['flashwe'], cfgword['bmodedis']))
         return cfgword
 
+    def pack_cfgword(self, cfgword):
+        data = [0xFF] * 4
+        data[0] &= ~(0 if cfgword['flashre'] else self.CFGWORD_FLASHRE_MSK)
+        data[0] &= ~(0 if cfgword['nvrre'] else self.CFGWORD_NVRRE_MSK)
+        data[0] &= ~(0 if cfgword['jtagen'] else self.CFGWORD_JTAGEN_MSK)
+        data[0] &= ~(0 if cfgword['debugen'] else self.CFGWORD_DEBUGEN_MSK)
+        data[0] &= ~(0 if cfgword['nvrwe'] else self.CFGWORD_NVRWE_MSK)
+        data[0] &= ~(0 if cfgword['flashwe'] else self.CFGWORD_FLASHWE_MSK)
+        data[0] &= ~(0 if cfgword['bmodedis'] else self.CFGWORD_BMODEDIS_MSK)
+        res_str = ("FLASHRE=[%01d] NVRRE=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
+                   (cfgword['flashre'], cfgword['nvrre'], cfgword['jtagen'], cfgword['debugen'], cfgword['nvrwe'], cfgword['flashwe'], cfgword['bmodedis']))
+        return (data, res_str)
+
     def apply_cfgword(self, cfgword):
         self.cfgword = cfgword
         for p in range(self.flash[0]['region_main'].pages):

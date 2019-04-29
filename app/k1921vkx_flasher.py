@@ -116,18 +116,22 @@ class MyMainWindow(QMainWindow):
     def log_info(self, msg):
         logger.info(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#4e9a06;">INFO</span>]: %s' % msg)
+        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
 
     def log_warn(self, msg):
         logger.warning(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#e9b96e;">WARN</span>]: %s' % msg)
+        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
 
     def log_err(self, msg):
         logger.error(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
+        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
 
     def log_crit(self, msg):
         logger.critical(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
+        QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
 
     def text2int(self, qobject):
         try:
@@ -630,23 +634,33 @@ class MyMainWindow(QMainWindow):
 
     def exec_tab_config(self):
         if self.ui.tconfig_rbtn_read.isChecked():
-            cfgword = self.prot.get_cfgword()
-            self.mcu.apply_cfgword(cfgword)
-            self.upd_flash_selected()
-            if self.mcu.name == 'k1921vk035':
-                self.exec_tab_config_035(cfgword)
-            elif self.mcu.name == 'k1921vk028':
-                self.exec_tab_config_028(cfgword)
-            elif self.mcu.name == 'k1921vk01t':
-                self.exec_tab_config_01t(cfgword)
+            try:
+                cfgword = self.prot.get_cfgword()
+                self.log_info('Команда чтения CFGWORD успешно выполнена')
+                self.mcu.apply_cfgword(cfgword)
+                self.upd_flash_selected()
+                if self.mcu.name == 'k1921vk035':
+                    self.exec_tab_config_035(cfgword)
+                elif self.mcu.name == 'k1921vk028':
+                    self.exec_tab_config_028(cfgword)
+                elif self.mcu.name == 'k1921vk01t':
+                    self.exec_tab_config_01t(cfgword)
+            except:
+                return self.log_err('Команда чтения CFGWORD не выполнена!')
         else:
-            if self.mcu.name == 'k1921vk035':
-                cfgword = self.exec_tab_config_035()
-            elif self.mcu.name == 'k1921vk028':
-                cfgword = self.exec_tab_config_028()
-            elif self.mcu.name == 'k1921vk01t':
-                cfgword = self.exec_tab_config_01t()
-            self.prot.get_cfgword(cfgword)
+            try:
+                if self.mcu.name == 'k1921vk035':
+                    cfgword = self.exec_tab_config_035()
+                elif self.mcu.name == 'k1921vk028':
+                    cfgword = self.exec_tab_config_028()
+                elif self.mcu.name == 'k1921vk01t':
+                    cfgword = self.exec_tab_config_01t()
+                self.prot.set_cfgword(cfgword=cfgword)
+                self.log_info('Команда записи CFGWORD успешно выполнена')
+                self.mcu.apply_cfgword(cfgword)
+                self.upd_flash_selected()
+            except:
+                return self.log_err('Команда записи CFGWORD не выполнена!')
 
     def exec_tab_config_035(self, cfgword=None):
         widget035 = self.ui.tconfig_widget_cfg
@@ -659,7 +673,15 @@ class MyMainWindow(QMainWindow):
             widget035.ui.chbox_flashre.setChecked(cfgword['flashre'])
             widget035.ui.chbox_nvrre.setChecked(cfgword['nvrre'])
         else:
-            pass
+            cfgword = {}
+            cfgword['bmodedis'] = widget035.ui.chbox_bmodedis.isChecked()
+            cfgword['flashwe'] = widget035.ui.chbox_flashwe.isChecked()
+            cfgword['nvrwe'] = widget035.ui.chbox_nvrwe.isChecked()
+            cfgword['debugen'] = widget035.ui.chbox_debugen.isChecked()
+            cfgword['jtagen'] = widget035.ui.chbox_jtagen.isChecked()
+            cfgword['flashre'] = widget035.ui.chbox_flashre.isChecked()
+            cfgword['nvrre'] = widget035.ui.chbox_nvrre.isChecked()
+            return cfgword
 
     def exec_tab_config_028(self):
         pass
