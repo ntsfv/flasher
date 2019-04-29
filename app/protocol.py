@@ -318,6 +318,7 @@ class CmdInterface:
             print("ERR: %s" % msg)
 
     def reset_chip(self):
+        self.log_info(LogId["PROG"] + "Сброс микроконтроллера")
         time.sleep(0.1)
         self.serport.dtr = True
         time.sleep(0.3)
@@ -326,6 +327,7 @@ class CmdInterface:
 
     def init_device(self):
         self.log_info(LogId["PROG"] + "Подключение к устройству ...")
+        self.log_info(LogId["PROG"] + "Активация загрузчика")
         self.serport.rts = True
         self.reset_chip()
         self.serport.write_bytes([0x7F])

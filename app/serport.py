@@ -32,7 +32,7 @@ class SerPort(serial.Serial):
     def open_port(self, port='/dev/ttyUSB0', baudrate=115200, quiet=False):
         self.port = port
         self.baudrate = baudrate
-        self.timeout = 1
+        self.timeout = 5
         self.dtr = False
         self.rts = False
         if not quiet:

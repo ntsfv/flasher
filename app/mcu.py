@@ -55,6 +55,8 @@ class K1921VK035:
                        'region_main': Flash(size=(64 * K), pages=64),
                        'region_nvr': Flash(size=(4 * K), pages=4)}]
         self.cfgword = {}
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
 
     def parse_cfgword(self, data):
         cfgword = {}
@@ -71,18 +73,17 @@ class K1921VK035:
 
     def apply_cfgword(self, cfgword):
         self.cfgword = cfgword
-        if not cfgword['flashre']:
-            for p in range(self.flash[0]['region_main'].pages):
-                self.flash[0]['region_main'].rd_lock[p] = True
-        if not cfgword['nvrre']:
-            for p in range(self.flash[0]['region_nvr'].pages):
-                self.flash[0]['region_nvr'].rd_lock[p] = True
-        if not cfgword['flashwe']:
-            for p in range(self.flash[0]['region_main'].pages):
-                self.flash[0]['region_main'].wr_lock[p] = True
-        if not cfgword['nvrwe']:
-            for p in range(self.flash[0]['region_nvr'].pages):
-                self.flash[0]['region_nvr'].wr_lock[p] = True
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].rd_lock[p] = False if cfgword['flashre'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].rd_lock[p] = False if cfgword['nvrre'] else True
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['flashwe'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['nvrwe'] else True
+        # bootloader pages
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
 
 
 class K1921VK028:

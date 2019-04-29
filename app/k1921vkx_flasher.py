@@ -631,6 +631,8 @@ class MyMainWindow(QMainWindow):
     def exec_tab_config(self):
         if self.ui.tconfig_rbtn_read.isChecked():
             cfgword = self.prot.get_cfgword()
+            self.mcu.apply_cfgword(cfgword)
+            self.upd_flash_selected()
             if self.mcu.name == 'k1921vk035':
                 self.exec_tab_config_035(cfgword)
             elif self.mcu.name == 'k1921vk028':
