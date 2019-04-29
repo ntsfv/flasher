@@ -40,10 +40,12 @@
 
 #define CFGWORD_FLASHWE_POS         3
 #define CFGWORD_NVRWE_POS           2
-#define CFGWORD_READEN_POS          7
+#define CFGWORD_NVRRE_POS           6
+#define CFGWORD_FLASHRE_POS         7
 #define CFGWORD_FLASHWE_MSK         (1<<CFGWORD_FLASHWE_POS)
 #define CFGWORD_NVRWE_MSK           (1<<CFGWORD_NVRWE_POS)
-#define CFGWORD_READEN_MSK          (1<<CFGWORD_READEN_POS)
+#define CFGWORD_NVRRE_MSK           (1<<CFGWORD_NVRRE_POS)
+#define CFGWORD_FLASHRE_MSK         (1<<CFGWORD_FLASHRE_POS)
 // clang-format on
 
 //--- Types --------------------------------------------------------------------

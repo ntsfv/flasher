@@ -180,6 +180,7 @@ void get_cfgword_cmd(Packet_TypeDef* packet)
         packet->tmp_data8[0] = MSG_ERR_CRC;
         packet->data_n = 4;
     } else {
+        packet->tmp_data8[0] = MSG_OK;
         flash_read(FLASH_NVR_CFGWORD_OFFSET, FLASH_NVR, data);
         packet->tmp_data32[1] = data[0];
         packet->data_n = 8;
@@ -315,17 +316,23 @@ void read_page_cmd(Packet_TypeDef* packet)
     uint16_t calc_crc;
     uint32_t read_en;
 
-    //может ли хост читать флэш
+
     flash_read(FLASH_NVR_CFGWORD_OFFSET, FLASH_NVR, data);
-    read_en = (data[0] & CFGWORD_READEN_MSK) >> CFGWORD_READEN_POS;
 
     //читаем адрес, определяем необходимый тип флеш и номер страницы
     rx_data = packet_fifo_read_u32();
     //конфигурация
     cfg = (uint8_t)(rx_data >> 24);
     flash_type = (FlashType_TypeDef)((cfg & CMD_READ_PAGE_OPT_NVR_MSK) >> CMD_READ_PAGE_OPT_NVR_POS);
+    //может ли хост читать флэш
+    if (flash_type == FLASH_MAIN)
+        read_en = (data[0] & CFGWORD_FLASHRE_MSK) >> CFGWORD_FLASHRE_POS;
+    else //if (flash_type == FLASH_NVR)
+        read_en = (data[0] & CFGWORD_NVRRE_MSK) >> CFGWORD_NVRRE_POS;
     //адрес
     addr = rx_data & ~(FLASH_PAGE_SIZE_BYTES - 1) & 0x00FFFFFF;
+    //защита от чтения бутлоадера
+    read_en &= !((flash_type == FLASH_NVR) && (addr < (FLASH_PAGE_SIZE_BYTES * 3)));
 
     calc_crc = crc_upd_u32(packet->crc, rx_data);
     rx_crc = packet_fifo_read_u16();
@@ -357,7 +364,7 @@ void erase_full_cmd(Packet_TypeDef* packet)
     uint16_t rx_crc;
     uint32_t data[2];
     uint32_t modify_en;
-
+    //TODO: добавить выбор между NVR и MAIN
     flash_read(FLASH_NVR_CFGWORD_OFFSET, FLASH_NVR, data);
     modify_en = (data[0] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS;
 
