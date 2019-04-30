@@ -1,4 +1,4 @@
-#!/user/bin/env python
+#!/user/bin/env python3
 # coding:utf-8
 
 """
@@ -759,12 +759,14 @@ class ArgParser:
         }
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hDceEwvrf:n:j:F:L:a:s:p:b")
+            opts, args = getopt.getopt(sys.argv[1:], "hDceEwvrf:n:j:F:L:a:s:p:b:")
         except getopt.GetoptError:
             self.help()
             sys.exit(2)
 
         for o, a in opts:
+            print(o)
+            print(a)
             if o == '-h':
                 self.help()
                 sys.exit(0)
@@ -787,7 +789,7 @@ class ArgParser:
             elif o == '-p':
                 conf['port'] = a
             elif o == '-b':
-                conf['baud'] = eval(a)
+                conf['baud'] = a
             elif o == '-F':
                 conf['first_page'] = eval(a)
             elif o == '-L':
@@ -809,10 +811,32 @@ if __name__ == '__main__':
     main_window = MyMainWindow()
     arg_parser = ArgParser()
     conf = arg_parser.do(app, main_window)
+    main_window.debug = conf['debug']
     if conf['cmd_mode'] is None:
-        main_window.debug = conf['debug']
         main_window.show()
         sys.exit(app.exec_())
     else:
         main_window.log_info("Режим без графического интерфейса")
-        pass
+        main_window.ui.combo_port.addItem(conf['port'])
+        baud = {"9600": 0,
+                "19200": 1,
+                "38400": 2,
+                "57600": 3,
+                "115200": 4,
+                "230400": 5,
+                "460800": 6}
+        main_window.ui.combo_baud.setCurrentIndex(baud[conf['baud']])
+        main_window.handle_btn_connect_clicked()
+
+        if conf['read']:
+            pass
+        elif conf['write']:
+            pass
+        elif conf['mass_erase']:
+            pass
+        elif conf['erase']:
+            pass
+        else:
+            main_window.log_info("Команда не задана. Запустите программу с ключом -h чтобы увидеть подсказки")
+        if main_window.serport.is_open:
+            main_window.prot.deinit()
