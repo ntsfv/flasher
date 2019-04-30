@@ -227,7 +227,7 @@ class MyMainWindow(QMainWindow):
 
     def handle_twrite_chbox_jump_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
-        self.ui.twrite_ledit_jumpaddr.setEnabled(state)
+        #self.ui.twrite_ledit_jumpaddr.setEnabled(state)
 
     def handle_tedit_log_context_menu(self, pos):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -288,6 +288,7 @@ class MyMainWindow(QMainWindow):
             self.upd_gbox_flash()
             self.upd_tinfo_values()
             self.upd_flash_selected()
+            self.upd_twrite_jumpaddr()
             self.upd_tconfig_widget_cfg()
 
     def handle_flash_select_toggled(self, state):
@@ -462,6 +463,17 @@ class MyMainWindow(QMainWindow):
                 wr_cell = QTableWidgetItem(self.icon_unlock, "")
                 wr_cell.setToolTip("Разблокировано")
             table.setItem(r, 4, wr_cell)
+
+    def upd_twrite_jumpaddr(self):
+        self.ui.twrite_ledit_jumpaddr.setEnabled(False)
+        if self.mcu.name == 'k1921vk035':
+            self.ui.twrite_ledit_jumpaddr.setText('0x00000000')
+        elif self.mcu.name == 'k1921vk028':
+            self.ui.twrite_ledit_jumpaddr.setText('0x10000000')
+        elif self.mcu.name == 'k1921vk01t':
+            self.ui.twrite_ledit_jumpaddr.setText('0x00002000')
+        elif self.mcu.name == 'k1921vkx':
+            self.ui.twrite_ledit_jumpaddr.setText('0x00000000')
 
     def upd_tconfig_widget_cfg(self):
         self.ui.tconfig_rbtn_read.setChecked(True)
