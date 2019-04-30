@@ -150,14 +150,14 @@ class RxPacket(Packet):
         info = {}
         self.msg_code = self.data[0]
         self.rxcmd_code = self.data[1]
+        info['cmd_code'] = self.rxcmd_code
+        info['msg_code'] = self.msg_code
 
         if (self.rxcmd_code == CmdCode["NONE"]):
             if (self.msg_code == MsgCode["ERR_CMD"]):
                 self.log_dbg(LogId["DEVICE"] + "ERR_CMD - wrong command from HOST!")
                 raise ProtException("Принята некорректная команда от хоста!", self.win)
             elif (self.msg_code == MsgCode["READY"]):
-                info['cmd_code'] = CmdCode["NONE"]
-                info['msg_code'] = MsgCode["READY"]
                 result = "Устройство ответило о готовности"
                 self.log_info(LogId["PROG"] + "%s" % result)
                 self.log_dbg(LogId["DEVICE"] + "READY - %s" % result)
@@ -171,8 +171,7 @@ class RxPacket(Packet):
                 bootver = (self.data[12] << 0) | (self.data[13] << 8) | (self.data[14] << 16) | (self.data[15] << 24)
                 result = ("SIU.CHIPID=[0x%08x] SCB.CPUID=[0x%08x] BOOTVER=[0x%08x]" %
                           (chipid, cpuid, bootver))
-                info['cmd_code'] = CmdCode["GET_INFO"]
-                info['msg_code'] = MsgCode["OK"]
+
                 info['chipid'] = "0x%08X" % chipid
                 info['cpuid'] = "0x%08X" % cpuid
                 info['bootver'] = "%d.%d" % ((bootver & 0xFFFF0000) >> 16, (bootver & 0x0000FFFF) >> 0)
@@ -183,8 +182,6 @@ class RxPacket(Packet):
             if (self.msg_code == MsgCode["ERR_CRC"]):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"]):
-                info['cmd_code'] = CmdCode["GET_INFO"]
-                info['msg_code'] = MsgCode["OK"]
                 info.update(self.mcu.parse_cfgword(self.data[4:]))
                 self.log_info(LogId["PROG"] + "%s" % info["res_str"])
                 self.log_dbg(LogId["DEVICE"] + "GET_CFGWORD - OK | %s" % info["res_str"])
@@ -195,8 +192,6 @@ class RxPacket(Packet):
             if (self.msg_code == MsgCode["ERR_CRC"]):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"]):
-                info['cmd_code'] = CmdCode["SET_CFGWORD"]
-                info['msg_code'] = MsgCode["OK"]
                 info.update(self.mcu.parse_cfgword(self.data[4:]))
                 self.log_dbg(LogId["DEVICE"] + "SET_CFGWORD - OK | %s" % info["res_str"])
             elif (self.msg_code == MsgCode["FAIL"]):
@@ -211,7 +206,7 @@ class RxPacket(Packet):
                              (dict_key(MsgCode, self.msg_code),
                              ((temp >> 31) & 0x1), ((temp >> 30) & 0x1), (temp & 0x3FFFFFFF), (temp & 0x3FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
-                    raise ProtException("Command failed!", self.win)
+                    raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
         elif (self.rxcmd_code == CmdCode["READ_PAGE"]):
             if (self.msg_code == MsgCode["ERR_CRC"]):
@@ -229,9 +224,9 @@ class RxPacket(Packet):
             if (self.msg_code == MsgCode["ERR_CRC"]):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s" % self.dict_key(MsgCode, self.msg_code))
+                self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s" % dict_key(MsgCode, self.msg_code))
                 if (self.msg_code == MsgCode["FAIL"]):
-                    raise ProtException("Command failed!", self.win)
+                    raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
         elif (self.rxcmd_code == CmdCode["ERASE_PAGE"]):
             if (self.msg_code == MsgCode["ERR_CRC"]):
@@ -242,7 +237,7 @@ class RxPacket(Packet):
                              (dict_key(MsgCode, self.msg_code),
                              ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
-                    raise ProtException("Command failed!", self.win)
+                    raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
         elif (self.rxcmd_code == CmdCode["EXIT_BOOTLOADER"]):
             if (self.msg_code == MsgCode["ERR_CRC"]):
@@ -377,42 +372,46 @@ class CmdInterface:
         packet.transmit()
         self.cmd_msg()
 
-    def cmd_erase_page(self, page, nvr=0):
-        self.log_info(LogId["PROG"] + "Erase page %d" % page)
-        addr = page * FLASH_PAGE_SIZE
+    def cmd_erase_page(self, page, flash, region):
+        self.log_info(LogId["PROG"] + "Стирание страницы %d ..." % page)
+        page_size = self.mcu.flash[flash][region].page_size
+        addr = page * page_size
         packet = TxPacket(self.mcu, self.serport, self.win)
         packet.cmd_code = CmdCode["ERASE_PAGE"]
         packet.data8_n = 4
         packet.data += [(addr >> 0) & 0xFF]
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
+        nvr = 1 if 'nvr' in region else 0
         packet.data += [(nvr >> 7) & 0xFF]
         self.log_dbg(LogId["HOST"] + "ERASE_PAGE - NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-            (nvr, addr, page))
+                     (nvr, addr, page))
         packet.transmit()
 
     def cmd_erase_full(self):
-        self.log_info(LogId["PROG"] + "Erase full flash")
+        self.log_info(LogId["PROG"] + "Стирание всей области памяти ...")
         packet = TxPacket(self.mcu, self.serport, self.win)
         packet.cmd_code = CmdCode["ERASE_FULL"]
         packet.data8_n = 0
         self.log_dbg(LogId["HOST"] + "ERASE_FULL")
         packet.transmit()
 
-    def cmd_write_page(self, page, page_data, nvr=0, erase=0):
-        self.log_info(LogId["PROG"] + "Write page %d" % page)
-        addr = page * FLASH_PAGE_SIZE
+    def cmd_write_page(self, page, page_data, flash, region, erpages):
+        self.log_info(LogId["PROG"] + "Запись страницы %d ..." % page)
+        page_size = self.mcu.flash[flash][region].page_size
+        addr = page * page_size
         packet = TxPacket(self.mcu, self.serport, self.win)
         packet.cmd_code = CmdCode["WRITE_PAGE"]
-        packet.data8_n = FLASH_PAGE_SIZE + 4
+        packet.data8_n = page_size + 4
         packet.data += [(addr >> 0) & 0xFF]
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
-        packet.data += [((nvr >> 7) | (erase >> 6)) & 0xFF]
-        for i in range(0, FLASH_PAGE_SIZE):
-            packet.data += [page_data[i]]
+        nvr = 1 if 'nvr' in region else 0
+        erase = 1 if erpages else 0
+        packet.data += [((nvr << 7) | (erase << 6)) & 0xFF]
+        packet.data += page_data
         self.log_dbg(LogId["HOST"] + "WRITE_PAGE - NVR=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-            (nvr, erase, addr, page))
+                     (nvr, erase, addr, page))
         packet.transmit()
 
     def cmd_read_page(self, page, flash, region):
@@ -486,7 +485,7 @@ class Protocol:
                 break
             data += [ord(current_byte)]
         binfile.close()
-        self.log_dbg("Loaded %0d bytes of data from %s" % (len(data), name))
+        self.log_dbg("Прочитано %0d байт данных из файла %s" % (len(data), name))
         return data
 
     # -- API --
@@ -524,13 +523,66 @@ class Protocol:
     def write(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
-        self.log_dbg(self.mcu.name)
-        return True
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+        region = self.win.get_curr_region()
+        flash = self.win.get_curr_flash()
+        page_size = self.mcu.flash[flash][region].page_size
+
+        raw_data = self.open_bin(kwargs['filepath'])
+        self.log_info("Дополнение бинарного файла до размера целой страницы ...")
+        data = [0xFF] * (kwargs['lastpage'] - kwargs['firstpage'] + 1) * page_size
+        for i in range(0, len(raw_data)):
+            data[i] = raw_data[i]
+
+        cmd_count = 0
+        if (kwargs['erall']):
+            cmd.cmd_erase_full()
+            cmd_count += 1
+
+        self.log_info("Запись страниц%s:" % (" c предварительным стиранием" if kwargs['erpages'] else ""))
+        for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
+            cmd.cmd_write_page(p, data[p * page_size:p * page_size + page_size], flash, region, kwargs['erpages'])
+            cmd_count += 1
+
+        self.log_info("Ожидание выполнения команд ...")
+        for i in range(0, cmd_count):
+            cmd.cmd_msg()
+
+        if (kwargs["verif"]):
+            self.log_info("Верификация записанных данных ...")
+            # read pages
+            read_data = []
+            for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
+                read_data += cmd.cmd_read_page(p, flash, region)
+            # compare
+            err = 0
+            err_limit = 16
+            for i in range(0, len(read_data)):
+                if (read_data[i] != data[i]):
+                    err += 1
+                    if err_limit > 0:
+                        self.log_err("Адрес 0%08X, записано 0x%02X - прочитано 0x%02X" % (i, data[i], read_data[i]))
+                        err_limit -= 1
+                        if err_limit == 0:
+                            self.log_err("Показаны первые 16 ошибок, дальнейшие показываться не будут")
+            self.log_info("Верификация завершилась, количество ошибок: %0d" % err)
 
     def erase(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
-        return True
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+        region = self.win.get_curr_region()
+        flash = self.win.get_curr_flash()
+        cmd_count = 0
+        if (kwargs['erall']):
+            cmd.cmd_erase_full()
+            cmd.cmd_msg()
+        else:
+            for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
+                cmd.cmd_erase_page(p, flash, region)
+                cmd_count += 1
+            for i in range(0, cmd_count):
+                cmd.cmd_msg()
 
     def read(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
