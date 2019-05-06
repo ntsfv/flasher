@@ -8,6 +8,7 @@ K1921VKx Flasher Utility
 # -- Imports ------------------------------------------------------------------
 import sys
 import os
+import time
 import getopt
 import logger
 import inspect
@@ -305,6 +306,7 @@ class MyMainWindow(QMainWindow):
         self.log_dbg("Handler <%s> called" % self.whoami())
         curr_tab = self.ui.tabs_cmd.currentWidget().objectName()
         self.log_dbg("Tab <%s> active" % curr_tab)
+        exec_start = time.time()
         if curr_tab == "tab_info":
             self.exec_tab_info()
         elif curr_tab == "tab_write":
@@ -315,6 +317,7 @@ class MyMainWindow(QMainWindow):
             self.exec_tab_erase()
         elif curr_tab == "tab_config":
             self.exec_tab_config()
+        self.log_info("Время выполнения: %0.3f сек" % (time.time() - exec_start))
 
     def handle_ledit_filepath_changed(self, text):
         self.log_dbg("Handler <%s> called" % self.whoami())
