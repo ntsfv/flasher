@@ -541,7 +541,7 @@ class MyMainWindow(QMainWindow):
         self.log_info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
 
         if ernone:
-            self.log_info('Стирание - не выполняется')
+            self.log_info('Стирание - нет')
         elif erall:
             self.log_info('Стирание - вся область')
         elif erpages:
@@ -555,11 +555,11 @@ class MyMainWindow(QMainWindow):
                 if curr_flash.rd_lock[p]:
                     verif = False
                     self.log_warn('Верификация невозможна - одна или несколько считываемых страниц защищены от чтения')
-        self.log_info('Верификация - %sвыполняется' % ("" if verif else "не "))
+        self.log_info('Верификация - %s' % ("да" if verif else "нет"))
         if jump:
             self.log_info('Переход к исполнению программы - адрес 0x%08X' % jumpaddr)
         else:
-            self.log_info('Переход к исполнению программы - не выполняется')
+            self.log_info('Переход к исполнению программы - нет')
 
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
@@ -601,7 +601,10 @@ class MyMainWindow(QMainWindow):
         else:
             return self.log_err('Не выполнено - режим стирания не определён')
 
-        size = self.text2int(self.ui.terase_ledit_size)[0]
+        if erpages:
+            size = self.text2int(self.ui.terase_ledit_size)[0]
+        else:
+            size = curr_flash.size
         self.log_info('Модифицируемые страницы - %d ... %d (%d байт)' % (firstpage, lastpage, size))
 
         for p in range(firstpage, lastpage + 1):
@@ -720,7 +723,7 @@ class ArgParser:
                     bootflash, userflash, mflash, bflash
         -n region   Выбор области флеш-памяти. Допустимые значения 'region' для разных микроконтроллеров:
                     main, nvr, info
-        -e          Стереть страницы от 'first' по 'last' включительно
+        -e          Стереть 'pages' страниц, начиная от 'first'
         -E          Полное стирание
         -w          Записать 'file.bin' начиная со страницы 'first'. Если добавлены ключи -e или -E - перед записью будет проведено стирание.
         -v          Верифицировать записанный 'file.bin' (может быть использовано только в паре с -w)
@@ -734,7 +737,19 @@ class ArgParser:
         -b baud     Баудрейт
 
         Запись файла led.bin в основную область MFLASH К1921ВК035 с 0 страницы с полным стиранием, верификацией записанного:
-        python k1921vk035_loader.py -wEv -f mflash -n main -F 0 -p /dev/ttyUSB0 -b 115200 led.bin
+        python3 k1921vkx_flasher.py -cwEv -f mflash -n main -F 0 -p /dev/ttyUSB0 -b 115200 led.bin
+
+        Чтение 4096 байт данных с 0 адреса в файл dump.bin
+        python3 k1921vkx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -a 0 -s 0x1000 dump.bin
+
+        Чтение первых 8 страниц в файл dump.bin
+        python3 k1921vkx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8 dump.bin
+
+        Стирание первых 8 страниц
+        python3 k1921vkx_flasher.py -ce -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8
+
+        Полное стирание
+        python3 k1921vkx_flasher.py -cE -p /dev/ttyUSB0 -b 115200 -f mflash -n main
 
 НИИЭТ, 2019""" % (VERSION))
 
@@ -766,7 +781,8 @@ class ArgParser:
             self.help()
             sys.exit(2)
 
-        conf['filepath'] = args[0]
+        if args:
+            conf['filepath'] = args[0]
 
         for o, a in opts:
             #print(o)
@@ -849,13 +865,14 @@ if __name__ == '__main__':
         flash_rbtn = [main_window.ui.rbtn_flash0, main_window.ui.rbtn_flash1]
         region_rbtn = [main_window.ui.rbtn_regionmain, main_window.ui.rbtn_regionnvr]
         try:
-            flash_rbtn[flash[conf['flash']]].setEnabled(True)
-            region_rbtn[region[conf['region']]].setEnabled(True)
+            flash_rbtn[flash[conf['flash']]].setChecked(True)
+            region_rbtn[region[conf['region']]].setChecked(True)
         except:
             main_window.log_err("Заданы некорректные параметры флеш-памяти!")
             traceback.print_exc()
             cmd_exit()
         if conf['read']:
+            main_window.log_dbg("CMD_READ")
             main_window.ui.tabs_cmd.setCurrentIndex(3)
             if conf['filepath']:
                 main_window.ui.tread_ledit_filepath.setText(conf['filepath'])
@@ -871,14 +888,56 @@ if __name__ == '__main__':
                 main_window.ui.tread_ledit_page.editingFinished.emit()
             if conf['pages_used']:
                 main_window.ui.tread_ledit_pages.setText('%d' % conf['pages_used'])
-                main_window.ui.tread_ledit_page.editingFinished.emit()
+                main_window.ui.tread_ledit_pages.editingFinished.emit()
             main_window.ui.btn_exec.clicked.emit()
         elif conf['write']:
-            pass
+            main_window.log_dbg("CMD_WRITE")
+            main_window.ui.tabs_cmd.setCurrentIndex(1)
+            if conf['filepath']:
+                main_window.ui.twrite_ledit_filepath.setText(conf['filepath'])
+                main_window.ui.twrite_ledit_filepath.textEdited['QString'].emit(conf['filepath'])
+            if conf['addr']:
+                main_window.ui.twrite_ledit_addr.setText('0x%08X' % conf['addr'])
+                main_window.ui.twrite_ledit_addr.editingFinished.emit()
+            if conf['first_page']:
+                main_window.ui.twrite_ledit_page.setText('%d' % conf['first_page'])
+                main_window.ui.twrite_ledit_page.editingFinished.emit()
+            if conf['erase']:
+                main_window.ui.twrite_rbtn_erpages.setChecked(True)
+            elif conf['mass_erase']:
+                main_window.ui.twrite_rbtn_erall.setChecked(True)
+            else:
+                main_window.ui.twrite_rbtn_ernone.setChecked(True)
+            if conf['verify']:
+                main_window.ui.twrite_chbox_verif.setChecked(True)
+            # TODO: добавить софварный выход из загрузчика
+            # if conf['jump_prog']:
+            #     main_window.ui.twrite_chbox_jump.setEnabled(True)
+            #     main_window.ui.twrite_ledit_jumpaddr.setText('0x%08X' % conf['jump_prog'])
+            #     main_window.ui.twrite_ledit_jumpaddr.editingFinished.emit()
+            main_window.ui.btn_exec.clicked.emit()
         elif conf['mass_erase']:
-            pass
+            main_window.log_dbg("CMD_MASS_ERASE")
+            main_window.ui.tabs_cmd.setCurrentIndex(2)
+            main_window.ui.terase_rbtn_erall.setChecked(True)
+            main_window.ui.btn_exec.clicked.emit()
         elif conf['erase']:
-            pass
+            main_window.log_dbg("CMD_ERASE")
+            main_window.ui.tabs_cmd.setCurrentIndex(2)
+            main_window.ui.terase_rbtn_erpages.setChecked(True)
+            if conf['addr']:
+                main_window.ui.terase_ledit_addr.setText('0x%08X' % conf['addr'])
+                main_window.ui.terase_ledit_addr.editingFinished.emit()
+            if conf['size']:
+                main_window.ui.terase_ledit_size.setText('0x%08X' % conf['size'])
+                main_window.ui.terase_ledit_size.editingFinished.emit()
+            if conf['first_page']:
+                main_window.ui.terase_ledit_page.setText('%d' % conf['first_page'])
+                main_window.ui.terase_ledit_page.editingFinished.emit()
+            if conf['pages_used']:
+                main_window.ui.terase_ledit_pages.setText('%d' % conf['pages_used'])
+                main_window.ui.terase_ledit_pages.editingFinished.emit()
+            main_window.ui.btn_exec.clicked.emit()
         else:
             main_window.log_err("Команда не задана. Запустите программу с ключом -h чтобы увидеть подсказки")
         cmd_exit()
