@@ -727,7 +727,7 @@ class ArgParser:
         -r          Прочитать в файл 'file.bin' страницы от 'first' по 'last' включительно
         -j addr     Переход на исполнение по глобальному адресу (по этому адресу расположена таблица векторов прерываний)
         -F first    Номер первой страницы для выполнения команд
-        -L last     Номер последней страницы для выполнения команд
+        -L pages    Количество страниц для выполнения команд
         -a addr     Выбор адреса для выполнения команд
         -s size     Выбор размера области для выполнения команд
         -p port     COM-порт
@@ -745,7 +745,7 @@ class ArgParser:
             "flash": None,
             "region": None,
             "first_page": None,
-            "last_page": None,
+            "pages_used": None,
             "addr": None,
             "size": None,
             "cmd_mode": None,
@@ -756,6 +756,8 @@ class ArgParser:
             "verify": None,
             "read": None,
             "jump_prog": None,
+            "flash": None,
+            "region": None,
         }
 
         try:
@@ -764,9 +766,11 @@ class ArgParser:
             self.help()
             sys.exit(2)
 
+        conf['filepath'] = args[0]
+
         for o, a in opts:
-            print(o)
-            print(a)
+            #print(o)
+            #print(a)
             if o == '-h':
                 self.help()
                 sys.exit(0)
@@ -790,10 +794,14 @@ class ArgParser:
                 conf['port'] = a
             elif o == '-b':
                 conf['baud'] = a
+            elif o == '-f':
+                conf['flash'] = a
+            elif o == '-n':
+                conf['region'] = a
             elif o == '-F':
                 conf['first_page'] = eval(a)
             elif o == '-L':
-                conf['last_page'] = eval(a)
+                conf['pages_used'] = eval(a)
             elif o == '-a':
                 conf['addr'] = eval(a)
             elif o == '-s':
@@ -816,20 +824,55 @@ if __name__ == '__main__':
         main_window.show()
         sys.exit(app.exec_())
     else:
-        main_window.log_info("Режим без графического интерфейса")
-        main_window.ui.combo_port.addItem(conf['port'])
-        baud = {"9600": 0,
-                "19200": 1,
-                "38400": 2,
-                "57600": 3,
-                "115200": 4,
-                "230400": 5,
-                "460800": 6}
-        main_window.ui.combo_baud.setCurrentIndex(baud[conf['baud']])
-        main_window.handle_btn_connect_clicked()
+        def cmd_exit():
+            global main_window
+            if main_window.serport.is_open:
+                main_window.prot.deinit()
+            sys.exit()
 
+        main_window.log_info("Режим без графического интерфейса")
+        main_window.ui.btn_updport.clicked.emit()
+        try:
+            port_i = main_window.ui.combo_port.findText(conf['port'])
+            main_window.ui.combo_port.setCurrentIndex(port_i)
+            baud_i = main_window.ui.combo_baud.findText(conf['baud'])
+            main_window.ui.combo_baud.setCurrentIndex(baud_i)
+        except:
+            main_window.log_err("Заданы некорректные параметры порта!")
+            traceback.print_exc()
+            cmd_exit()
+        main_window.ui.btn_connect.clicked.emit()
+        if main_window.mcu.name == 'k1921vkx':
+            cmd_exit()
+        flash = {'bootflash': 0, 'userflash': 1, 'mflash': 0, 'bflash': 1}
+        region = {'main': 0, 'nvr': 1, 'info': 1}
+        flash_rbtn = [main_window.ui.rbtn_flash0, main_window.ui.rbtn_flash1]
+        region_rbtn = [main_window.ui.rbtn_regionmain, main_window.ui.rbtn_regionnvr]
+        try:
+            flash_rbtn[flash[conf['flash']]].setEnabled(True)
+            region_rbtn[region[conf['region']]].setEnabled(True)
+        except:
+            main_window.log_err("Заданы некорректные параметры флеш-памяти!")
+            traceback.print_exc()
+            cmd_exit()
         if conf['read']:
-            pass
+            main_window.ui.tabs_cmd.setCurrentIndex(3)
+            if conf['filepath']:
+                main_window.ui.tread_ledit_filepath.setText(conf['filepath'])
+                main_window.ui.tread_ledit_filepath.textEdited['QString'].emit(conf['filepath'])
+            if conf['addr']:
+                main_window.ui.tread_ledit_addr.setText('0x%08X' % conf['addr'])
+                main_window.ui.tread_ledit_addr.editingFinished.emit()
+            if conf['size']:
+                main_window.ui.tread_ledit_size.setText('0x%08X' % conf['size'])
+                main_window.ui.tread_ledit_size.editingFinished.emit()
+            if conf['first_page']:
+                main_window.ui.tread_ledit_page.setText('%d' % conf['first_page'])
+                main_window.ui.tread_ledit_page.editingFinished.emit()
+            if conf['pages_used']:
+                main_window.ui.tread_ledit_pages.setText('%d' % conf['pages_used'])
+                main_window.ui.tread_ledit_page.editingFinished.emit()
+            main_window.ui.btn_exec.clicked.emit()
         elif conf['write']:
             pass
         elif conf['mass_erase']:
@@ -837,6 +880,5 @@ if __name__ == '__main__':
         elif conf['erase']:
             pass
         else:
-            main_window.log_info("Команда не задана. Запустите программу с ключом -h чтобы увидеть подсказки")
-        if main_window.serport.is_open:
-            main_window.prot.deinit()
+            main_window.log_err("Команда не задана. Запустите программу с ключом -h чтобы увидеть подсказки")
+        cmd_exit()
