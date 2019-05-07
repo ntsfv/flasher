@@ -128,11 +128,21 @@ class MyMainWindow(QMainWindow):
         logger.error(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
         QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
+        msgbox = QMessageBox(self)
+        msgbox.addButton(QMessageBox.Ok)
+        msgbox.setText(msg)
+        msgbox.setIcon(QMessageBox.Critical)
+        msgbox.exec_()
 
     def log_crit(self, msg):
         logger.critical(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#ad7fa8;">CRIT</span>]: %s' % msg)
         QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
+        msgbox = QMessageBox(self)
+        msgbox.addButton(QMessageBox.Ok)
+        msgbox.setText(msg)
+        msgbox.setIcon(QMessageBox.Critical)
+        msgbox.exec_()
 
     def text2int(self, qobject):
         try:
@@ -516,23 +526,20 @@ class MyMainWindow(QMainWindow):
             pass
 
     def exec_prot_wrapper(self, str_ok, str_fail, cmdf):
+        ret = None
         msgbox = QMessageBox(self)
         msgbox.addButton(QMessageBox.Ok)
-        ret = None
+        msgbox.setIcon(QMessageBox.Information)
         try:
             exec_start = time.time()
             ret = cmdf()
             res_str = "%s Время: %0.3f сек." % (str_ok, (time.time() - exec_start))
             self.log_info(res_str)
             msgbox.setText(res_str)
-            msgbox.setIcon(QMessageBox.Information)
+            msgbox.exec_()
         except:
-            res_str = str_fail
-            self.log_err(res_str)
-            msgbox.setText(res_str)
-            msgbox.setIcon(QMessageBox.Critical)
+            self.log_err(str_fail)
             traceback.print_exc()
-        msgbox.exec_()
         return ret
 
     def exec_tab_info(self):
