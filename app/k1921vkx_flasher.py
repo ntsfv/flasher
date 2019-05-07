@@ -17,9 +17,9 @@ import mcu
 import protocol
 import traceback
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem,
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem, QMessageBox,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox)
-from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator)
+from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator, QTextCursor)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
 from ui_config035 import Ui_Config035
@@ -251,6 +251,8 @@ class MyMainWindow(QMainWindow):
 
     def handle_btn_connect_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
+        self.ui.tedit_log.moveCursor(QTextCursor.End)
+        self.log_info("--------------------")
         update_gui = False
         port = self.ui.combo_port.currentText()
         baud = self.ui.combo_baud.currentText()
@@ -306,7 +308,8 @@ class MyMainWindow(QMainWindow):
         self.log_dbg("Handler <%s> called" % self.whoami())
         curr_tab = self.ui.tabs_cmd.currentWidget().objectName()
         self.log_dbg("Tab <%s> active" % curr_tab)
-        exec_start = time.time()
+        self.ui.tedit_log.moveCursor(QTextCursor.End)
+        self.log_info("--------------------")
         if curr_tab == "tab_info":
             self.exec_tab_info()
         elif curr_tab == "tab_write":
@@ -317,7 +320,6 @@ class MyMainWindow(QMainWindow):
             self.exec_tab_erase()
         elif curr_tab == "tab_config":
             self.exec_tab_config()
-        self.log_info("Время выполнения: %0.3f сек" % (time.time() - exec_start))
 
     def handle_ledit_filepath_changed(self, text):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -513,6 +515,26 @@ class MyMainWindow(QMainWindow):
         elif self.mcu.name == 'k1921vkx':
             pass
 
+    def exec_prot_wrapper(self, str_ok, str_fail, cmdf):
+        msgbox = QMessageBox(self)
+        msgbox.addButton(QMessageBox.Ok)
+        ret = None
+        try:
+            exec_start = time.time()
+            ret = cmdf()
+            res_str = "%s Время: %0.3f сек." % (str_ok, (time.time() - exec_start))
+            self.log_info(res_str)
+            msgbox.setText(res_str)
+            msgbox.setIcon(QMessageBox.Information)
+        except:
+            res_str = str_fail
+            self.log_err(res_str)
+            msgbox.setText(res_str)
+            msgbox.setIcon(QMessageBox.Critical)
+            traceback.print_exc()
+        msgbox.exec_()
+        return ret
+
     def exec_tab_info(self):
         pass
 
@@ -572,14 +594,11 @@ class MyMainWindow(QMainWindow):
                 if page_locked:
                     return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
-        try:
-            self.prot.write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
-                            ernone=ernone, erall=erall, erpages=erpages,
-                            verif=verif, jump=jump, jumpaddr=jumpaddr)
-            self.log_info('Команда записи успешно выполнена')
-        except:
-            self.log_err('Команда записи не выполнена - ошибка протокола!')
-            traceback.print_exc()
+        self.exec_prot_wrapper(str_ok='Команда записи выполнена!',
+                               str_fail='Команда записи не выполнена - ошибка протокола!',
+                               cmdf=lambda: self.prot.write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
+                                                            ernone=ernone, erall=erall, erpages=erpages,
+                                                            verif=verif, jump=jump, jumpaddr=jumpaddr))
 
     def exec_tab_erase(self):
         self.log_info('Подготовка к выполнению команды стирания. Чтение опций ...')
@@ -614,12 +633,9 @@ class MyMainWindow(QMainWindow):
             if curr_flash.wr_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
 
-        try:
-            self.prot.erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages)
-            self.log_info('Команда стирания успешно выполнена')
-        except:
-            self.log_err('Команда стирания не выполнена - ошибка протокола!')
-            traceback.print_exc()
+        self.exec_prot_wrapper(str_ok='Команда стирания выполнена!',
+                               str_fail='Команда стирания не выполнена - ошибка протокола!',
+                               cmdf=lambda: self.prot.erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages))
 
     def exec_tab_read(self):
         self.log_info('Подготовка к выполнению команды чтения. Чтение опций ...')
@@ -646,44 +662,35 @@ class MyMainWindow(QMainWindow):
             if curr_flash.rd_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
 
-        try:
-            self.prot.read(filepath=filepath, firstpage=firstpage, lastpage=lastpage)
-            self.log_info('Команда чтения успешно выполнена')
-        except:
-            self.log_err('Команда чтения не выполнена - ошибка протокола!')
-            traceback.print_exc()
+        self.exec_prot_wrapper(str_ok='Команда чтения выполнена!',
+                               str_fail='Команда чтения не выполнена - ошибка протокола!',
+                               cmdf=lambda: self.prot.read(filepath=filepath, firstpage=firstpage, lastpage=lastpage))
 
     def exec_tab_config(self):
         if self.ui.tconfig_rbtn_read.isChecked():
-            try:
-                cfgword = self.prot.get_cfgword()
-                self.log_info('Команда чтения CFGWORD успешно выполнена')
-                self.mcu.apply_cfgword(cfgword)
-                self.upd_flash_selected()
-                if self.mcu.name == 'k1921vk035':
-                    self.exec_tab_config_035(cfgword)
-                elif self.mcu.name == 'k1921vk028':
-                    self.exec_tab_config_028(cfgword)
-                elif self.mcu.name == 'k1921vk01t':
-                    self.exec_tab_config_01t(cfgword)
-            except:
-                self.log_err('Команда чтения CFGWORD не выполнена!')
-                traceback.print_exc()
+            cfgword = self.exec_prot_wrapper(str_ok='Команда чтения CFGWORD выполнена!',
+                                             str_fail='Команда чтения CFGWORD не выполнена!',
+                                             cmdf=lambda: self.prot.get_cfgword())
+            self.mcu.apply_cfgword(cfgword)
+            self.upd_flash_selected()
+            if self.mcu.name == 'k1921vk035':
+                self.exec_tab_config_035(cfgword)
+            elif self.mcu.name == 'k1921vk028':
+                self.exec_tab_config_028(cfgword)
+            elif self.mcu.name == 'k1921vk01t':
+                self.exec_tab_config_01t(cfgword)
         else:
-            try:
-                if self.mcu.name == 'k1921vk035':
-                    cfgword = self.exec_tab_config_035()
-                elif self.mcu.name == 'k1921vk028':
-                    cfgword = self.exec_tab_config_028()
-                elif self.mcu.name == 'k1921vk01t':
-                    cfgword = self.exec_tab_config_01t()
-                self.prot.set_cfgword(cfgword=cfgword)
-                self.log_info('Команда записи CFGWORD успешно выполнена')
-                self.mcu.apply_cfgword(cfgword)
-                self.upd_flash_selected()
-            except:
-                self.log_err('Команда записи CFGWORD не выполнена!')
-                traceback.print_exc()
+            if self.mcu.name == 'k1921vk035':
+                cfgword = self.exec_tab_config_035()
+            elif self.mcu.name == 'k1921vk028':
+                cfgword = self.exec_tab_config_028()
+            elif self.mcu.name == 'k1921vk01t':
+                cfgword = self.exec_tab_config_01t()
+            self.exec_prot_wrapper(str_ok='Команда записи CFGWORD выполнена!',
+                                   str_fail='Команда записи CFGWORD не выполнена!',
+                                   cmdf=lambda: self.prot.set_cfgword(cfgword=cfgword))
+            self.mcu.apply_cfgword(cfgword)
+            self.upd_flash_selected()
 
     def exec_tab_config_035(self, cfgword=None):
         widget035 = self.ui.tconfig_widget_cfg
