@@ -383,17 +383,22 @@ class CmdInterface:
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
         nvr = 1 if 'nvr' in region else 0
-        packet.data += [(nvr >> 7) & 0xFF]
-        self.log_dbg(LogId["HOST"] + "ERASE_PAGE - NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                     (nvr, addr, page))
+        packet.data += [(nvr >> 7) & (flash >> 5) & 0xFF]
+        self.log_dbg(LogId["HOST"] + "ERASE_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                     (nvr, flash, addr, page))
         packet.transmit()
 
-    def cmd_erase_full(self):
+    def cmd_erase_full(self, flash, region):
         self.log_info(LogId["PROG"] + "Стирание всей области памяти ...")
         packet = TxPacket(self.mcu, self.serport, self.win)
         packet.cmd_code = CmdCode["ERASE_FULL"]
-        packet.data8_n = 0
-        self.log_dbg(LogId["HOST"] + "ERASE_FULL")
+        packet.data8_n = 4
+        packet.data += [(0 >> 0) & 0xFF]
+        packet.data += [(0 >> 8) & 0xFF]
+        packet.data += [(0 >> 16) & 0xFF]
+        nvr = 1 if 'nvr' in region else 0
+        packet.data += [(nvr >> 7) & (flash >> 5) & 0xFF]
+        self.log_dbg(LogId["HOST"] + "ERASE_FULL - NVR=[%01d] FLASH=[%01d]" % (nvr, flash))
         packet.transmit()
 
     def cmd_write_page(self, page, page_data, flash, region, erpages):
@@ -536,7 +541,7 @@ class Protocol:
 
         cmd_count = 0
         if (kwargs['erall']):
-            cmd.cmd_erase_full()
+            cmd.cmd_erase_full(flash, region)
             cmd_count += 1
 
         self.log_info("Запись страниц%s:" % (" c предварительным стиранием" if kwargs['erpages'] else ""))
@@ -575,7 +580,7 @@ class Protocol:
         flash = self.win.get_curr_flash()
         cmd_count = 0
         if (kwargs['erall']):
-            cmd.cmd_erase_full()
+            cmd.cmd_erase_full(flash, region)
             cmd.cmd_msg()
         else:
             for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):

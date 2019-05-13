@@ -363,15 +363,38 @@ void erase_full_cmd(Packet_TypeDef* packet)
 {
     uint16_t rx_crc;
     uint32_t data[2];
+    uint32_t rx_data;
+    uint8_t cfg;
+    uint32_t flash_type;
     uint32_t modify_en;
-    //TODO: добавить выбор между NVR и MAIN
+    uint32_t addr;
+    uint16_t calc_crc;
+
+    //читаем адрес, определяем необходимый тип флеш и затем стираем её
+    rx_data = packet_fifo_read_u32();
+
+    //конфигурация
+    cfg = (uint8_t)(rx_data >> 24);
+
+    //определяем тип флэш и может ли хост её стирать
+    flash_type = (FlashType_TypeDef)((cfg & CMD_WRITE_PAGE_OPT_NVR_MSK) >> CMD_WRITE_PAGE_OPT_NVR_POS);
     flash_read(FLASH_NVR_CFGWORD_OFFSET, FLASH_NVR, data);
-    modify_en = (data[0] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS;
+    if (flash_type == FLASH_MAIN)
+        modify_en = (data[0] & CFGWORD_FLASHWE_MSK) >> CFGWORD_FLASHWE_POS;
+    else
+        modify_en = (data[0] & CFGWORD_NVRWE_MSK) >> CFGWORD_NVRWE_POS;
+
+    //адрес
+    addr = rx_data & ~(FLASH_PAGE_SIZE_BYTES - 1) & 0x00FFFFFF;
+
+    //защита от стирания бутлоадера
+    modify_en &= !((flash_type == FLASH_NVR) && (addr < (FLASH_PAGE_SIZE_BYTES * 3)));
+    calc_crc = crc_upd_u32(packet->crc, rx_data);
 
     rx_crc = packet_fifo_read_u16();
 
-    packet->data_n = 4;
-    if (packet->crc != rx_crc)
+    packet->data_n = 8;
+    if (calc_crc != rx_crc)
         packet->tmp_data8[0] = MSG_ERR_CRC;
     else if (!modify_en)
         packet->tmp_data8[0] = MSG_FAIL;
@@ -379,6 +402,8 @@ void erase_full_cmd(Packet_TypeDef* packet)
         flash_erase_full();
         packet->tmp_data8[0] = MSG_OK;
     }
+
+    packet->tmp_data32[1] = rx_data;
 
     msg_cmd(packet);
 }
