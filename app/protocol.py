@@ -202,9 +202,9 @@ class RxPacket(Packet):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
                 temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
-                self.log_dbg(LogId["DEVICE"] + "WRITE_PAGE - %s | NVR=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                self.log_dbg(LogId["DEVICE"] + "WRITE_PAGE - %s | NVR=[%01d] FLASH=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                              (dict_key(MsgCode, self.msg_code),
-                             ((temp >> 31) & 0x1), ((temp >> 30) & 0x1), (temp & 0x3FFFFFFF), (temp & 0x3FFFFFFF) // flash_page_size))
+                             ((temp >> 31) & 0x1), ((temp >> 29) & 0x1), ((temp >> 30) & 0x1), (temp & 0x3FFFFFFF), (temp & 0x3FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
                     raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
@@ -214,9 +214,9 @@ class RxPacket(Packet):
             elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
                 temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
                 info['data'] = self.data[8:]
-                self.log_dbg(LogId["DEVICE"] + "READ_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                self.log_dbg(LogId["DEVICE"] + "READ_PAGE - %s | NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                              (dict_key(MsgCode, self.msg_code),
-                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // flash_page_size))
+                             ((temp >> 31) & 0x1), ((temp >> 29) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
                     raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
@@ -224,7 +224,8 @@ class RxPacket(Packet):
             if (self.msg_code == MsgCode["ERR_CRC"]):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
-                self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s" % dict_key(MsgCode, self.msg_code))
+                temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
+                self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s | NVR=[%01d] FLASH=[%01d]" % (dict_key(MsgCode, self.msg_code, ((temp >> 31) & 0x1), ((temp >> 29) & 0x1))))
                 if (self.msg_code == MsgCode["FAIL"]):
                     raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
@@ -233,9 +234,9 @@ class RxPacket(Packet):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
                 temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
-                self.log_dbg(LogId["DEVICE"] + "ERASE_PAGE - %s | NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                self.log_dbg(LogId["DEVICE"] + "ERASE_PAGE - %s | NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                              (dict_key(MsgCode, self.msg_code),
-                             ((temp >> 31) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // flash_page_size))
+                             ((temp >> 31) & 0x1), ((temp >> 29) & 0x1), (temp & 0x7FFFFFFF), (temp & 0x7FFFFFFF) // flash_page_size))
                 if (self.msg_code == MsgCode["FAIL"]):
                     raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
@@ -383,7 +384,7 @@ class CmdInterface:
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
         nvr = 1 if 'nvr' in region else 0
-        packet.data += [(nvr >> 7) & (flash >> 5) & 0xFF]
+        packet.data += [((nvr << 7) | (flash << 5)) & 0xFF]
         self.log_dbg(LogId["HOST"] + "ERASE_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                      (nvr, flash, addr, page))
         packet.transmit()
@@ -397,7 +398,7 @@ class CmdInterface:
         packet.data += [(0 >> 8) & 0xFF]
         packet.data += [(0 >> 16) & 0xFF]
         nvr = 1 if 'nvr' in region else 0
-        packet.data += [(nvr >> 7) & (flash >> 5) & 0xFF]
+        packet.data += [((nvr << 7) | (flash << 5)) & 0xFF]
         self.log_dbg(LogId["HOST"] + "ERASE_FULL - NVR=[%01d] FLASH=[%01d]" % (nvr, flash))
         packet.transmit()
 
@@ -413,10 +414,10 @@ class CmdInterface:
         packet.data += [(addr >> 16) & 0xFF]
         nvr = 1 if 'nvr' in region else 0
         erase = 1 if erpages else 0
-        packet.data += [((nvr << 7) | (erase << 6)) & 0xFF]
+        packet.data += [((nvr << 7) | (erase << 6) | (flash << 5)) & 0xFF]
         packet.data += page_data
-        self.log_dbg(LogId["HOST"] + "WRITE_PAGE - NVR=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                     (nvr, erase, addr, page))
+        self.log_dbg(LogId["HOST"] + "WRITE_PAGE - NVR=[%01d] FLASH=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                     (nvr, flash, erase, addr, page))
         packet.transmit()
 
     def cmd_read_page(self, page, flash, region):
@@ -430,9 +431,9 @@ class CmdInterface:
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
         nvr = 1 if 'nvr' in region else 0
-        packet.data += [(nvr << 7) & 0xFF]
-        self.log_dbg(LogId["HOST"] + "READ_PAGE - NVR=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                     (nvr, addr, page))
+        packet.data += [((nvr << 7) | (flash << 5)) & 0xFF]
+        self.log_dbg(LogId["HOST"] + "READ_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
+                     (nvr, flash, addr, page))
         packet.transmit()
         rx_info = self.cmd_msg()
         return rx_info['data']
