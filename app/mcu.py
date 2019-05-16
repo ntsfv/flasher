@@ -156,7 +156,7 @@ class K1921VK01T:
 
     def parse_cfgword(self, data):
         cfgword = {}
-        temp = (data[3] << 32) | (data[2] << 16) | (data[1] << 8) | (data[0] << 0)
+        temp = (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | (data[0] << 0)
         cfgword['boot_from_ifb'] = (temp & self.CFGWORD_BOOTFROMIFB_MSK) >> self.CFGWORD_BOOTFROMIFB_POS
         cfgword['en_gpio'] = (temp & self.CFGWORD_ENGPIO_MSK) >> self.CFGWORD_ENGPIO_POS
         cfgword['extmem_sel'] = (temp & self.CFGWORD_EXTMEMSEL_MSK) >> self.CFGWORD_EXTMEMSEL_POS

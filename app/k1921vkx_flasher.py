@@ -460,7 +460,7 @@ class MyMainWindow(QMainWindow):
             table.setItem(r, 0, QTableWidgetItem("Страница %d" % r))
             table.setItem(r, 1, QTableWidgetItem("0x%x" % (r * page_size)))
             if page_size < 1024:
-                page_size_str = "0x%08x (%d)" % (page_size, page_size)
+                page_size_str = "0x%x (%d)" % (page_size, page_size)
             else:
                 page_size_str = "0x%x (%dK)" % (page_size, page_size // 1024)
             table.setItem(r, 2, QTableWidgetItem("%s" % page_size_str))

@@ -101,6 +101,10 @@ class Packet:
 
         return crc & 0xFFFF
 
+    def chunks(self, l, n):
+        return [l[i:i + n] for i in range(0, len(l), n)]
+
+
 
 class TxPacket(Packet):
     def __init__(self, mcu, serport, win=None):
@@ -245,6 +249,14 @@ class RxPacket(Packet):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"]):
                 self.log_dbg(LogId["DEVICE"] + "EXIT_BOOTLOADER - OK")
+
+        n = 0
+        for chunk in self.chunks(self.data, 4):
+            temp_str = "0x%02x:" % n
+            for b in chunk:
+                temp_str += ' %02x' % b
+                n += 1
+            self.log_dbg(temp_str)
 
         return info
 
