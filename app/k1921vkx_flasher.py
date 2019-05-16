@@ -522,6 +522,7 @@ class MyMainWindow(QMainWindow):
         elif self.mcu.name == 'k1921vk01t':
             allowed_nums = "^((0x|)[0-9A-Fa-f]{1})|([0-9]{1,2})$"
             self.ui.tconfig_widget_cfg.ui.ledit_pinnum.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+            self.exec_tab_config_01t(self.mcu.cfgword)
         elif self.mcu.name == 'k1921vkx':
             pass
 
@@ -720,10 +721,10 @@ class MyMainWindow(QMainWindow):
             cfgword['nvrre'] = widget035.ui.chbox_nvrre.isChecked()
             return cfgword
 
-    def exec_tab_config_028(self):
+    def exec_tab_config_028(self, cfgword=None):
         pass
 
-    def exec_tab_config_01t(self):
+    def exec_tab_config_01t(self, cfgword=None):
         pass
 
 

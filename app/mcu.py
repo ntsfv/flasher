@@ -115,6 +115,29 @@ class K1921VK028:
 
 
 class K1921VK01T:
+    CFGWORD_UFIFBRE_POS = 26
+    CFGWORD_UFRE_POS = 25
+    CFGWORD_LOCKIFBUF_POS = 24
+    CFGWORD_BFIFBRE_POS = 18
+    CFGWORD_BFRE_POS = 17
+    CFGWORD_LOCKIFBLF_POS = 16
+    CFGWORD_PORTNUM_POS = 12
+    CFGWORD_PINNUM_POS = 8
+    CFGWORD_EXTMEMSEL_POS = 3
+    CFGWORD_ENGPIO_POS = 1
+    CFGWORD_BOOTFROMIFB_POS = 0
+    CFGWORD_UFIFBRE_MSK = (1 << CFGWORD_UFIFBRE_POS)
+    CFGWORD_UFRE_MSK = (1 << CFGWORD_UFRE_POS)
+    CFGWORD_LOCKIFBUF_MSK = (1 << CFGWORD_LOCKIFBUF_POS)
+    CFGWORD_BFIFBRE_MSK = (1 << CFGWORD_BFIFBRE_POS)
+    CFGWORD_BFRE_MSK = (1 << CFGWORD_BFRE_POS)
+    CFGWORD_LOCKIFBLF_MSK = (1 << CFGWORD_LOCKIFBLF_POS)
+    CFGWORD_PORTNUM_MSK = (0xF << CFGWORD_PORTNUM_POS)
+    CFGWORD_PINNUM_MSK = (0xF << CFGWORD_PINNUM_POS)
+    CFGWORD_EXTMEMSEL_MSK = (3 << CFGWORD_EXTMEMSEL_POS)
+    CFGWORD_ENGPIO_MSK = (1 << CFGWORD_ENGPIO_POS)
+    CFGWORD_BOOTFROMIFB_MSK = (1 << CFGWORD_BOOTFROMIFB_POS)
+
     def __init__(self):
         self.chipid = '0x00000000'
         self.name = 'k1921vk01t'
@@ -127,6 +150,91 @@ class K1921VK01T:
                       {'name': 'userflash',
                        'region_main': Flash(size=(64 * K), pages=256),
                        'region_nvr': Flash(size=512, pages=2)}]
+        self.cfgword = {}
+        self.flash[0]['region_nvr'].wr_lock[0] = True
+        self.flash[0]['region_nvr'].rd_lock[0] = True
+
+    def parse_cfgword(self, data):
+        cfgword = {}
+        temp = (data[3] << 32) | (data[2] << 16) | (data[1] << 8) | (data[0] << 0)
+        cfgword['boot_from_ifb'] = (temp & self.CFGWORD_BOOTFROMIFB_MSK) >> self.CFGWORD_BOOTFROMIFB_POS
+        cfgword['en_gpio'] = (temp & self.CFGWORD_ENGPIO_MSK) >> self.CFGWORD_ENGPIO_POS
+        cfgword['extmem_sel'] = (temp & self.CFGWORD_EXTMEMSEL_MSK) >> self.CFGWORD_EXTMEMSEL_POS
+        cfgword['pinnum'] = (temp & self.CFGWORD_PINNUM_MSK) >> self.CFGWORD_PINNUM_POS
+        cfgword['portnum'] = (temp & self.CFGWORD_PORTNUM_MSK) >> self.CFGWORD_PORTNUM_POS
+        cfgword['lock_ifb_lf'] = (temp & self.CFGWORD_LOCKIFBLF_MSK) >> self.CFGWORD_LOCKIFBLF_POS
+        cfgword['bfre'] = (temp & self.CFGWORD_BFRE_MSK) >> self.CFGWORD_BFRE_POS
+        cfgword['bfifbre'] = (temp & self.CFGWORD_BFIFBRE_MSK) >> self.CFGWORD_BFIFBRE_POS
+        cfgword['lock_ifb_uf'] = (temp & self.CFGWORD_LOCKIFBUF_MSK) >> self.CFGWORD_LOCKIFBUF_POS
+        cfgword['ufre'] = (temp & self.CFGWORD_UFRE_MSK) >> self.CFGWORD_UFRE_POS
+        cfgword['ufifbre'] = (temp & self.CFGWORD_UFIFBRE_MSK) >> self.CFGWORD_UFIFBRE_POS
+        cfgword['res_str'] = ("BOOTFROMIFB=[%01d] ENGPIO=[%01d] EXTMEMSEL=[%01d] PINNUM=[%02d] PORTNUM=[%02d] LOCKIFBLF=[%01d] BFRE=[%01d] BFIFBRE=[%01d] LOCKIFBUF=[%01d] UFRE=[%01d] UFIFBRE=[%01d]" %
+                              (cfgword['boot_from_ifb'], cfgword['en_gpio'], cfgword['extmem_sel'], cfgword['pinnum'], cfgword['portnum'],
+                               cfgword['lock_ifb_lf'], cfgword['bfre'], cfgword['bfifbre'], cfgword['lock_ifb_uf'], cfgword['ufre'], cfgword['ufifbre']))
+        _bflock = ''
+        for b in range(16):
+            _bflock = bin(data[4 + b])[2:].zfill(8) + _bflock
+        bflock = _bflock[::-1]
+        _uflock = ''
+        for b in range(32):
+            _uflock = bin(data[20 + b])[2:].zfill(8) + _uflock
+        uflock = _uflock[::-1]
+        cfgword['bflock'] = [1] * self.flash[0]['region_main'].pages
+        cfgword['uflock'] = [1] * self.flash[1]['region_main'].pages
+        for p in range(len(bflock)):
+            cfgword['bflock'][p] = int(bflock[p])
+        for p in range(len(uflock)):
+            cfgword['uflock'][p] = int(uflock[p])
+        return cfgword
+
+    def pack_cfgword(self, cfgword):
+        data = [0xFF] * (4 + 16 + 32)
+        temp = 0xFFFFFFFF
+        temp &= ~(0 if cfgword['boot_from_ifb'] else self.CFGWORD_BOOTFROMIFB_MSK)
+        temp &= ~(0 if cfgword['en_gpio'] else self.CFGWORD_ENGPIO_MSK)
+        temp = (temp & (~self.CFGWORD_EXTMEMSEL_MSK)) | (cfgword['extmem_sel'] << self.CFGWORD_EXTMEMSEL_POS)
+        temp = (temp & (~self.CFGWORD_PINNUM_MSK)) | (cfgword['pinnum'] << self.CFGWORD_PINNUM_POS)
+        temp = (temp & (~self.CFGWORD_PORTNUM_MSK)) | (cfgword['portnum'] << self.CFGWORD_PORTNUM_POS)
+        temp &= ~(0 if cfgword['lock_ifb_lf'] else self.CFGWORD_LOCKIFBLF_MSK)
+        temp &= ~(0 if cfgword['bfre'] else self.CFGWORD_BFRE_MSK)
+        temp &= ~(0 if cfgword['bfifbre'] else self.CFGWORD_BFIFBRE_MSK)
+        temp &= ~(0 if cfgword['lock_ifb_uf'] else self.CFGWORD_LOCKIFBUF_MSK)
+        temp &= ~(0 if cfgword['ufre'] else self.CFGWORD_UFRE_MSK)
+        temp &= ~(0 if cfgword['ufifbre'] else self.CFGWORD_UFIFBRE_MSK)
+        data[0] = (temp >> 0) & 0xFF
+        data[1] = (temp >> 8) & 0xFF
+        data[2] = (temp >> 16) & 0xFF
+        data[3] = (temp >> 24) & 0xFF
+        for p in range(cfgword['bflock']):
+            data[4 + (p // 8)] &= ~(0 if cfgword['bflock'][p] else (1 << (p % 8)))
+        for p in range(cfgword['uflock']):
+            data[20 + (p // 8)] &= ~(0 if cfgword['uflock'][p] else (1 << (p % 8)))
+        res_str = ("BOOTFROMIFB=[%01d] ENGPIO=[%01d] EXTMEMSEL=[%01d] PINNUM=[%02d] PORTNUM=[%02d] LOCKIFBLF=[%01d] BFRE=[%01d] BFIFBRE=[%01d] LOCKIFBUF=[%01d] UFRE=[%01d] UFIFBRE=[%01d]" %
+                   (cfgword['boot_from_ifb'], cfgword['en_gpio'], cfgword['extmem_sel'], cfgword['pinnum'], cfgword['portnum'],
+                    cfgword['lock_ifb_lf'], cfgword['bfre'], cfgword['bfifbre'], cfgword['lock_ifb_uf'], cfgword['ufre'], cfgword['ufifbre']))
+        return (data, res_str)
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].rd_lock[p] = False if cfgword['bfre'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].rd_lock[p] = False if cfgword['bfifbre'] else True
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['bflock'][p] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['lock_ifb_lf'] else True
+        for p in range(self.flash[1]['region_main'].pages):
+            self.flash[1]['region_main'].rd_lock[p] = False if cfgword['ufre'] else True
+        for p in range(self.flash[1]['region_nvr'].pages):
+            self.flash[1]['region_nvr'].rd_lock[p] = False if cfgword['ufifbre'] else True
+        for p in range(self.flash[1]['region_main'].pages):
+            self.flash[1]['region_main'].wr_lock[p] = False if cfgword['uflock'][p] else True
+        for p in range(self.flash[1]['region_nvr'].pages):
+            self.flash[1]['region_nvr'].wr_lock[p] = False if cfgword['lock_ifb_uf'] else True
+        # bootloader pages
+        self.flash[0]['region_nvr'].wr_lock[0] = True
+        self.flash[0]['region_nvr'].rd_lock[0] = True
 
 
 db = [K1921VKx(), K1921VK035(), K1921VK028(), K1921VK01T()]
