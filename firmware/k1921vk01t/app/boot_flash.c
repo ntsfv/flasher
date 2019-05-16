@@ -81,11 +81,11 @@ static RAMFUNC void userflash_cmd(uint32_t addr, uint32_t* data, FlashCmd_TypeDe
         NT_USERFLASH->FMD = data[0];
     }
     NT_USERFLASH->FMC = FLASH_MAGICKEY_CONST << USERFLASH_FMC_MAGIC_KEY_Pos | cmd;
-    bootflash_busy = 1;
+    userflash_busy = 1;
     if ((cmd == FLASH_RD) || (cmd == FLASH_NVR_RD)) {
         while (!NT_USERFLASH->FCIS) {
         };
-        NT_USERFLASH->FMD = data[0];
+        data[0] = NT_USERFLASH->FMD;
     }
 }
 
