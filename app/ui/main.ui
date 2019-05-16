@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>650</height>
+    <height>760</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>500</width>
+    <width>600</width>
     <height>100000</height>
    </size>
   </property>
@@ -312,16 +312,22 @@
       <property name="enabled">
        <bool>true</bool>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>488</width>
         <height>320</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>16777215</height>
+        <height>320</height>
        </size>
       </property>
       <property name="font">
@@ -335,6 +341,18 @@
       <widget class="QWidget" name="tab_info">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>480</height>
+        </size>
        </property>
        <attribute name="title">
         <string notr="true">Информация</string>
@@ -459,6 +477,12 @@
               <height>0</height>
              </size>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>83</height>
+             </size>
+            </property>
             <property name="text">
              <string notr="true">К1921ВКххх</string>
             </property>
@@ -468,6 +492,18 @@
         </item>
         <item>
          <widget class="QTableWidget" name="tinfo_tbl_flash">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>10000</width>
+            <height>174</height>
+           </size>
+          </property>
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
           </property>
@@ -537,7 +573,7 @@
        <property name="maximumSize">
         <size>
          <width>16777215</width>
-         <height>16777215</height>
+         <height>480</height>
         </size>
        </property>
        <attribute name="title">
@@ -900,6 +936,12 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>480</height>
+        </size>
+       </property>
        <attribute name="title">
         <string notr="true">Стирание</string>
        </attribute>
@@ -1126,6 +1168,12 @@
       <widget class="QWidget" name="tab_read">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>480</height>
+        </size>
        </property>
        <attribute name="title">
         <string notr="true">Чтение</string>
@@ -1357,6 +1405,18 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="minimumSize">
+        <size>
+         <width>480</width>
+         <height>277</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>10000</width>
+         <height>277</height>
+        </size>
+       </property>
        <attribute name="title">
         <string notr="true">Конфигурация</string>
        </attribute>
@@ -1434,6 +1494,12 @@
     </item>
     <item>
      <widget class="QPlainTextEdit" name="tedit_log">
+      <property name="minimumSize">
+       <size>
+        <width>488</width>
+        <height>129</height>
+       </size>
+      </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
