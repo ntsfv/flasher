@@ -151,7 +151,7 @@ void packet_transmit(Packet_TypeDef* tx_packet)
     //ждем если есть передача
     while (packet_transmit_status_busy()) {
     };
-    DBG_PRINT(0x04);
+    DBG_PRINT(0x20);
     DBG_PRINT(tx_packet->cmd_code);
 
     //грузим все сразу в uart fifo

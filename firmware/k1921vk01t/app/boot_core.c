@@ -77,9 +77,77 @@ void boot_init()
 
 void boot_exit()
 {
-    //FIXME: add code to jump to 0x00002000
-    //flash_disable_boot();
-    //NVIC_SystemReset();
+    typedef void (*p_func)(void);
+    p_func user_app;
+
+    DBG_PRINT(0x05);
+    // отключаем прерывания
+    __disable_irq();
+    NVIC->ICER[0] = 0xFFFFFFFF;
+    NVIC->ICER[1] = 0xFFFFFFFF;
+    NVIC->ICER[2] = 0xFFFFFFFF;
+    NVIC->ICER[3] = 0xFFFFFFFF;
+    NVIC->ICER[4] = 0xFFFFFFFF;
+    __DSB();
+    __ISB();
+
+    //сбрасываем порты
+    NT_COMMON_REG->GPIODEN0 = 0x00020062;
+    NT_COMMON_REG->GPIODEN1 = 0x08000000;
+    NT_COMMON_REG->GPIODEN2 = 0x00000400;
+    NT_COMMON_REG->GPIODEN2 = 0x00000000;
+    NT_COMMON_REG->GPIOPCTLA = 0x0;
+    NT_GPIOA->ALTFUNCCLR = 0xFFFFFFFF;
+    NT_GPIOA->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOA->DATAOUT = 0x0;
+    NT_COMMON_REG->GPIOPCTLB = 0x0;
+    NT_GPIOB->ALTFUNCCLR = 0xFFFFFFF8;
+    NT_GPIOB->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOB->DATAOUT = 0x0;
+    NT_COMMON_REG->GPIOPCTLC = 0x0;
+    NT_GPIOC->ALTFUNCCLR = 0xFFFFFFFF;
+    NT_GPIOC->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOC->DATAOUT = 0x0;
+    NT_COMMON_REG->GPIOPCTLD = 0x0;
+    NT_GPIOD->ALTFUNCCLR = 0xFFFFF7FF;
+    NT_GPIOD->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOD->DATAOUT = 0x0;
+    NT_COMMON_REG->GPIOPCTLE = 0x0;
+    NT_GPIOE->ALTFUNCCLR = 0xFFFFFBFC;
+    NT_GPIOE->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOE->DATAOUT = 0x0;
+    NT_COMMON_REG->GPIOPCTLF = 0x0;
+    NT_GPIOF->ALTFUNCCLR = 0xFFFFFFFF;
+    NT_GPIOF->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOF->DATAOUT = 0x0;
+    NT_COMMON_REG->GPIOPCTLG = 0x0;
+    NT_GPIOG->ALTFUNCCLR = 0xFFFFFFFF;
+    NT_GPIOG->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOG->DATAOUT = 0x0;
+    NT_COMMON_REG->GPIOPCTLH = 0x0;
+    NT_GPIOH->ALTFUNCCLR = 0xFFFFFFFF;
+    NT_GPIOH->OUTENCLR = 0xFFFFFFFF;
+    NT_GPIOH->DATAOUT = 0x0;
+
+    //сбрасываем периферию
+    NT_COMMON_REG->PER_RST0 = 0;
+    NT_COMMON_REG->UART_CLK = 0;
+
+    //переходим на тактирование от RC
+    NT_COMMON_REG->SYS_CLK = 0;
+    uint32_t timeout_counter = SYSCLK_SWITCH_TIMEOUT;
+    while (timeout_counter) {
+        timeout_counter--;
+    }
+    NT_COMMON_REG->PLL_NF = 0;
+    NT_COMMON_REG->PLL_NR = 0;
+    NT_COMMON_REG->PLL_OD = 0;
+    NT_COMMON_REG->PLL_CTRL = 0;
+
+    user_app = (void (*)(void))(*((volatile uint32_t*)((0x000020000 + 4))));
+    SCB->VTOR = 0x00002000;
+    __set_MSP(*(__IO uint32_t*)(0x00002000));
+    user_app();
 }
 
 __attribute__((noreturn)) void boot_core()

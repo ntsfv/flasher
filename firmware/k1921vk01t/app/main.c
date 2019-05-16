@@ -143,7 +143,6 @@ static void TimerInit()
 
 void PeriphInit()
 {
-    DebugInit();
     FPUInit();
     ClockInit();
     UartInit();
@@ -153,15 +152,18 @@ void PeriphInit()
 //-- Main ----------------------------------------------------------------------
 int main()
 {
+    DebugInit();
+    DBG_PRINT(0x31);
     // Используется BOOTEN нога, которая разрешает работу загрузчика.
     NT_COMMON_REG->BOOTEN_PORT_DEN |= BOOTEN_PIN_MSK;
     //выходим из загрузчика, если BOOTEN не был активен при сбросе
     if (!IS_BOOTEN_ACTIVE)
         boot_exit();
-    DBG_PRINT(0xBB);
+    DBG_PRINT(0x32);
     PeriphInit();
+    DBG_PRINT(0x33);
     boot_init();
-    DBG_PRINT(0xCC);
+    DBG_PRINT(0x34);
     boot_core();
     return 0;
 }
