@@ -141,7 +141,6 @@ class RxPacket(Packet):
     def __init__(self, mcu, serport, win=None):
         super().__init__(mcu, serport, win)
         self.device_sign = SignCode["DEVICE"]
-        self.device_data_n_max = 2048
         self.rxcmd_code = CmdCode["NONE"]
         self.msg_code = MsgCode["NONE"]
 
@@ -257,6 +256,9 @@ class RxPacket(Packet):
                 temp_str += ' %02x' % b
                 n += 1
             self.log_dbg(temp_str)
+            if n > 63:
+                self.log_dbg('More than 64 bytes of data, the rest are not printed')
+                break
 
         return info
 
@@ -272,12 +274,8 @@ class RxPacket(Packet):
         rx_data_n = self.serport.read_int(2)
         # check command
         if ((rx_cmd ^ rx_cmd_inv) != 0xFF):
-            self.log_dbg(LogId["HOST"], "MSG_CMD - ERR_CMD - wrong command from DEVICE!")
+            self.log_dbg(LogId["HOST"] + "MSG_CMD - ERR_CMD - wrong command from DEVICE!")
             raise ProtException("Wrong command received!", self.win)
-        # check N
-        if (rx_data_n > self.device_data_n_max):
-            self.log_dbg(LogId["HOST"], "MSG_CMD - ERR_N - wrong N number from DEVICE!")
-            raise ProtException("Wrong N received!", self.win)
         # start data load and crc16 calculation
         crc = self.crc16(rx_cmd)
         crc = self.crc16(rx_cmd_inv, crc)
@@ -294,10 +292,10 @@ class RxPacket(Packet):
             if (self.cmd_code == CmdCode["MSG"]):
                     return self.parse_msg()
             else:
-                self.log_dbg(LogId["HOST"], "Error! Waiting for MSG but recieve %s command" % self.dict_key(CmdCode, self.cmd_code))
+                self.log_dbg(LogId["HOST"] + "Error! Waiting for MSG but recieve %s command" % self.dict_key(CmdCode, self.cmd_code))
                 raise ProtException("Wrong command received!", self.win)
         else:
-            self.log_dbg(LogId["HOST"], "MSG - ERR_CRC - CRC error in DEVICE command!")
+            self.log_dbg(LogId["HOST"] + "MSG - ERR_CRC - CRC error in DEVICE command!")
             raise ProtException("CRC error in device message!", self.win)
 
 
@@ -459,8 +457,6 @@ class CmdInterface:
         self.log_dbg(LogId["HOST"] + "READ_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
                      (nvr, flash, addr, page))
         packet.transmit()
-        rx_info = self.cmd_msg()
-        return rx_info['data']
 
     def cmd_exit_bootloader(self):
         self.log_info(LogId["PROG"] + "Software reset and exit from bootloader")
@@ -583,7 +579,10 @@ class Protocol:
             # read pages
             read_data = []
             for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
-                read_data += cmd.cmd_read_page(p, flash, region)
+                cmd.cmd_read_page(p, flash, region)
+            self.log_info("Ожидание выполнения команд ...")
+            for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
+                read_data += cmd.cmd_msg()['data']
             # compare
             err = 0
             err_limit = 16
@@ -622,7 +621,10 @@ class Protocol:
         flash = self.win.get_curr_flash()
         page_data = []
         for page in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
-            page_data += cmd.cmd_read_page(page, flash, region)
+            cmd.cmd_read_page(page, flash, region)
+        self.log_info("Ожидание выполнения команд ...")
+        for page in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
+            page_data += cmd.cmd_msg()['data']
         self.save_bin(kwargs['filepath'], page_data)
 
     def get_cfgword(self, **kwargs):
