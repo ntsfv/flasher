@@ -48,12 +48,12 @@ static RAMFUNC void bootflash_cmd(uint32_t addr, uint32_t* data, FlashCmd_TypeDe
             data[0] = *(volatile uint32_t*)(addr + 0x0);
             data[1] = *(volatile uint32_t*)(addr + 0x4);
             data[2] = *(volatile uint32_t*)(addr + 0x8);
-            data[2] = *(volatile uint32_t*)(addr + 0xC);
+            data[3] = *(volatile uint32_t*)(addr + 0xC);
         } else {
             data[0] = 0;
             data[1] = 0;
             data[2] = 0;
-            data[2] = 0;
+            data[3] = 0;
         }
     } else {
         NT_BOOTFLASH->FMA = addr;
@@ -63,7 +63,7 @@ static RAMFUNC void bootflash_cmd(uint32_t addr, uint32_t* data, FlashCmd_TypeDe
             NT_BOOTFLASH->FMD2 = data[2];
             NT_BOOTFLASH->FMD3 = data[3];
         }
-        NT_BOOTFLASH->FMC = FLASH_MAGICKEY_CONST << BOOTFLASH_FMC_MAGIC_KEY_Pos | cmd;
+        NT_BOOTFLASH->FMC = (FLASH_MAGICKEY_CONST << BOOTFLASH_FMC_MAGIC_KEY_Pos) | cmd;
         bootflash_busy = 1;
     }
 }
@@ -80,7 +80,7 @@ static RAMFUNC void userflash_cmd(uint32_t addr, uint32_t* data, FlashCmd_TypeDe
     if ((cmd == FLASH_WR) || (cmd == FLASH_NVR_WR)) {
         NT_USERFLASH->FMD = data[0];
     }
-    NT_USERFLASH->FMC = FLASH_MAGICKEY_CONST << USERFLASH_FMC_MAGIC_KEY_Pos | cmd;
+    NT_USERFLASH->FMC = (FLASH_MAGICKEY_CONST << USERFLASH_FMC_MAGIC_KEY_Pos) | cmd;
     userflash_busy = 1;
     if ((cmd == FLASH_RD) || (cmd == FLASH_NVR_RD)) {
         while (!NT_USERFLASH->FCIS) {

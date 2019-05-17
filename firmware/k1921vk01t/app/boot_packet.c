@@ -69,7 +69,7 @@ uint8_t packet_fifo_read()
 
     while (packet_fifo.empty) {
     };
-
+    __disable_irq();
     data = packet_fifo.mem[packet_fifo.rd_ptr];
     if (packet_fifo.rd_ptr == (PACKET_FIFO_BYTES - 1))
         packet_fifo.rd_ptr = 0;
@@ -78,7 +78,7 @@ uint8_t packet_fifo_read()
 
     if ((packet_fifo.wr_ptr == packet_fifo.rd_ptr) && !packet_fifo.full)
         packet_fifo.empty = 1;
-
+    __enable_irq();
     return data;
 }
 

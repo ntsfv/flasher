@@ -36,6 +36,8 @@ static RAMFUNC void write_page_cmd(Packet_TypeDef* packet);
 static RAMFUNC void erase_full_cmd(Packet_TypeDef* packet);
 static RAMFUNC void erase_page_cmd(Packet_TypeDef* packet);
 static RAMFUNC void exit_cmd(Packet_TypeDef* packet);
+static RAMFUNC uint32_t is_page_modify_en(uint32_t page_num, FlashMemory_TypeDef flash_mem, FlashType_TypeDef flash_type);
+static RAMFUNC uint32_t is_page_read_en(uint32_t page_num, FlashMemory_TypeDef flash_mem, FlashType_TypeDef flash_type);
 
 //-- Functions -----------------------------------------------------------------
 void boot_init()
@@ -554,6 +556,7 @@ void read_page_cmd(Packet_TypeDef* packet)
     calc_crc = crc_upd_u32(packet->crc, rx_data);
     rx_crc = packet_fifo_read_u16();
 
+    packet->tmp_data32[1] = rx_data;
     packet->data_n = 8;
     if (calc_crc != rx_crc)
         packet->tmp_data8[0] = MSG_ERR_CRC;
@@ -582,7 +585,7 @@ void read_page_cmd(Packet_TypeDef* packet)
         packet->tmp_data8[0] = MSG_OK;
     }
 
-    packet->tmp_data32[1] = rx_data;
+
 
     msg_cmd(packet);
 }

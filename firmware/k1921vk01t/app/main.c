@@ -23,6 +23,12 @@
 //-- Includes ------------------------------------------------------------------
 #include "boot_core.h"
 
+//-- Defines -------------------------------------------------------------------
+#define IRQ_TOTAL 150
+
+//-- Variables -----------------------------------------------------------------
+static __attribute__((section("vtable"))) void (*Vectors[IRQ_TOTAL])(void) __attribute__((aligned(256)));
+
 //-- Init functions ------------------------------------------------------------
 static void DebugInit()
 {
@@ -31,6 +37,18 @@ static void DebugInit()
     DBG_PORT->OUTENSET = DBG_INFO_MSK;
     NT_COMMON_REG->DBG_PORT_DEN |= DBG_INFO_MSK;
 #endif
+}
+
+static void NVICInit()
+{
+    uint32_t* src = (uint32_t*)SCB->VTOR;
+    uint32_t* dst = (uint32_t*)Vectors;
+    uint32_t n = IRQ_TOTAL;
+
+    while (n--)
+        *dst++ = *src++;
+
+    SCB->VTOR = (uint32_t)Vectors;
 }
 
 static void FPUInit()
@@ -143,6 +161,7 @@ static void TimerInit()
 
 void PeriphInit()
 {
+    NVICInit();
     FPUInit();
     ClockInit();
     UartInit();
