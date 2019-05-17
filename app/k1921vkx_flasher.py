@@ -124,15 +124,16 @@ class MyMainWindow(QMainWindow):
         self.ui.tedit_log.appendHtml('[<span style=" color:#e9b96e;">WARN</span>]: %s' % msg)
         QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
 
-    def log_err(self, msg):
+    def log_err(self, msg, msgbox_en=True):
         logger.error(msg)
         self.ui.tedit_log.appendHtml('[<span style=" color:#ef2929;">ERR</span>]: %s' % msg)
         QtCore.QCoreApplication.processEvents(QtCore.QEventLoop.AllEvents)
-        msgbox = QMessageBox(self)
-        msgbox.addButton(QMessageBox.Ok)
-        msgbox.setText(msg)
-        msgbox.setIcon(QMessageBox.Critical)
-        msgbox.exec_()
+        if msgbox_en:
+            msgbox = QMessageBox(self)
+            msgbox.addButton(QMessageBox.Ok)
+            msgbox.setText(msg)
+            msgbox.setIcon(QMessageBox.Critical)
+            msgbox.exec_()
 
     def log_crit(self, msg):
         logger.critical(msg)

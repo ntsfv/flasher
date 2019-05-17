@@ -80,9 +80,9 @@ class Packet:
         else:
             print("INFO: %s" % msg)
 
-    def log_err(self, msg):
+    def log_err(self, msg, msgbox_en=True):
         if self.win:
-            self.win.log_err(msg)
+            self.win.log_err(msg, msgbox_en)
         else:
             print("ERR: %s" % msg)
 
@@ -228,7 +228,7 @@ class RxPacket(Packet):
                 self.msg_err_crc()
             elif (self.msg_code == MsgCode["OK"] or self.msg_code == MsgCode["FAIL"]):
                 temp = (self.data[4] << 0) | (self.data[5] << 8) | (self.data[6] << 16) | (self.data[7] << 24)
-                self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s | NVR=[%01d] FLASH=[%01d]" % (dict_key(MsgCode, self.msg_code, ((temp >> 31) & 0x1), ((temp >> 29) & 0x1))))
+                self.log_dbg(LogId["DEVICE"] + "ERASE_FULL - %s | NVR=[%01d] FLASH=[%01d]" % (dict_key(MsgCode, self.msg_code), ((temp >> 31) & 0x1), ((temp >> 29) & 0x1)))
                 if (self.msg_code == MsgCode["FAIL"]):
                     raise ProtException("Устройство вернуло сообщение об ошибке!", self.win)
 
@@ -317,9 +317,9 @@ class CmdInterface:
         else:
             print("INFO: %s" % msg)
 
-    def log_err(self, msg):
+    def log_err(self, msg, msgbox_en=True):
         if self.win:
-            self.win.log_err(msg)
+            self.win.log_err(msg, msgbox_en)
         else:
             print("ERR: %s" % msg)
 
@@ -490,9 +490,9 @@ class Protocol:
         else:
             print("INFO: %s" % msg)
 
-    def log_err(self, msg):
+    def log_err(self, msg, msgbox_en=True):
         if self.win:
-            self.win.log_err(msg)
+            self.win.log_err(msg, msgbox_en)
         else:
             print("ERR: %s" % msg)
 
@@ -566,7 +566,7 @@ class Protocol:
             cmd_count += 1
 
         self.log_info("Запись страниц%s:" % (" c предварительным стиранием" if kwargs['erpages'] else ""))
-        for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
+        for p in range(0, kwargs['lastpage'] - kwargs['firstpage'] + 1):
             cmd.cmd_write_page(p, data[p * page_size:p * page_size + page_size], flash, region, kwargs['erpages'])
             cmd_count += 1
 
@@ -590,10 +590,10 @@ class Protocol:
                 if (read_data[i] != data[i]):
                     err += 1
                     if err_limit > 0:
-                        self.log_err("Адрес 0%08X, записано 0x%02X - прочитано 0x%02X" % (i, data[i], read_data[i]))
+                        self.log_err("Адрес 0%08X, записано 0x%02X - прочитано 0x%02X" % (i, data[i], read_data[i]), msgbox_en=False)
                         err_limit -= 1
                         if err_limit == 0:
-                            self.log_err("Показаны первые 16 ошибок, дальнейшие показываться не будут")
+                            self.log_err("Показаны первые 16 ошибок верификации, дальнейшие показываться не будут")
             self.log_info("Верификация завершилась, количество ошибок: %0d" % err)
 
     def erase(self, **kwargs):

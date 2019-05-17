@@ -153,6 +153,7 @@ class K1921VK01T:
         self.cfgword = {}
         self.flash[0]['region_nvr'].wr_lock[0] = True
         self.flash[0]['region_nvr'].rd_lock[0] = True
+        self.flash[0]['region_main'].rd_lock[0] = True
 
     def parse_cfgword(self, data):
         cfgword = {}
@@ -235,6 +236,7 @@ class K1921VK01T:
         # bootloader pages
         self.flash[0]['region_nvr'].wr_lock[0] = True
         self.flash[0]['region_nvr'].rd_lock[0] = True
+        self.flash[0]['region_main'].rd_lock[0] = True
 
 
 db = [K1921VKx(), K1921VK035(), K1921VK028(), K1921VK01T()]
