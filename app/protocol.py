@@ -567,7 +567,7 @@ class Protocol:
 
         self.log_info("Запись страниц%s:" % (" c предварительным стиранием" if kwargs['erpages'] else ""))
         for p in range(0, kwargs['lastpage'] - kwargs['firstpage'] + 1):
-            cmd.cmd_write_page(p, data[p * page_size:p * page_size + page_size], flash, region, kwargs['erpages'])
+            cmd.cmd_write_page(kwargs['firstpage'] + p, data[p * page_size:p * page_size + page_size], flash, region, kwargs['erpages'])
             cmd_count += 1
 
         self.log_info("Ожидание выполнения команд ...")
