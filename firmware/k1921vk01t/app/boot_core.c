@@ -146,10 +146,17 @@ void boot_exit()
     NT_COMMON_REG->PLL_OD = 0;
     NT_COMMON_REG->PLL_CTRL = 0;
 
-    user_app = (void (*)(void))(*((volatile uint32_t*)((0x000020000 + 4))));
+    SysTick->LOAD = 0;
+    SysTick->VAL = 0;
+    SysTick->CTRL = 0;
+
+    user_app = (void (*)(void))(*((uint32_t*)((0x00002000 + 4))));
     SCB->VTOR = 0x00002000;
-    __set_MSP(*(__IO uint32_t*)(0x00002000));
+    __enable_irq();
+    __set_MSP(*(volatile uint32_t*)(0x00002000));
     user_app();
+    while (1) {
+    };
 }
 
 __attribute__((noreturn)) void boot_core()
@@ -339,7 +346,6 @@ void get_cfgword_cmd(Packet_TypeDef* packet)
 
 void set_cfgword_cmd(Packet_TypeDef* packet)
 {
-    uint32_t temp;
     uint32_t cfgword;
     uint32_t bflock[BFLOCK_SIZE / 4];
     uint32_t uflock[UFLOCK_SIZE / 4];
@@ -351,11 +357,6 @@ void set_cfgword_cmd(Packet_TypeDef* packet)
     } page_arr;
     uint32_t data;
     uint32_t modify_en;
-
-    for (uint32_t i = 0; i < CFGWORD_SIZE; i++) {
-        flash_read(CFGWORD_OFFSET + i, USERFLASH_MEM, FLASH_NVR, &data);
-        *((uint8_t*)(&temp) + i) = (uint8_t)data;
-    }
 
     modify_en = is_page_modify_en(0, USERFLASH_MEM, FLASH_NVR);
 
@@ -401,7 +402,7 @@ void set_cfgword_cmd(Packet_TypeDef* packet)
         packet->tmp_data8[0] = MSG_OK;
         for (uint32_t i = 0; i < USERFLASH_NVR_PAGE_SIZE_BYTES; i++) {
             flash_read(i, USERFLASH_MEM, FLASH_NVR, &data);
-            if (page_arr.data8[i] != data)
+            if (page_arr.data8[i] != (uint8_t)data)
                 packet->tmp_data8[0] = MSG_FAIL;
             break;
         }
@@ -584,8 +585,6 @@ void read_page_cmd(Packet_TypeDef* packet)
         }
         packet->tmp_data8[0] = MSG_OK;
     }
-
-
 
     msg_cmd(packet);
 }
