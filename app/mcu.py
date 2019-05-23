@@ -27,6 +27,7 @@ class K1921VKx:
                       {'name': 'flash1',
                        'region_main': Flash(size=(32 * K), pages=16),
                        'region_nvr': Flash(size=(8 * K), pages=4)}]
+        self.booten_active = False
 
 
 class K1921VK035:
@@ -57,6 +58,7 @@ class K1921VK035:
         self.cfgword = {}
         self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
         self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+        self.booten_active = True
 
     def parse_cfgword(self, data):
         cfgword = {}
@@ -112,6 +114,7 @@ class K1921VK028:
                       {'name': 'bflash',
                        'region_main': Flash(size=(512 * K), pages=128),
                        'region_nvr': Flash(size=(16 * K), pages=4)}]
+        self.booten_active = False
 
 
 class K1921VK01T:
@@ -154,6 +157,7 @@ class K1921VK01T:
         self.flash[0]['region_nvr'].wr_lock[0] = True
         self.flash[0]['region_nvr'].rd_lock[0] = True
         self.flash[0]['region_main'].rd_lock[0] = True
+        self.booten_active = False
 
     def parse_cfgword(self, data):
         cfgword = {}
@@ -206,9 +210,9 @@ class K1921VK01T:
         data[1] = (temp >> 8) & 0xFF
         data[2] = (temp >> 16) & 0xFF
         data[3] = (temp >> 24) & 0xFF
-        for p in range(cfgword['bflock']):
+        for p in range(0, len(cfgword['bflock'])):
             data[4 + (p // 8)] &= ~(0 if cfgword['bflock'][p] else (1 << (p % 8)))
-        for p in range(cfgword['uflock']):
+        for p in range(0, len(cfgword['uflock'])):
             data[20 + (p // 8)] &= ~(0 if cfgword['uflock'][p] else (1 << (p % 8)))
         res_str = ("BOOTFROMIFB=[%01d] ENGPIO=[%01d] EXTMEMSEL=[%01d] PINNUM=[%02d] PORTNUM=[%02d] LOCKIFBLF=[%01d] BFRE=[%01d] BFIFBRE=[%01d] LOCKIFBUF=[%01d] UFRE=[%01d] UFIFBRE=[%01d]" %
                    (cfgword['boot_from_ifb'], cfgword['en_gpio'], cfgword['extmem_sel'], cfgword['pinnum'], cfgword['portnum'],

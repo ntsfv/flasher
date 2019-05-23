@@ -30,6 +30,8 @@ class SerPort(serial.Serial):
             print("ERR: %s" % msg)
 
     def open_port(self, port='/dev/ttyUSB0', baudrate=115200, quiet=False):
+        if self.is_open:
+            self.close()
         self.port = port
         self.baudrate = baudrate
         self.timeout = 5

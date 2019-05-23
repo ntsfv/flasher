@@ -18,7 +18,7 @@ import protocol
 import traceback
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem, QMessageBox,
-                             QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox)
+                             QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox, QCheckBox)
 from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator, QTextCursor)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
@@ -521,8 +521,6 @@ class MyMainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui.ledit_rdc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
             self.ui.tconfig_widget_cfg.ui.ledit_tac.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
         elif self.mcu.name == 'k1921vk01t':
-            allowed_nums = "^((0x|)[0-9A-Fa-f]{1})|([0-9]{1,2})$"
-            self.ui.tconfig_widget_cfg.ui.ledit_pinnum.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
             self.exec_tab_config_01t(self.mcu.cfgword)
         elif self.mcu.name == 'k1921vkx':
             pass
@@ -726,7 +724,45 @@ class MyMainWindow(QMainWindow):
         pass
 
     def exec_tab_config_01t(self, cfgword=None):
-        pass
+        widget01t = self.ui.tconfig_widget_cfg
+        bflock = widget01t.findChildren(QCheckBox, QtCore.QRegExp('^chbox_bf_lock_page_.*$'))
+        uflock = widget01t.findChildren(QCheckBox, QtCore.QRegExp('^chbox_uf_lock_page_.*$'))
+        if cfgword:
+            widget01t.ui.chbox_bootfrom_ifb.setChecked(cfgword['boot_from_ifb'])
+            widget01t.ui.chbox_en_gpio.setChecked(cfgword['en_gpio'])
+            widget01t.ui.combo_extmemsel.setCurrentIndex(int(cfgword['extmem_sel']))
+            widget01t.ui.combo_pinnum.setCurrentIndex(int(cfgword['pinnum']))
+            widget01t.ui.combo_portnum.setCurrentIndex(int(cfgword['portnum']) & 7)
+            widget01t.ui.chbox_lock_ifb_lf.setChecked(cfgword['lock_ifb_lf'])
+            widget01t.ui.chbox_bfre.setChecked(cfgword['bfre'])
+            widget01t.ui.chbox_bfifbre.setChecked(cfgword['bfifbre'])
+            widget01t.ui.chbox_lock_ifb_uf.setChecked(cfgword['lock_ifb_uf'])
+            widget01t.ui.chbox_ufre.setChecked(cfgword['ufre'])
+            widget01t.ui.chbox_ufifbre.setChecked(cfgword['ufifbre'])
+            for p in range(0, len(bflock)):
+                bflock[p].setChecked(cfgword['bflock'][p])
+            for p in range(0, len(uflock)):
+                uflock[p].setChecked(cfgword['uflock'][p])
+        else:
+            cfgword = {}
+            cfgword['boot_from_ifb'] = widget01t.ui.chbox_bootfrom_ifb.isChecked()
+            cfgword['en_gpio'] = widget01t.ui.chbox_en_gpio.isChecked()
+            cfgword['extmem_sel'] = widget01t.ui.combo_extmemsel.currentIndex()
+            cfgword['pinnum'] = widget01t.ui.combo_pinnum.currentIndex()
+            cfgword['portnum'] = widget01t.ui.combo_portnum.currentIndex() & 7
+            cfgword['lock_ifb_lf'] = widget01t.ui.chbox_lock_ifb_lf.isChecked()
+            cfgword['bfre'] = widget01t.ui.chbox_bfre.isChecked()
+            cfgword['bfifbre'] = widget01t.ui.chbox_bfifbre.isChecked()
+            cfgword['lock_ifb_uf'] = widget01t.ui.chbox_lock_ifb_uf.isChecked()
+            cfgword['ufre'] = widget01t.ui.chbox_ufre.isChecked()
+            cfgword['ufifbre'] = widget01t.ui.chbox_ufifbre.isChecked()
+            cfgword['bflock'] = [1] * len(bflock)
+            cfgword['uflock'] = [1] * len(uflock)
+            for p in range(0, len(bflock)):
+                cfgword['bflock'][p] = 1 if bflock[p].isChecked() else 0
+            for p in range(0, len(uflock)):
+                cfgword['uflock'][p] = 1 if uflock[p].isChecked() else 0
+            return cfgword
 
 
 class ArgParser:

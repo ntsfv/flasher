@@ -52,7 +52,7 @@
         <x>0</x>
         <y>0</y>
         <width>530</width>
-        <height>6801</height>
+        <height>6853</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -154,6 +154,40 @@
                <string>3: 3-ая функция</string>
               </property>
              </item>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="lbl_bfre">
+             <property name="text">
+              <string>BFRE</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QCheckBox" name="chbox_bfre">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>BFIFBRE</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QCheckBox" name="chbox_bfifbre">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
           </layout>
@@ -274,15 +308,129 @@
             </widget>
            </item>
            <item row="3" column="1">
-            <widget class="QLineEdit" name="ledit_pinnum">
+            <widget class="QComboBox" name="combo_pinnum">
              <property name="maximumSize">
               <size>
-               <width>50</width>
+               <width>16777215</width>
                <height>23</height>
               </size>
              </property>
+             <property name="currentIndex">
+              <number>15</number>
+             </property>
+             <item>
+              <property name="text">
+               <string>0: Пин 0</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1: Пин 1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2: Пин 2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3: Пин 3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4: Пин 4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>5: Пин 5</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6: Пин 6</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>7: Пин 7</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8: Пин 8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>9: Пин 9</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>10: Пин 10</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>11: Пин 11</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>12: Пин 12</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>13: Пин 13</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>14: Пин 14</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>15: Пин 15</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="lbl_ufre">
              <property name="text">
-              <string>0xF</string>
+              <string>UFRE</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="lbl_ufifbre">
+             <property name="text">
+              <string>UFIFBRE</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <widget class="QCheckBox" name="chbox_ufre">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QCheckBox" name="chbox_ufifbre">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
              </property>
             </widget>
            </item>

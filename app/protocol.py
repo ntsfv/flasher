@@ -355,14 +355,14 @@ class CmdInterface:
                 self.log_info(LogId["PROG"] + "Устройство подключено")
             else:
                 raise ProtException("Неизвестный ответ от устройства", self.win)
-        self.serport.rts = not self.serport.rts
+        self.serport.rts = not self.mcu.booten_active
         rx_info = self.cmd_msg()
         if ((rx_info['cmd_code'] != CmdCode["NONE"]) or (rx_info['msg_code'] != MsgCode["READY"])):
             raise ProtException("Получено неизвестное сообщение, когда ожидался ответ о готовности", self.win)
 
     def release_device(self):
         self.log_info(LogId["PROG"] + "Отключение от устройства ...")
-        self.serport.rts = not self.serport.rts
+        self.serport.rts = not self.mcu.booten_active
         self.reset_chip()
 
     def cmd_get_info(self):
@@ -542,7 +542,7 @@ class Protocol:
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
         cmd.release_device()
-        self.serport.close_port()
+        #self.serport.close_port()
         self.log_info("Произведено отключение от устройства")
         return True
 
