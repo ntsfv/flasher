@@ -364,11 +364,11 @@ void set_cfgword_cmd(Packet_TypeDef* packet)
     calc_crc = crc_upd_u32(packet->crc, cfgword);
     for (uint32_t i = 0; i < BFLOCK_SIZE / 4; i++) {
         bflock[i] = packet_fifo_read_u32();
-        calc_crc = crc_upd_u32(packet->crc, bflock[i]);
+        calc_crc = crc_upd_u32(calc_crc, bflock[i]);
     }
     for (uint32_t i = 0; i < UFLOCK_SIZE / 4; i++) {
         uflock[i] = packet_fifo_read_u32();
-        calc_crc = crc_upd_u32(packet->crc, uflock[i]);
+        calc_crc = crc_upd_u32(calc_crc, uflock[i]);
     }
 
     rx_crc = packet_fifo_read_u16();
@@ -394,9 +394,10 @@ void set_cfgword_cmd(Packet_TypeDef* packet)
         }
         flash_erase_page(CFGWORD_OFFSET, USERFLASH_MEM, FLASH_NVR);
         for (uint32_t i = 0; i < USERFLASH_NVR_PAGE_SIZE_BYTES; i++) {
-            if (page_arr.data8[i] != 0xFF)
+            if (page_arr.data8[i] != 0xFF) {
                 data = page_arr.data8[i];
-            flash_write(i, USERFLASH_MEM, FLASH_NVR, &data);
+                flash_write(i, USERFLASH_MEM, FLASH_NVR, &data);
+            }
         }
         //контроль записанного
         packet->tmp_data8[0] = MSG_OK;

@@ -145,7 +145,7 @@ class RxPacket(Packet):
         self.msg_code = MsgCode["NONE"]
 
     def msg_err_crc(self):
-        self.log_dbg(LogId["DEVICE"] + "%s - ERR_CRC - CRC error in HOST command!" % self.dict_key(CmdCode, self.rxcmd_code))
+        self.log_dbg(LogId["DEVICE"] + "%s - ERR_CRC - CRC error in HOST command!" % dict_key(CmdCode, self.rxcmd_code))
         raise ProtException("Ошибка CRC в команде от хоста!", self.win)
 
     def parse_msg(self):
@@ -292,7 +292,7 @@ class RxPacket(Packet):
             if (self.cmd_code == CmdCode["MSG"]):
                     return self.parse_msg()
             else:
-                self.log_dbg(LogId["HOST"] + "Error! Waiting for MSG but recieve %s command" % self.dict_key(CmdCode, self.cmd_code))
+                self.log_dbg(LogId["HOST"] + "Error! Waiting for MSG but recieve %s command" % dict_key(CmdCode, self.cmd_code))
                 raise ProtException("Wrong command received!", self.win)
         else:
             self.log_dbg(LogId["HOST"] + "MSG - ERR_CRC - CRC error in DEVICE command!")
@@ -388,9 +388,13 @@ class CmdInterface:
         packet = TxPacket(self.mcu, self.serport, self.win)
         data, dbg_str = self.mcu.pack_cfgword(cfgword)
         packet.cmd_code = CmdCode["SET_CFGWORD"]
-        packet.data8_n = 4
         packet.data += data
-        self.log_dbg("data: 0x%x 0x%x 0x%x 0x%x" % (packet.data[0], packet.data[1], packet.data[2], packet.data[3]))
+        packet.data8_n = len(data)
+        temp_str = "data (%d): " % len(packet.data)
+        for b in packet.data:
+            temp_str += "0x%x " % b
+        self.log_dbg(temp_str)
+        self.log_dbg("data8_n: %d" % packet.data8_n)
         self.log_dbg(LogId["HOST"] + "%s" % dbg_str)
         packet.transmit()
         self.cmd_msg()
