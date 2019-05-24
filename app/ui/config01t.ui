@@ -59,7 +59,7 @@
        <item>
         <widget class="QLabel" name="lbl_warn0">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ef2929;&quot;&gt;Внимание! Изменяйте состояние конфигурации с осторожностью!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ef2929;&quot;&gt;Изменяйте состояние конфигурации с осторожностью!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="textFormat">
           <enum>Qt::RichText</enum>
@@ -76,7 +76,7 @@
            <item row="0" column="0">
             <widget class="QLabel" name="lbl_lock_ifb_lf">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области MFLASH&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области MFLASH&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение записи и стирания информационного блока загрузочной флэш&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания информационного блока загрузочной флэш&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>LOCK_IFB_LF</string>
@@ -96,7 +96,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="lbl_en_gpio">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания NVR области MFLASH&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания NVR области MFLASH&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - разрешение выбора источника загрузки (загрузочная флэш или внешняя память) с помощью состояния пина PINNUM порта PORTNUM&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - использование основного блока загрузочной флэш для работы программы&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>EN_GPIO</string>
@@ -116,7 +116,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="lbl_extmemsel">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Выбор номера функции выводов GPIO, на которые подключен интерфейс внешней памяти:&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;0 - первая функция&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - вторая функция&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;2 - третья функция&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>EXTMEMSEL</string>
@@ -158,6 +158,9 @@
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="lbl_bfre">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение чтения основного блока загрузочной флэш&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение чтения основного блока загрузочной флэш&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>BFRE</string>
              </property>
@@ -175,6 +178,9 @@
            </item>
            <item row="4" column="0">
             <widget class="QLabel" name="label_2">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение чтения информационного блока загрузочной флэш&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение чтения информационного блока загрузочной флэш&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>BFIFBRE</string>
              </property>
@@ -197,7 +203,7 @@
            <item row="0" column="0">
             <widget class="QLabel" name="lbl_lock_ifb_uf">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области BFLASH&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области BFLASH&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания информационного блока пользовательской флэш&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания информационного блока пользовательской флэш&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>LOCK_IFB_UF</string>
@@ -217,7 +223,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="lbl_bootfrom_ifb">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания NVR области BFLASH&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания NVR области BFLASH&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - информационный блок загрузочной флэш заменяет первую страницу основного блока&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - нормальная работа основного блока загрузочной флэш&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>BOOTFROM_IFB</string>
@@ -237,7 +243,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="lbl_portnum">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;Номер порта для выбора источника загрузки&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;0 - GPIOA&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;...&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;7 - GPIOH&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>PORTNUM</string>
@@ -300,7 +306,7 @@
            <item row="3" column="0">
             <widget class="QLabel" name="lbl_pinnum">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Номер пина для выбора источника загрузки&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;0 ... 15&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>PINNUM</string>
@@ -402,6 +408,9 @@
            </item>
            <item row="4" column="0">
             <widget class="QLabel" name="lbl_ufre">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение чтения основного блока пользовательской флэш&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение чтения основного блока пользовательской флэш&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>UFRE</string>
              </property>
@@ -409,6 +418,9 @@
            </item>
            <item row="5" column="0">
             <widget class="QLabel" name="lbl_ufifbre">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;0 - запрещение чтения информационного блока пользовательской флэш&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение чтения информационного блока пользовательской флэш&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>UFIFBRE</string>
              </property>
