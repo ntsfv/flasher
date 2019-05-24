@@ -389,7 +389,10 @@ class MyMainWindow(QMainWindow):
     def handle_tconfig_mode_select_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
-            self.ui.tconfig_widget_cfg.ui.tconfig_frm_cfg.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
+            for child in self.ui.tconfig_widget_cfg.findChildren(QCheckBox, QtCore.QRegExp('.*')):
+                child.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
+            for child in self.ui.tconfig_widget_cfg.findChildren(QComboBox, QtCore.QRegExp('.*')):
+                child.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
 
     def handle_tabs_cmd_changed(self, num):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
@@ -510,6 +513,7 @@ class MyMainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui = Ui_Config1921()
         # setup
         self.ui.tconfig_widget_cfg.ui.setupUi(self.ui.tconfig_widget_cfg)
+        self.ui.tconfig_rbtn_read.toggled['bool'].emit(True)
         # post-setup
         if self.mcu.name == 'k1921vk035':
             self.exec_tab_config_035(self.mcu.cfgword)

@@ -35,7 +35,7 @@
    <item>
     <widget class="QScrollArea" name="tconfig_frm_cfg">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="verticalScrollBarPolicy">
       <enum>Qt::ScrollBarAlwaysOn</enum>

@@ -38,7 +38,7 @@
    <item>
     <widget class="QFrame" name="tconfig_frm_cfg">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>

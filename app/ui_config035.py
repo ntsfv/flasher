@@ -21,7 +21,7 @@ class Ui_Config035(object):
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.tconfig_frm_cfg = QtWidgets.QFrame(Config035)
-        self.tconfig_frm_cfg.setEnabled(False)
+        self.tconfig_frm_cfg.setEnabled(True)
         self.tconfig_frm_cfg.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.tconfig_frm_cfg.setFrameShadow(QtWidgets.QFrame.Raised)
         self.tconfig_frm_cfg.setObjectName("tconfig_frm_cfg")

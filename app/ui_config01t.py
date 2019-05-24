@@ -20,7 +20,7 @@ class Ui_Config01T(object):
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.tconfig_frm_cfg = QtWidgets.QScrollArea(Config01T)
-        self.tconfig_frm_cfg.setEnabled(False)
+        self.tconfig_frm_cfg.setEnabled(True)
         self.tconfig_frm_cfg.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.tconfig_frm_cfg.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.tconfig_frm_cfg.setWidgetResizable(True)
