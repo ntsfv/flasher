@@ -355,7 +355,7 @@ class CmdInterface:
                 self.log_info(LogId["PROG"] + "Устройство подключено")
             else:
                 raise ProtException("Неизвестный ответ от устройства", self.win)
-        self.serport.rts = not self.mcu.booten_active
+        self.serport.rts = not self.serport.rts
         rx_info = self.cmd_msg()
         if ((rx_info['cmd_code'] != CmdCode["NONE"]) or (rx_info['msg_code'] != MsgCode["READY"])):
             raise ProtException("Получено неизвестное сообщение, когда ожидался ответ о готовности", self.win)
