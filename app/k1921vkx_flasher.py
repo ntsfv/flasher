@@ -263,6 +263,7 @@ class MyMainWindow(QMainWindow):
     def handle_btn_connect_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
         self.ui.tedit_log.moveCursor(QTextCursor.End)
+        self.ui.pbar.reset()
         self.log_info("--------------------")
         update_gui = False
         port = self.ui.combo_port.currentText()
@@ -320,6 +321,7 @@ class MyMainWindow(QMainWindow):
         curr_tab = self.ui.tabs_cmd.currentWidget().objectName()
         self.log_dbg("Tab <%s> active" % curr_tab)
         self.ui.tedit_log.moveCursor(QTextCursor.End)
+        self.ui.pbar.reset()
         self.log_info("--------------------")
         if curr_tab == "tab_info":
             self.exec_tab_info()
@@ -396,6 +398,7 @@ class MyMainWindow(QMainWindow):
 
     def handle_tabs_cmd_changed(self, num):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
+        self.ui.pbar.reset()
         if self.ui.tabs_cmd.currentWidget().objectName() == 'tab_info':
             self.ui.btn_exec.setEnabled(False)
         else:
