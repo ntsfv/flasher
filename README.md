@@ -27,9 +27,9 @@
 Запуск:
 
 ```bash
-python3 k1921vk035_loader.py
+python3 k1921vkx_flasher.py
 или
-k1921vk035_loader.exe
+k1921vkx_flasher.exe
 ```
 
 Утилита также может работать в командном режиме без графического интерфейса.
