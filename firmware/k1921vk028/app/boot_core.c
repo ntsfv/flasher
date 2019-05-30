@@ -97,39 +97,47 @@ __attribute__((noreturn)) void boot_core()
     while (1) {
         packet_recieve(&packet);
         DBG_PRINT(0x03);
-        DBG_PRINT(packet.cmd_code);
         switch (packet.cmd_code) {
         // Get commands
         case CMD_GET_INFO:
+            DBG_PRINT(packet.cmd_code);
             get_info_cmd(&packet);
             break;
         case CMD_GET_CFGWORD:
+            DBG_PRINT(packet.cmd_code);
             get_cfgword_cmd(&packet);
             break;
         // Set commands
         case CMD_SET_CFGWORD:
+            DBG_PRINT(packet.cmd_code);
             set_cfgword_cmd(&packet);
             break;
         // Write commands
         case CMD_WRITE_PAGE:
+            DBG_PRINT(packet.cmd_code);
             write_page_cmd(&packet);
             break;
         // Read commands
         case CMD_READ_PAGE:
+            DBG_PRINT(packet.cmd_code);
             read_page_cmd(&packet);
             break;
         // Erase commands
         case CMD_ERASE_FULL:
+            DBG_PRINT(packet.cmd_code);
             erase_full_cmd(&packet);
             break;
         case CMD_ERASE_PAGE:
+            DBG_PRINT(packet.cmd_code);
             erase_page_cmd(&packet);
             break;
         // Exit
         case CMD_EXIT:
+            DBG_PRINT(packet.cmd_code);
             exit_cmd(&packet);
             break;
         case CMD_NONE:
+            DBG_PRINT(packet.cmd_code);
             msg_cmd(&packet);
             break;
         default:

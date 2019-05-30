@@ -109,11 +109,13 @@ void packet_recieve(Packet_TypeDef* rx_packet)
     uint16_t rx_data_n;
     uint16_t pre_crc;
 
+    DBG_PRINT(0x05);
     //поиск сигнатуры
     rx_signature = 0x0000;
     while (rx_signature != PACKET_HOST_SIGN) {
         rx_signature = (rx_signature >> 8) | (uint16_t)(packet_fifo_read() << 8);
     }
+    DBG_PRINT(0x06);
     //считываем служебную инфмацию
     rx_cmd = packet_fifo_read();
     rx_cmd_inv = packet_fifo_read();
@@ -121,11 +123,13 @@ void packet_recieve(Packet_TypeDef* rx_packet)
 
     //проверяем корректность команды
     if ((rx_cmd ^ rx_cmd_inv) != 0xFF) {
+        DBG_PRINT(0x07);
         rx_packet->cmd_code = CMD_NONE;
         rx_packet->tmp_data8[0] = MSG_ERR_CMD;
     }
     //если все верно, то начинаем считать crc
     else {
+        DBG_PRINT(0x08);
         pre_crc = 0;
         pre_crc = crc_upd(pre_crc, rx_cmd);
         pre_crc = crc_upd(pre_crc, rx_cmd_inv);

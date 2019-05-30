@@ -30,8 +30,8 @@ static void DebugInit()
     // настраиваем служебные выводы на выход
     RCU->HCLKCFG = DBG_PORT_EN;
     RCU->HRSTCFG = DBG_PORT_EN;
-    DBG_PORT->DENSET = DBG_INFO_MSK << 8;
-    DBG_PORT->OUTENSET = DBG_INFO_MSK << 8;
+    DBG_PORT->DENSET = DBG_INFO_MSK;
+    DBG_PORT->OUTENSET = DBG_INFO_MSK;
 #endif
 }
 
@@ -159,7 +159,8 @@ static void UartInit()
 
     RCU->UARTCFG[UARTx_NUM].UARTCFG = (RCU_UARTCFG_UARTCFG_CLKSEL_PLLCLK << RCU_UARTCFG_UARTCFG_CLKSEL_Pos) |
                                       (1 << RCU_UARTCFG_UARTCFG_CLKEN_Pos) |
-                                      (1 << RCU_UARTCFG_UARTCFG_RSTDIS_Pos);
+                                      (1 << RCU_UARTCFG_UARTCFG_RSTDIS_Pos) |
+                                      (1 << RCU_UARTCFG_UARTCFG_DIVEN_Pos);
     UARTx->IFLS = UART_IFLS_RXIFLSEL_Lvl18 << UART_IFLS_RXIFLSEL_Pos |
                   UART_IFLS_RXIFLSEL_Lvl18 << UART_IFLS_TXIFLSEL_Pos;
     UARTx->IMSC = UART_MIS_RXMIS_Msk;
@@ -192,4 +193,10 @@ int main()
     DBG_PRINT(0x33);
     boot_core();
     return 0;
+}
+
+RAMFUNC void HardFault_Handler()
+{
+    DBG_PRINT(0xFF);
+    while(1);
 }

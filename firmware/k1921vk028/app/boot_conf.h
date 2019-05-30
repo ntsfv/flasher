@@ -33,7 +33,7 @@
 
 //Global configuration
 #define GLOBMEM(ADDR)   *(volatile uint32_t*)(ADDR)
-#define RAMFUNC         __attribute__( (long_call, section(".ramfunc") ) )
+#define RAMFUNC         __attribute__( (long_call, section(".ram0func") ) )
 #define BOOT_VER_MAJOR  0x0001
 #define BOOT_VER_MINOR  0x0000
 #define BOOT_VER        ((BOOT_VER_MAJOR<<16)|BOOT_VER_MINOR)
@@ -46,7 +46,7 @@
 #define DBG_INFO_POS    0
 #define DBG_INFO        DBG_PORT->DATAOUT
 #if defined (DEBUG)
-    #define DBG_PRINT(MSG)   DBG_INFO = MSG<<DBG_INFO_POS
+    #define DBG_PRINT(MSG)   DBG_INFO = (~MSG)
 #else
     #define DBG_PRINT(MSG)    ((void)0);
 #endif
