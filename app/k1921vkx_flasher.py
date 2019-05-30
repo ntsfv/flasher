@@ -728,7 +728,43 @@ class MyMainWindow(QMainWindow):
             return cfgword
 
     def exec_tab_config_028(self, cfgword=None):
-        pass
+        widget028 = self.ui.tconfig_widget_cfg
+        if cfgword:
+            widget028.ui.chbox_bflashre.setChecked(cfgword['bflashre'])
+            widget028.ui.chbox_bflashwe.setChecked(cfgword['bflashwe'])
+            widget028.ui.chbox_bnvrre.setChecked(cfgword['bnvrre'])
+            widget028.ui.chbox_bnvrwe.setChecked(cfgword['bnvrwe'])
+            widget028.ui.chbox_mflashre.setChecked(cfgword['mflashre'])
+            widget028.ui.chbox_mflashwe.setChecked(cfgword['mflashwe'])
+            widget028.ui.chbox_mnvrre.setChecked(cfgword['mnvrre'])
+            widget028.ui.chbox_mnvrwe.setChecked(cfgword['mnvrwe'])
+            widget028.ui.chbox_debugen.setChecked(cfgword['debugen'])
+            widget028.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
+            widget028.ui.combo_af.setCurrentIndex(int(cfgword['af']))
+            widget028.ui.combo_mode.setCurrentIndex(int(cfgword['mode']))
+            widget028.ui.ledit_mask.setText('0x%03x' % cfgword['mask'])
+            widget028.ui.ledit_rdc.setText('0x%01x' % cfgword['rdc'])
+            widget028.ui.ledit_wrc.setText('0x%01x' % cfgword['wrc'])
+            widget028.ui.ledit_tac.setText('0x%01x' % cfgword['tac'])
+        else:
+            cfgword = {}
+            cfgword['bflashre'] = widget028.ui.chbox_bflashre.isChecked()
+            cfgword['bflashwe'] = widget028.ui.chbox_bflashwe.isChecked()
+            cfgword['bnvrre'] = widget028.ui.chbox_bnvrre.isChecked()
+            cfgword['bnvrwe'] = widget028.ui.chbox_bnvrwe.isChecked()
+            cfgword['mflashre'] = widget028.ui.chbox_mflashre.isChecked()
+            cfgword['mflashwe'] = widget028.ui.chbox_mflashwe.isChecked()
+            cfgword['mnvrre'] = widget028.ui.chbox_mnvrre.isChecked()
+            cfgword['mnvrwe'] = widget028.ui.chbox_mnvrwe.isChecked()
+            cfgword['debugen'] = widget028.ui.chbox_debugen.isChecked()
+            cfgword['jtagen'] = widget028.ui.chbox_jtagen.isChecked()
+            cfgword['af'] = widget028.ui.combo_af.currentIndex()
+            cfgword['mode'] = widget028.ui.combo_mode.currentIndex()
+            cfgword['mask'] = self.text2int(widget028.ui.ledit_mask)
+            cfgword['rdc'] = self.text2int(widget028.ui.ledit_rdc)
+            cfgword['wrc'] = self.text2int(widget028.ui.ledit_wrc)
+            cfgword['tac'] = self.text2int(widget028.ui.ledit_tac)
+            return cfgword
 
     def exec_tab_config_01t(self, cfgword=None):
         widget01t = self.ui.tconfig_widget_cfg

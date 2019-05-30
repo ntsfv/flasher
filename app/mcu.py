@@ -102,6 +102,39 @@ class K1921VK035:
 
 
 class K1921VK028:
+    CFGWORD0_RDC_POS = 0
+    CFGWORD0_WRC_POS = 4
+    CFGWORD0_MASK_POS = 8
+    CFGWORD0_RDC_MSK = 0xF << CFGWORD0_RDC_POS
+    CFGWORD0_WRC_MSK = 0xF << CFGWORD0_WRC_POS
+    CFGWORD0_MASK_MSK = 0xFFF << CFGWORD0_MASK_POS
+    CFGWORD1_TAC_POS = 0
+    CFGWORD1_MODE_POS = 4
+    CFGWORD1_AF_POS = 5
+    CFGWORD1_MFLASHWE_POS = 6
+    CFGWORD1_MNVRWE_POS = 7
+    CFGWORD1_BFLASHWE_POS = 8
+    CFGWORD1_BNVRWE_POS = 9
+    CFGWORD1_JTAGEN_POS = 10
+    CFGWORD1_DEBUGEN_POS = 11
+    CFGWORD1_MFLASHRE_POS = 12
+    CFGWORD1_MNVRRE_POS = 13
+    CFGWORD1_BFLASHRE_POS = 14
+    CFGWORD1_BNVRRE_POS = 15
+    CFGWORD1_TAC_MSK = 1 << CFGWORD1_TAC_POS
+    CFGWORD1_MODE_MSK = 1 << CFGWORD1_MODE_POS
+    CFGWORD1_AF_MSK = 1 << CFGWORD1_AF_POS
+    CFGWORD1_MFLASHWE_MSK = 1 << CFGWORD1_MFLASHWE_POS
+    CFGWORD1_MNVRWE_MSK = 1 << CFGWORD1_MNVRWE_POS
+    CFGWORD1_BFLASHWE_MSK = 1 << CFGWORD1_BFLASHWE_POS
+    CFGWORD1_BNVRWE_MSK = 1 << CFGWORD1_BNVRWE_POS
+    CFGWORD1_JTAGEN_MSK = 1 << CFGWORD1_JTAGEN_POS
+    CFGWORD1_DEBUGEN_MSK = 1 << CFGWORD1_DEBUGEN_POS
+    CFGWORD1_MFLASHRE_MSK = 1 << CFGWORD1_MFLASHRE_POS
+    CFGWORD1_MNVRRE_MSK = 1 << CFGWORD1_MNVRRE_POS
+    CFGWORD1_BFLASHRE_MSK = 1 << CFGWORD1_BFLASHRE_POS
+    CFGWORD1_BNVRRE_MSK = 1 << CFGWORD1_BNVRRE_POS
+
     def __init__(self):
         self.chipid = '0x3ABF2FD1'
         self.name = 'k1921vk028'
@@ -114,7 +147,96 @@ class K1921VK028:
                       {'name': 'bflash',
                        'region_main': Flash(size=(512 * K), pages=128),
                        'region_nvr': Flash(size=(16 * K), pages=4)}]
+        self.cfgword = {}
+        self.flash[1]['region_main'].wr_lock[0] = True
+        self.flash[1]['region_main'].rd_lock[0] = True
+        self.flash[1]['region_main'].wr_lock[1] = True
+        self.flash[1]['region_main'].rd_lock[1] = True
         self.booten_active = False
+
+    def parse_cfgword(self, data):
+        cfgword = {}
+        temp0 = (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | (data[0] << 0)
+        temp1 = (data[7] << 24) | (data[6] << 16) | (data[5] << 8) | (data[4] << 0)
+        cfgword['rdc'] = (temp0 & self.CFGWORD0_RDC_MSK) >> self.CFGWORD0_RDC_POS
+        cfgword['wrc'] = (temp0 & self.CFGWORD0_WRC_MSK) >> self.CFGWORD0_WRC_POS
+        cfgword['mask'] = (temp0 & self.CFGWORD0_MASK_MSK) >> self.CFGWORD0_MASK_POS
+
+        cfgword['debugen'] = (temp1 & self.CFGWORD1_DEBUGEN_MSK) >> self.CFGWORD1_DEBUGEN_POS
+        cfgword['jtagen'] = (temp1 & self.CFGWORD1_JTAGEN_MSK) >> self.CFGWORD1_JTAGEN_POS
+        cfgword['tac'] = (temp1 & self.CFGWORD1_TAC_MSK) >> self.CFGWORD1_TAC_POS
+        cfgword['mode'] = (temp1 & self.CFGWORD1_MODE_MSK) >> self.CFGWORD1_MODE_POS
+        cfgword['af'] = (temp1 & self.CFGWORD1_AF_MSK) >> self.CFGWORD1_AF_POS
+        cfgword['mflashwe'] = (temp1 & self.CFGWORD1_MFLASHWE_MSK) >> self.CFGWORD1_MFLASHWE_POS
+        cfgword['mnvrwe'] = (temp1 & self.CFGWORD1_MNVRWE_MSK) >> self.CFGWORD1_MNVRWE_POS
+        cfgword['bflashwe'] = (temp1 & self.CFGWORD1_BFLASHWE_MSK) >> self.CFGWORD1_BFLASHWE_POS
+        cfgword['bnvrwe'] = (temp1 & self.CFGWORD1_BNVRWE_MSK) >> self.CFGWORD1_BNVRWE_POS
+        cfgword['mflashre'] = (temp1 & self.CFGWORD1_MFLASHRE_MSK) >> self.CFGWORD1_MFLASHRE_POS
+        cfgword['mnvrre'] = (temp1 & self.CFGWORD1_MNVRRE_MSK) >> self.CFGWORD1_MNVRRE_POS
+        cfgword['bflashre'] = (temp1 & self.CFGWORD1_BFLASHRE_MSK) >> self.CFGWORD1_BFLASHRE_POS
+        cfgword['bnvrre'] = (temp1 & self.CFGWORD1_BNVRRE_MSK) >> self.CFGWORD1_BNVRRE_POS
+        cfgword['res_str'] = ("RDC=[0x%01x] WRC=[0x%01x] MASK=[0x%03x] TAC=[0x%01x] MODE=[%01d] AF=[%01d] MFLASHWE=[%01d] MNVRWE=[%01d] BFLASHWE=[%01d] BNVRWE=[%01d] MFLASHRE=[%01d] MNVRRE=[%01d] BFLASHRE=[%01d] BNVRRE=[%01d]" %
+                              (cfgword['rdc'], cfgword['wrc'], cfgword['mask'], cfgword['tac'], cfgword['mode'], cfgword['af'],
+                               cfgword['mflashwe'], cfgword['mnvrwe'], cfgword['bflashwe'], cfgword['bnvrwe'], cfgword['mflashre'], cfgword['mnvrre'], cfgword['bflashre'], cfgword['bnvrre']))
+        return cfgword
+
+    def pack_cfgword(self, cfgword):
+        data = [0xFF] * (8)
+        temp = 0xFFFFFFFF
+        temp = (temp & (~self.CFGWORD0_RDC_MSK)) | (cfgword['rdc'] << self.CFGWORD0_RDC_POS)
+        temp = (temp & (~self.CFGWORD0_WRC_MSK)) | (cfgword['wrc'] << self.CFGWORD0_WRC_POS)
+        temp = (temp & (~self.CFGWORD0_MASK_MSK)) | (cfgword['mask'] << self.CFGWORD0_MASK_POS)
+        data[0] = (temp >> 0) & 0xFF
+        data[1] = (temp >> 8) & 0xFF
+        data[2] = (temp >> 16) & 0xFF
+        data[3] = (temp >> 24) & 0xFF
+        temp = 0xFFFFFFFF
+        temp = (temp & (~self.CFGWORD1_TAC_MSK)) | (cfgword['tac'] << self.CFGWORD1_TAC_POS)
+        temp = (temp & (~self.CFGWORD1_MODE_MSK)) | (cfgword['tac'] << self.CFGWORD1_MODE_POS)
+        temp = (temp & (~self.CFGWORD1_AF_MSK)) | (cfgword['af'] << self.CFGWORD1_AF_POS)
+        temp &= ~(0 if cfgword['debugen'] else self.CFGWORD1_DEBUGEN_MSK)
+        temp &= ~(0 if cfgword['jtagen'] else self.CFGWORD1_JTAGEN_MSK)
+        temp &= ~(0 if cfgword['mflashwe'] else self.CFGWORD1_MFLASHWE_MSK)
+        temp &= ~(0 if cfgword['mnvrwe'] else self.CFGWORD1_MNVRWE_MSK)
+        temp &= ~(0 if cfgword['bflashwe'] else self.CFGWORD1_BFLASHWE_MSK)
+        temp &= ~(0 if cfgword['bnvrwe'] else self.CFGWORD1_BNVRWE_MSK)
+        temp &= ~(0 if cfgword['mflashre'] else self.CFGWORD1_MFLASHRE_MSK)
+        temp &= ~(0 if cfgword['mnvrre'] else self.CFGWORD1_MNVRRE_MSK)
+        temp &= ~(0 if cfgword['bflashre'] else self.CFGWORD1_BFLASHRE_MSK)
+        temp &= ~(0 if cfgword['bnvrre'] else self.CFGWORD1_BNVRRE_MSK)
+        data[4] = (temp >> 0) & 0xFF
+        data[5] = (temp >> 8) & 0xFF
+        data[6] = (temp >> 16) & 0xFF
+        data[7] = (temp >> 24) & 0xFF
+
+        res_str = ("RDC=[0x%01x] WRC=[0x%01x] MASK=[0x%03x] TAC=[0x%01x] DEBUGEN=[%01d] JTAGEN=[%01d] MODE=[%01d] AF=[%01d] MFLASHWE=[%01d] MNVRWE=[%01d] BFLASHWE=[%01d] BNVRWE=[%01d] MFLASHRE=[%01d] MNVRRE=[%01d] BFLASHRE=[%01d] BNVRRE=[%01d]" %
+                   (cfgword['rdc'], cfgword['wrc'], cfgword['mask'], cfgword['tac'], cfgword['debugen'], cfgword['jtagen'], cfgword['mode'], cfgword['af'],
+                    cfgword['mflashwe'], cfgword['mnvrwe'], cfgword['bflashwe'], cfgword['bnvrwe'], cfgword['mflashre'], cfgword['mnvrre'], cfgword['bflashre'], cfgword['bnvrre']))
+        return (data, res_str)
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].rd_lock[p] = False if cfgword['mflashre'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].rd_lock[p] = False if cfgword['mnvrre'] else True
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['mflashwe'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['mnvrwe'] else True
+        for p in range(self.flash[1]['region_main'].pages):
+            self.flash[1]['region_main'].rd_lock[p] = False if cfgword['bflashre'] else True
+        for p in range(self.flash[1]['region_nvr'].pages):
+            self.flash[1]['region_nvr'].rd_lock[p] = False if cfgword['bnvrre'] else True
+        for p in range(self.flash[1]['region_main'].pages):
+            self.flash[1]['region_main'].wr_lock[p] = False if cfgword['bflashwe'] else True
+        for p in range(self.flash[1]['region_nvr'].pages):
+            self.flash[1]['region_nvr'].wr_lock[p] = False if cfgword['bnvrwe'] else True
+        # bootloader pages
+        self.flash[1]['region_main'].wr_lock[0] = True
+        self.flash[1]['region_main'].rd_lock[0] = True
+        self.flash[1]['region_main'].wr_lock[1] = True
+        self.flash[1]['region_main'].rd_lock[1] = True
 
 
 class K1921VK01T:

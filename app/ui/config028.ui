@@ -35,7 +35,7 @@
       <item>
        <widget class="QLabel" name="lbl_warn0">
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ef2929;&quot;&gt;Внимание! Изменяйте состояние конфигурации с осторожностью!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ef2929;&quot;&gt;Изменяйте состояние конфигурации с осторожностью!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>
@@ -96,29 +96,6 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="lbl_rdc">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>RDC</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="ledit_rdc">
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>23</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>0xF</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
            <widget class="QLabel" name="lbl_tac">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -128,7 +105,7 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="2" column="1">
            <widget class="QLineEdit" name="ledit_tac">
             <property name="maximumSize">
              <size>
@@ -157,6 +134,12 @@
           </item>
           <item row="0" column="1">
            <widget class="QCheckBox" name="chbox_bflashwe">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -177,6 +160,12 @@
           </item>
           <item row="1" column="1">
            <widget class="QCheckBox" name="chbox_bnvrwe">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -197,6 +186,12 @@
           </item>
           <item row="4" column="1">
            <widget class="QCheckBox" name="chbox_debugen">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -227,6 +222,12 @@
           </item>
           <item row="2" column="1">
            <widget class="QCheckBox" name="chbox_bflashre">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -237,6 +238,12 @@
           </item>
           <item row="3" column="1">
            <widget class="QCheckBox" name="chbox_bnvrre">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -261,6 +268,12 @@
           </item>
           <item row="0" column="1">
            <widget class="QCheckBox" name="chbox_mflashwe">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -281,6 +294,12 @@
           </item>
           <item row="1" column="1">
            <widget class="QCheckBox" name="chbox_mnvrwe">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -301,6 +320,12 @@
           </item>
           <item row="4" column="1">
            <widget class="QCheckBox" name="chbox_jtagen">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -331,6 +356,12 @@
           </item>
           <item row="2" column="1">
            <widget class="QCheckBox" name="chbox_mflashre">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -341,6 +372,12 @@
           </item>
           <item row="3" column="1">
            <widget class="QCheckBox" name="chbox_mnvrre">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -417,6 +454,29 @@
               <string>1: 16-бит</string>
              </property>
             </item>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="lbl_rdc">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;justify&quot;&gt;0 - запрещение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;p align=&quot;justify&quot;&gt;1 - разрешение записи и стирания основной области Flash-памяти&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>RDC</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="ledit_rdc">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>0xF</string>
+            </property>
            </widget>
           </item>
          </layout>
