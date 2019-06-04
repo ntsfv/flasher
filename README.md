@@ -4,6 +4,7 @@
 
 * К1921ВК01Т - ```README_01T.md```, ```firmware/k1921vk01t/README.md```
 * К1921ВК035 - ```README_035.md```, ```firmware/k1921vk035/README.md```
+* К1921ВК028 - ```README_028.md```, ```firmware/k1921vk028/README.md```
 
 
 Описание протокола загрузчика находится в ```NOTES.md```.
