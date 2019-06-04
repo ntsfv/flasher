@@ -760,10 +760,10 @@ class MyMainWindow(QMainWindow):
             cfgword['jtagen'] = widget028.ui.chbox_jtagen.isChecked()
             cfgword['af'] = widget028.ui.combo_af.currentIndex()
             cfgword['mode'] = widget028.ui.combo_mode.currentIndex()
-            cfgword['mask'] = self.text2int(widget028.ui.ledit_mask)
-            cfgword['rdc'] = self.text2int(widget028.ui.ledit_rdc)
-            cfgword['wrc'] = self.text2int(widget028.ui.ledit_wrc)
-            cfgword['tac'] = self.text2int(widget028.ui.ledit_tac)
+            cfgword['mask'] = self.text2int(widget028.ui.ledit_mask)[0]
+            cfgword['rdc'] = self.text2int(widget028.ui.ledit_rdc)[0]
+            cfgword['wrc'] = self.text2int(widget028.ui.ledit_wrc)[0]
+            cfgword['tac'] = self.text2int(widget028.ui.ledit_tac)[0]
             return cfgword
 
     def exec_tab_config_01t(self, cfgword=None):

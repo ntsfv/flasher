@@ -131,6 +131,7 @@ class TxPacket(Packet):
             packet_bytes += [(self.data[i] >> 0) & 0xFF]
             crc = self.crc16(self.data[i], crc)
 
+        self.log_dbg("crc: 0x%04x" % crc)
         packet_bytes += [(crc >> 0) & 0xFF]
         packet_bytes += [(crc >> 8) & 0xFF]
 

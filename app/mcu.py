@@ -121,7 +121,7 @@ class K1921VK028:
     CFGWORD1_MNVRRE_POS = 13
     CFGWORD1_BFLASHRE_POS = 14
     CFGWORD1_BNVRRE_POS = 15
-    CFGWORD1_TAC_MSK = 1 << CFGWORD1_TAC_POS
+    CFGWORD1_TAC_MSK = 0xF << CFGWORD1_TAC_POS
     CFGWORD1_MODE_MSK = 1 << CFGWORD1_MODE_POS
     CFGWORD1_AF_MSK = 1 << CFGWORD1_AF_POS
     CFGWORD1_MFLASHWE_MSK = 1 << CFGWORD1_MFLASHWE_POS
@@ -181,7 +181,7 @@ class K1921VK028:
         return cfgword
 
     def pack_cfgword(self, cfgword):
-        data = [0xFF] * (8)
+        data = [0xFF] * 8
         temp = 0xFFFFFFFF
         temp = (temp & (~self.CFGWORD0_RDC_MSK)) | (cfgword['rdc'] << self.CFGWORD0_RDC_POS)
         temp = (temp & (~self.CFGWORD0_WRC_MSK)) | (cfgword['wrc'] << self.CFGWORD0_WRC_POS)
@@ -192,7 +192,7 @@ class K1921VK028:
         data[3] = (temp >> 24) & 0xFF
         temp = 0xFFFFFFFF
         temp = (temp & (~self.CFGWORD1_TAC_MSK)) | (cfgword['tac'] << self.CFGWORD1_TAC_POS)
-        temp = (temp & (~self.CFGWORD1_MODE_MSK)) | (cfgword['tac'] << self.CFGWORD1_MODE_POS)
+        temp = (temp & (~self.CFGWORD1_MODE_MSK)) | (cfgword['mode'] << self.CFGWORD1_MODE_POS)
         temp = (temp & (~self.CFGWORD1_AF_MSK)) | (cfgword['af'] << self.CFGWORD1_AF_POS)
         temp &= ~(0 if cfgword['debugen'] else self.CFGWORD1_DEBUGEN_MSK)
         temp &= ~(0 if cfgword['jtagen'] else self.CFGWORD1_JTAGEN_MSK)
