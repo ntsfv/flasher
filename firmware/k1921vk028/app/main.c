@@ -23,6 +23,12 @@
 //-- Includes ------------------------------------------------------------------
 #include "boot_core.h"
 
+//-- Defines -------------------------------------------------------------------
+#define IRQ_TOTAL 208
+
+//-- Variables -----------------------------------------------------------------
+static __attribute__((section("vtable"))) void (*Vectors[IRQ_TOTAL])(void) __attribute__((aligned(256)));
+
 //-- Init functions ------------------------------------------------------------
 static void DebugInit()
 {
@@ -174,8 +180,21 @@ static void TimerInit()
     TMR->LOAD = TMR_LOAD;
 }
 
+static void NVICInit()
+{
+    uint32_t* src = (uint32_t*)SCB->VTOR;
+    uint32_t* dst = (uint32_t*)Vectors;
+    uint32_t n = IRQ_TOTAL;
+
+    while (n--)
+        *dst++ = *src++;
+
+    SCB->VTOR = (uint32_t)Vectors;
+}
+
 void PeriphInit()
 {
+    NVICInit();
     FPUInit();
     ClockInit();
     UartInit();
@@ -193,10 +212,4 @@ int main()
     DBG_PRINT(0x33);
     boot_core();
     return 0;
-}
-
-RAMFUNC void HardFault_Handler()
-{
-    DBG_PRINT(0xFF);
-    while(1);
 }

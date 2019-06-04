@@ -255,7 +255,7 @@ void set_cfgword_cmd(Packet_TypeDef* packet)
     cfgword[0] = packet_fifo_read_u32();
     calc_crc = crc_upd_u32(packet->crc, cfgword[0]);
     cfgword[1] = packet_fifo_read_u32();
-    calc_crc = crc_upd_u32(packet->crc, cfgword[1]);
+    calc_crc = crc_upd_u32(calc_crc, cfgword[1]);
 
     rx_crc = packet_fifo_read_u16();
 
@@ -270,8 +270,8 @@ void set_cfgword_cmd(Packet_TypeDef* packet)
             flash_read(CFGWORD_PAGE + i * 16, BFLASH_MEM, FLASH_NVR, (uint32_t*)page_arr[i]);
         }
         //модифицируем конфигурацию, стираем и пишем обратно
-        page_arr[0][0] = cfgword[0];
-        page_arr[0][1] = cfgword[1];
+        page_arr[CFGWORD0_BASE/16][0] = cfgword[0];
+        page_arr[CFGWORD0_BASE/16][1] = cfgword[1];
         flash_erase_page(CFGWORD_PAGE, BFLASH_MEM, FLASH_NVR);
         for (uint32_t i = 0; i < MEM_BFLASH_NVR_PAGE_SIZE / 16; i++) {
             if ((page_arr[i][0] != 0xFFFFFFFF) || (page_arr[i][1] != 0xFFFFFFFF) ||

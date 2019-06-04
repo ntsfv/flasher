@@ -1,8 +1,8 @@
 /*****************************************************************************
  * @file:    K1921VK028.h
  * @author   NIIET
- * @version: V2.16
- * @date:    26.03.2019
+ * @version: V2.17
+ * @date:    03.06.2019
  * @brief:   K1921VK028 header file
  *****************************************************************************
  * <br><br>
@@ -9699,18 +9699,26 @@ typedef struct {
 
 /*--  CTRL: Control Register ----------------------------------------------------------------------------------*/
 typedef struct {
-  uint32_t                        :4;                                /*!< RESERVED */
+  uint32_t                        :1;                                /*!< RESERVED */
+  uint32_t CEN                    :1;                                /*!< Cache enable bit */
+  uint32_t                        :2;                                /*!< RESERVED */
   uint32_t IRQEN                  :1;                                /*!< Interrupt enable bit */
-  uint32_t                        :11;                               /*!< RESERVED */
+  uint32_t                        :3;                                /*!< RESERVED */
+  uint32_t CFLUSH                 :1;                                /*!< Cache bit */
+  uint32_t                        :7;                                /*!< RESERVED */
   uint32_t LAT                    :4;                                /*!< Flash latency */
 } _BFLASH_CTRL_bits;
 
 /* Bit field positions: */
+#define BFLASH_CTRL_CEN_Pos                   1                      /*!< Cache enable bit */
 #define BFLASH_CTRL_IRQEN_Pos                 4                      /*!< Interrupt enable bit */
+#define BFLASH_CTRL_CFLUSH_Pos                8                      /*!< Cache bit */
 #define BFLASH_CTRL_LAT_Pos                   16                     /*!< Flash latency */
 
 /* Bit field masks: */
+#define BFLASH_CTRL_CEN_Msk                   0x00000002UL           /*!< Cache enable bit */
 #define BFLASH_CTRL_IRQEN_Msk                 0x00000010UL           /*!< Interrupt enable bit */
+#define BFLASH_CTRL_CFLUSH_Msk                0x00000100UL           /*!< Cache bit */
 #define BFLASH_CTRL_LAT_Msk                   0x000F0000UL           /*!< Flash latency */
 
 //Cluster DATA:

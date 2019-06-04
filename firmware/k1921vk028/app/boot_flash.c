@@ -42,8 +42,12 @@ static RAMFUNC void mflash_cmd(uint32_t addr, FlashType_TypeDef ftype, uint32_t*
             MFLASH->DATA[i].DATA = data[i];
         }
     }
+    __disable_irq();
     MFLASH->CMD = (MFLASH_CMD_KEY_Access << MFLASH_CMD_KEY_Pos) |
                   cmd | (ftype << MFLASH_CMD_NVRON_Pos);
+    MFLASH->CTRL |= MFLASH_CTRL_DFLUSH_Msk | MFLASH_CTRL_IFLUSH_Msk;
+    GLOBMEM(MEM_MFLASH_BASE);
+    __enable_irq();
     __NOP();
     __NOP();
     __NOP();
@@ -68,8 +72,12 @@ static RAMFUNC void bflash_cmd(uint32_t addr, FlashType_TypeDef ftype, uint32_t*
             BFLASH->DATA[i].DATA = data[i];
         }
     }
+    __disable_irq();
     BFLASH->CMD = (BFLASH_CMD_KEY_Access << BFLASH_CMD_KEY_Pos) |
                   cmd | (ftype << BFLASH_CMD_NVRON_Pos);
+    BFLASH->CTRL |= BFLASH_CTRL_CFLUSH_Msk;
+    GLOBMEM(MEM_BFLASH_BASE);
+    __enable_irq();
     __NOP();
     __NOP();
     __NOP();
