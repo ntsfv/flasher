@@ -527,9 +527,9 @@ class Protocol:
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
 
         self.serport.open_port(port=kwargs['port'], baudrate=kwargs['baud'])
-        self.win.ui.pbar.setValue(25)
+        self.win.pbar_set(25)
         cmd.init_device()
-        self.win.ui.pbar.setValue(50)
+        self.win.pbar_set(50)
         mcu_info = cmd.cmd_get_info()
         inited_mcu = mcu.get_by_chipid(mcu_info["chipid"])
         if inited_mcu is None:
@@ -537,24 +537,24 @@ class Protocol:
         else:
             self.mcu = inited_mcu
             cmd.mcu = self.mcu
-        self.win.ui.pbar.setValue(75)
+        self.win.pbar_set(75)
         mcu_cfgword = cmd.cmd_get_cfgword()
         self.mcu.apply_cfgword(mcu_cfgword)
         self.mcu.cpuid = mcu_info['cpuid']
         self.mcu.bootver = mcu_info['bootver']
         self.log_info("Обнаружен %s с версией загрузчика v%s" % (self.mcu.name_ru, self.mcu.bootver))
-        self.win.ui.pbar.setValue(100)
+        self.win.pbar_set(100)
         return self.mcu
 
     def deinit(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
-        self.win.ui.pbar.setValue(50)
+        self.win.pbar_set(50)
         cmd.release_device()
         #self.serport.close_port()
         self.log_info("Произведено отключение от устройства")
-        self.win.ui.pbar.setValue(100)
+        self.win.pbar_set(100)
         return True
 
     def write(self, **kwargs):
@@ -570,23 +570,28 @@ class Protocol:
         data = [0xFF] * (kwargs['lastpage'] - kwargs['firstpage'] + 1) * page_size
         for i in range(0, len(raw_data)):
             data[i] = raw_data[i]
-        self.win.ui.pbar.setValue(10)
+        state = 0.0
+        self.win.pbar_set(state)
 
         cmd_count = 0
         if (kwargs['erall']):
             cmd.cmd_erase_full(flash, region)
             cmd_count += 1
-        self.win.ui.pbar.setValue(20)
+        state += 20.0
+        self.win.pbar_set(state)
 
         self.log_info("Запись страниц%s:" % (" c предварительным стиранием" if kwargs['erpages'] else ""))
         for p in range(0, kwargs['lastpage'] - kwargs['firstpage'] + 1):
             cmd.cmd_write_page(kwargs['firstpage'] + p, data[p * page_size:p * page_size + page_size], flash, region, kwargs['erpages'])
+            state += 15 / (kwargs['lastpage'] - kwargs['firstpage'] + 1)
+            self.win.pbar_set(state)
             cmd_count += 1
 
         self.log_info("Ожидание выполнения команд ...")
         for i in range(0, cmd_count):
             cmd.cmd_msg()
-            self.win.ui.pbar.setValue(int(self.win.ui.pbar.value() + (35 / cmd_count)))
+            state += 20 / cmd_count
+            self.win.pbar_set(state)
 
         if (kwargs["verif"]):
             self.log_info("Верификация записанных данных ...")
@@ -594,10 +599,13 @@ class Protocol:
             read_data = []
             for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
                 cmd.cmd_read_page(p, flash, region)
+                state += 15 / (kwargs['lastpage'] - kwargs['firstpage'] + 1)
+                self.win.pbar_set(state)
             self.log_info("Ожидание выполнения команд ...")
             for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
                 read_data += cmd.cmd_msg()['data']
-                self.win.ui.pbar.setValue(int(self.win.ui.pbar.value() + (35 / (kwargs['lastpage'] - kwargs['firstpage'] + 1))))
+                state += 20 / (kwargs['lastpage'] - kwargs['firstpage'] + 1)
+                self.win.pbar_set(state)
             # compare
             err = 0
             err_limit = 16
@@ -610,7 +618,7 @@ class Protocol:
                         if err_limit == 0:
                             self.log_err("Показаны первые 16 ошибок верификации, дальнейшие показываться не будут")
             self.log_info("Верификация завершилась, количество ошибок: %0d" % err)
-        self.win.ui.pbar.setValue(100)
+        self.win.pbar_set(100)
 
     def erase(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
@@ -619,18 +627,24 @@ class Protocol:
         region = self.win.get_curr_region()
         flash = self.win.get_curr_flash()
         cmd_count = 0
-        self.win.ui.pbar.setValue(50)
+        state = 0.0
+        self.win.pbar_set(state)
         if (kwargs['erall']):
+            self.win.pbar_set(50)
             cmd.cmd_erase_full(flash, region)
             cmd.cmd_msg()
         else:
             for p in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
                 cmd.cmd_erase_page(p, flash, region)
+                state += 50 / (kwargs['lastpage'] - kwargs['firstpage'] + 1)
+                self.win.pbar_set(state)
                 cmd_count += 1
+            self.log_info("Ожидание выполнения команд ...")
             for i in range(0, cmd_count):
                 cmd.cmd_msg()
-                self.win.ui.pbar.setValue(int(self.win.ui.pbar.value() + (50 / cmd_count)))
-        self.win.ui.pbar.setValue(100)
+                state += 50 / cmd_count
+                self.win.pbar_set(state)
+        self.win.pbar_set(100)
 
     def read(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
@@ -639,29 +653,33 @@ class Protocol:
         region = self.win.get_curr_region()
         flash = self.win.get_curr_flash()
         page_data = []
-        self.win.ui.pbar.setValue(10)
+        state = 10.0
+        self.win.pbar_set(state)
         for page in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
             cmd.cmd_read_page(page, flash, region)
+            state += 40 / (kwargs['lastpage'] - kwargs['firstpage'] + 1)
+            self.win.pbar_set(state)
         self.log_info("Ожидание выполнения команд ...")
         for page in range(kwargs['firstpage'], kwargs['lastpage'] + 1):
             page_data += cmd.cmd_msg()['data']
-            self.win.ui.pbar.setValue(int(self.win.ui.pbar.value() + (80 / (kwargs['lastpage'] - kwargs['firstpage'] + 1))))
+            state += 40 / (kwargs['lastpage'] - kwargs['firstpage'] + 1)
+            self.win.pbar_set(state)
         self.save_bin(kwargs['filepath'], page_data)
-        self.win.ui.pbar.setValue(100)
+        self.win.pbar_set(100)
 
     def get_cfgword(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
-        self.win.ui.pbar.setValue(50)
+        self.win.pbar_set(50)
         cfgword = cmd.cmd_get_cfgword()
-        self.win.ui.pbar.setValue(100)
+        self.win.pbar_set(100)
         return cfgword
 
     def set_cfgword(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
-        self.win.ui.pbar.setValue(50)
+        self.win.pbar_set(50)
         cmd.cmd_set_cfgword(kwargs['cfgword'])
-        self.win.ui.pbar.setValue(100)
+        self.win.pbar_set(100)

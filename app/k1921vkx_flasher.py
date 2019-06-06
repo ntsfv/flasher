@@ -110,6 +110,10 @@ class MyMainWindow(QMainWindow):
     def whoami(self):
         return inspect.getouterframes(inspect.currentframe())[1].function
 
+    def pbar_set(self, value):
+        self.log_dbg("<%s> %d" % (self.whoami(), int(value)))
+        self.ui.pbar.setValue(int(value))
+
     def log_dbg(self, msg):
         if self.debug:
             logger.debug(msg)
