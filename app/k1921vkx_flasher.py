@@ -297,6 +297,7 @@ class MyMainWindow(QMainWindow):
             self.ui.combo_port.setEnabled(not state)
             self.ui.combo_baud.setEnabled(not state)
             self.ui.btn_updport.setEnabled(not state)
+            self.ui.btn_exec.setEnabled(state)
             self.ui.tab_info.setEnabled(state)
             self.ui.tab_write.setEnabled(state)
             self.ui.tab_erase.setEnabled(state)
@@ -403,10 +404,11 @@ class MyMainWindow(QMainWindow):
     def handle_tabs_cmd_changed(self, num):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
         self.ui.pbar.reset()
-        if self.ui.tabs_cmd.currentWidget().objectName() == 'tab_info':
-            self.ui.btn_exec.setEnabled(False)
-        else:
-            self.ui.btn_exec.setEnabled(True)
+        if self.is_connected():
+            if self.ui.tabs_cmd.currentWidget().objectName() == 'tab_info':
+                self.ui.btn_exec.setEnabled(False)
+            else:
+                self.ui.btn_exec.setEnabled(True)
 
     def handle_firstpage_select_changed(self, num):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % num))
