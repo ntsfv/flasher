@@ -346,7 +346,7 @@ class CmdInterface:
         else:
             # try RTS active 0
             self.log_info(LogId["PROG"] + "Активация загрузчика: 2-ой вариант ....")
-            self.serport.flushInput()
+            self.serport.reset_input_buffer()
             self.serport.rts = True
             self.reset_chip()
             self.serport.write_bytes([0x7F])
@@ -523,10 +523,9 @@ class Protocol:
     def init(self, **kwargs):
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
-
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
-
         self.serport.open_port(port=kwargs['port'], baudrate=kwargs['baud'])
+        self.serport.reset_input_buffer()
         self.win.pbar_set(25)
         cmd.init_device()
         self.win.pbar_set(50)
@@ -558,6 +557,7 @@ class Protocol:
         return True
 
     def write(self, **kwargs):
+        self.serport.reset_input_buffer()
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
@@ -621,6 +621,7 @@ class Protocol:
         self.win.pbar_set(100)
 
     def erase(self, **kwargs):
+        self.serport.reset_input_buffer()
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
@@ -647,6 +648,7 @@ class Protocol:
         self.win.pbar_set(100)
 
     def read(self, **kwargs):
+        self.serport.reset_input_buffer()
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
@@ -668,6 +670,7 @@ class Protocol:
         self.win.pbar_set(100)
 
     def get_cfgword(self, **kwargs):
+        self.serport.reset_input_buffer()
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
@@ -677,6 +680,7 @@ class Protocol:
         return cfgword
 
     def set_cfgword(self, **kwargs):
+        self.serport.reset_input_buffer()
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
