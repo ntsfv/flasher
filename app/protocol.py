@@ -330,7 +330,7 @@ class CmdInterface:
         self.serport.dtr = True
         time.sleep(0.3)
         self.serport.dtr = False
-        time.sleep(0.1)
+        time.sleep(0.5)
 
     def init_device(self):
         self.log_info(LogId["PROG"] + "Подключение к устройству ...")
