@@ -13,7 +13,6 @@ PROJECT(boot028)
 #-- Defines --------------------------------------------------------------------
 ADD_DEFINITIONS(-DK1921VK028)
 ADD_DEFINITIONS(-D__NO_SYSTEM_INIT)
-ADD_DEFINITIONS(-DOSECLK_VAL=12000000)
 ADD_DEFINITIONS(-DUART_NUMBER=0)
 
 #-- Project paths --------------------------------------------------------------

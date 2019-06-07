@@ -35,7 +35,7 @@
 #define GLOBMEM(ADDR)   *(volatile uint32_t*)(ADDR)
 #define RAMFUNC         __attribute__( (long_call, section(".ram0func") ) )
 #define BOOT_VER_MAJOR  0x0001
-#define BOOT_VER_MINOR  0x0000
+#define BOOT_VER_MINOR  0x0001
 #define BOOT_VER        ((BOOT_VER_MAJOR<<16)|BOOT_VER_MINOR)
 #define SYSCLK          200000000
 
@@ -83,13 +83,7 @@
 
 //TMR
 #define TMR             TMR0
-#define TMR_CLK         (SYSCLK/2)
-#define TMR_CLK_PERIOD  (1000000000/TMR_CLK)    //ns
-#define TMR_TIMEOUT     500000000               //ns
-#define TMR_LOAD        (TMR_TIMEOUT/TMR_CLK_PERIOD)
 #define TMR_EN          TMR0EN
-#define TMR_IRQHandler  TMR0_IRQHandler
-#define TMR_IRQn        TMR0_IRQn
 
 //Packet parser
 #define PACKET_FIFO_BYTES       131072

@@ -70,48 +70,14 @@ static void ClockInit()
                            RCU_PLLCFG_DIV1_Msk |
                            RCU_PLLCFG_DIV2_Msk);
     RCU->PLLCFG_bit.BP = 0;
-#if (OSECLK_VAL == 8000000)
-    RCU->PLLCFG_bit.FBDIV = 100;
-    RCU->PLLCFG_bit.PD = 0;
-    RCU->PLLCFG |= (RCU_PLLCFG_REFSRC_OSECLK << RCU_PLLCFG_REFSRC_Pos) |
-                   (1 << RCU_PLLCFG_REFDIV_Pos) |
-                   (4 << RCU_PLLCFG_DIV1_Pos) |
-                   (1 << RCU_PLLCFG_DIV2_Pos);
-#elif (OSECLK_VAL == 12000000)
     RCU->PLLCFG_bit.FBDIV = 50;
     RCU->PLLCFG_bit.PD = 0;
     RCU->PLLCFG = (RCU->PLLCFG & (~pllcfg_clr)) |
                   (RCU_PLLCFG_REFSRC_OSECLK << RCU_PLLCFG_REFSRC_Pos) |
                   (1 << RCU_PLLCFG_REFDIV_Pos) |
                   (3 << RCU_PLLCFG_DIV1_Pos) |
-                  (1 << RCU_PLLCFG_DIV2_Pos);
-#elif (OSECLK_VAL == 16000000)
-    RCU->PLLCFG_bit.FBDIV = 50;
-    RCU->PLLCFG_bit.PD = 0;
-    RCU->PLLCFG = (RCU->PLLCFG & (~pllcfg_clr)) |
-                  (RCU_PLLCFG_REFSRC_OSECLK << RCU_PLLCFG_REFSRC_Pos) |
-                  (1 << RCU_PLLCFG_REFDIV_Pos) |
-                  (4 << RCU_PLLCFG_DIV1_Pos) |
-                  (1 << RCU_PLLCFG_DIV2_Pos);
-#elif (OSECLK_VAL == 20000000)
-    RCU->PLLCFG_bit.FBDIV = 40;
-    RCU->PLLCFG_bit.PD = 0;
-    RCU->PLLCFG = (RCU->PLLCFG & (~pllcfg_clr)) |
-                  (RCU_PLLCFG_REFSRC_OSECLK << RCU_PLLCFG_REFSRC_Pos) |
-                  (1 << RCU_PLLCFG_REFDIV_Pos) |
-                  (4 << RCU_PLLCFG_DIV1_Pos) |
-                  (1 << RCU_PLLCFG_DIV2_Pos);
-#elif (OSECLK_VAL == 24000000)
-    RCU->PLLCFG_bit.FBDIV = 50;
-    RCU->PLLCFG_bit.PD = 0;
-    RCU->PLLCFG = (RCU->PLLCFG & (~pllcfg_clr)) |
-                  (RCU_PLLCFG_REFSRC_OSECLK << RCU_PLLCFG_REFSRC_Pos) |
-                  (2 << RCU_PLLCFG_REFDIV_Pos) |
-                  (3 << RCU_PLLCFG_DIV1_Pos) |
-                  (1 << RCU_PLLCFG_DIV2_Pos);
-#else
-#error "Please define OSECLK_VAL or EXTCLK_VAL with correct values!"
-#endif
+                  (2 << RCU_PLLCFG_DIV2_Pos);
+
     RCU->PLLCFG_bit.OUTDIS = 0;
     while (!RCU->PLLCFG_bit.LOCK) {
     };
@@ -177,7 +143,7 @@ static void TimerInit()
 {
     RCU->PRSTCFG0_bit.TMR_EN = 1;
     RCU->PCLKCFG0_bit.TMR_EN = 1;
-    TMR->LOAD = TMR_LOAD;
+    TMR->LOAD = 0xFFFFFFFF;
 }
 
 static void NVICInit()
