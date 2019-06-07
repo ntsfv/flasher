@@ -105,7 +105,6 @@ class Packet:
         return [l[i:i + n] for i in range(0, len(l), n)]
 
 
-
 class TxPacket(Packet):
     def __init__(self, mcu, serport, win=None):
         super().__init__(mcu, serport, win)
@@ -131,6 +130,7 @@ class TxPacket(Packet):
             packet_bytes += [(self.data[i] >> 0) & 0xFF]
             crc = self.crc16(self.data[i], crc)
 
+        self.log_dbg("data8_n: %d" % self.data8_n)
         self.log_dbg("crc: 0x%04x" % crc)
         packet_bytes += [(crc >> 0) & 0xFF]
         packet_bytes += [(crc >> 8) & 0xFF]
@@ -524,7 +524,10 @@ class Protocol:
         self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
-        self.serport.open_port(port=kwargs['port'], baudrate=kwargs['baud'])
+        try:
+            self.serport.open_port(port=kwargs['port'], baudrate=kwargs['baud'])
+        except:
+            raise ProtException("Ошибка порта!", self.win)
         self.serport.reset_input_buffer()
         self.win.pbar_set(25)
         cmd.init_device()
