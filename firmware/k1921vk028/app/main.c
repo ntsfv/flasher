@@ -27,7 +27,7 @@
 #define IRQ_TOTAL 208
 
 //-- Variables -----------------------------------------------------------------
-static __attribute__((section("vtable"))) void (*Vectors[IRQ_TOTAL])(void) __attribute__((aligned(256)));
+static __attribute__((section("vtable"))) void (*Vectors[IRQ_TOTAL])(void) __attribute__((aligned(1024)));
 
 //-- Init functions ------------------------------------------------------------
 static void DebugInit()
