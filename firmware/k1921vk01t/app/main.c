@@ -186,3 +186,10 @@ int main()
     boot_core();
     return 0;
 }
+
+void HardFault_Handler(void)
+{
+    DBG_PRINT(0x35);
+    while (1) {
+    }
+}

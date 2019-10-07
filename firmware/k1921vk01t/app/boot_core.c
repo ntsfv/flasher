@@ -220,7 +220,7 @@ uint32_t is_page_modify_en(uint32_t page_num, FlashMemory_TypeDef flash_mem, Fla
     uint32_t data;
     uint32_t temp;
     uint32_t bflock[BFLOCK_SIZE / 4];
-    uint32_t uflock[BFLOCK_SIZE / 4];
+    uint32_t uflock[UFLOCK_SIZE / 4];
     uint32_t modify_en = 0;
 
     if (flash_type == FLASH_NVR) {

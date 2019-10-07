@@ -36,7 +36,7 @@
 #define GLOBMEM(ADDR)   *(volatile uint32_t*)(ADDR)
 #define RAMFUNC         __attribute__( (long_call, section(".ramfunc") ) )
 #define BOOT_VER_MAJOR  0x0001
-#define BOOT_VER_MINOR  0x0000
+#define BOOT_VER_MINOR  0x0001
 #define BOOT_VER        ((BOOT_VER_MAJOR<<16)|BOOT_VER_MINOR)
 #define SYSCLK          100000000
 #ifndef XIOSC
