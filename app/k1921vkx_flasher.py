@@ -309,6 +309,7 @@ class MyMainWindow(QMainWindow):
             self.upd_tinfo_values()
             self.upd_flash_selected()
             self.upd_twrite_jumpaddr()
+            self.upd_twrite_addr()
             self.upd_tconfig_widget_cfg()
 
     def handle_flash_select_toggled(self, state):
@@ -502,6 +503,13 @@ class MyMainWindow(QMainWindow):
             self.ui.twrite_ledit_jumpaddr.setText('0x00002000')
         elif self.mcu.name == 'k1921vkx':
             self.ui.twrite_ledit_jumpaddr.setText('0x00000000')
+
+    def upd_twrite_addr(self):
+        if self.mcu.name == 'k1921vk01t':
+            self.ui.twrite_ledit_addr.setText('0x00002000')
+        else:
+            self.ui.twrite_ledit_addr.setText('0x00000000')
+        self.ui.twrite_ledit_addr.editingFinished.emit()
 
     def upd_tconfig_widget_cfg(self):
         self.ui.tconfig_rbtn_read.setChecked(True)
