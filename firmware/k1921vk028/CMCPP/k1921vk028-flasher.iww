@@ -1,0 +1,27 @@
+[Workspace]
+LastVendor=48
+Descr=
+Flags=0
+ActiveProject=k1921vk028-flasher
+Project_0=.\k1921vk028-flasher\k1921vk028-flasher.ipp
+
+[Tool 21]
+LastHardwareId=0x5000583
+Chip=NIIET K1921VK028
+SerialPort=255
+BaudRate=0
+ConnectionType=1
+USBDeviceSerialNumber=
+
+[Session]
+DNS_6686=0
+DNS_6980=0
+DNS_14054=0
+GlobalToolbarLayout=1
+UpdateCheckCount=3
+ForceCodeLoad=0
+DNS_14050=0
+DNS_6941=0
+DNS_14051=0
+Debugger=21
+ShellLanguage=Russian|Русский язык
