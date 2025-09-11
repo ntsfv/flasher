@@ -16,12 +16,14 @@ import serport
 import mcu
 import protocol
 import traceback
+import threading
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem, QMessageBox,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox, QCheckBox)
 from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator, QTextCursor)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
+from ui_config015 import Ui_Config015
 from ui_config035 import Ui_Config035
 from ui_config028 import Ui_Config028
 from ui_config01t import Ui_Config01T
@@ -29,7 +31,7 @@ from ui_config1921 import Ui_Config1921
 
 
 # -- Global variables ---------------------------------------------------------
-VERSION = "1.2"
+VERSION = "1.3"
 
 
 # -- Misc functions -----------------------------------------------------------
@@ -106,7 +108,16 @@ class MyMainWindow(QMainWindow):
         self.upd_flash_selected()
         self.upd_tconfig_widget_cfg()
 
+        self.address_fields = [
+            self.ui.twrite_ledit_addr,
+            self.ui.terase_ledit_addr,
+            self.ui.tread_ledit_addr,
+        ]
+
     # -- Helpers --
+    def current_controller_flash(self):
+        return self.mcu.flash[self.get_curr_flash()]
+
     def whoami(self):
         return inspect.getouterframes(inspect.currentframe())[1].function
 
@@ -171,12 +182,16 @@ class MyMainWindow(QMainWindow):
         ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
         self.log_dbg("Object <%s>" % ledit_addr.objectName())
         addr, addr_format = self.text2int(ledit_addr)
-        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
-        pages = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages = self.current_controller_flash()[self.get_curr_region()].pages
 
         if addr >= (page_size * pages):
             self.log_warn("Адрес выходит за границы диапазона 0x00000000-0x%08X" % ((page_size * pages) - 1))
             addr = 0
+
+        if self.get_curr_region() != 'region_nvr' and 'bootflash_end_address' in self.current_controller_flash() and addr < self.current_controller_flash()['bootflash_end_address']:
+            self.log_warn(f'Начальный адрес задевает прошивку бутлоадера')
+            addr = self.current_controller_flash()['bootflash_end_address']
 
         aligned_addr = ((addr & 0xFFFFFF) // page_size) * page_size
         ledit_addr.setText("%s" % ("%d" % aligned_addr if addr_format == 'dec' else "0x%08X" % aligned_addr))
@@ -193,8 +208,8 @@ class MyMainWindow(QMainWindow):
         self.log_dbg("Object <%s>" % ledit_size.objectName())
         addr, addr_format = self.text2int(ledit_addr)
         size, size_format = self.text2int(ledit_size)
-        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
-        pages_total = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages_total = self.current_controller_flash()[self.get_curr_region()].pages
 
         if size > ((page_size * pages_total) - addr):
             self.log_warn("Размер области должен быть не более 0x%X байт" % ((page_size * pages_total) - addr))
@@ -213,8 +228,8 @@ class MyMainWindow(QMainWindow):
         ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
         self.log_dbg("Object <%s>" % ledit_page.objectName())
         page, page_format = self.text2int(ledit_page)
-        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
-        pages = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages = self.current_controller_flash()[self.get_curr_region()].pages
 
         if page >= pages:
             self.log_warn("Номер страницы выходит за границы диапазона 0-%d" % (pages - 1))
@@ -231,8 +246,8 @@ class MyMainWindow(QMainWindow):
         self.log_dbg("Object <%s>" % ledit_pages.objectName())
         pages, pages_format = self.text2int(ledit_pages)
         page, page_format = self.text2int(ledit_page)
-        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
-        pages_total = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages_total = self.current_controller_flash()[self.get_curr_region()].pages
 
         if pages > (pages_total - page):
             self.log_warn("Указанное количество страниц больше максимального (%d)" % (pages_total - page))
@@ -293,24 +308,27 @@ class MyMainWindow(QMainWindow):
             update_gui = True
 
         if update_gui:
-            self.ui.btn_connect.setText(btn_text)
-            self.ui.combo_port.setEnabled(not state)
-            self.ui.combo_baud.setEnabled(not state)
-            self.ui.btn_updport.setEnabled(not state)
-            self.ui.btn_exec.setEnabled(state)
-            self.ui.tab_info.setEnabled(state)
-            self.ui.tab_write.setEnabled(state)
-            self.ui.tab_erase.setEnabled(state)
-            self.ui.tab_read.setEnabled(state)
-            self.ui.tab_config.setEnabled(state)
-            self.ui.gbox_flash.setEnabled(state)
-            self.ui.gbox_region.setEnabled(state)
-            self.upd_gbox_flash()
-            self.upd_tinfo_values()
-            self.upd_flash_selected()
-            self.upd_twrite_jumpaddr()
-            self.upd_twrite_addr()
-            self.upd_tconfig_widget_cfg()
+            self.update_gui(btn_text, state)
+
+    def update_gui(self, btn_text, state):
+        self.ui.btn_connect.setText(btn_text)
+        self.ui.combo_port.setEnabled(not state)
+        self.ui.combo_baud.setEnabled(not state)
+        self.ui.btn_updport.setEnabled(not state)
+        self.ui.btn_exec.setEnabled(state)
+        self.ui.tab_info.setEnabled(state)
+        self.ui.tab_write.setEnabled(state)
+        self.ui.tab_erase.setEnabled(state)
+        self.ui.tab_read.setEnabled(state)
+        self.ui.tab_config.setEnabled(state)
+        self.ui.gbox_flash.setEnabled(state)
+        self.ui.gbox_region.setEnabled(state)
+        self.upd_gbox_flash()
+        self.upd_tinfo_values()
+        self.upd_flash_selected()
+        self.upd_twrite_jumpaddr()
+        self.upd_twrite_addr()
+        self.upd_tconfig_widget_cfg()
 
     def handle_flash_select_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
@@ -321,6 +339,7 @@ class MyMainWindow(QMainWindow):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
         if state:
             self.upd_flash_selected()
+            self.upd_twrite_addr()
 
     def handle_btn_exec_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -355,9 +374,9 @@ class MyMainWindow(QMainWindow):
         if ("twrite" in self.sender().objectName() and
            self.is_valid_path(self.ui.twrite_ledit_filepath)):
             filesize = os.path.getsize(self.ui.twrite_ledit_filepath.text())
-            page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
+            page_size = self.current_controller_flash()[self.get_curr_region()].page_size
             addr, addr_format = self.text2int(self.ui.twrite_ledit_addr)
-            pages_total = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
+            pages_total = self.current_controller_flash()[self.get_curr_region()].pages
             if filesize > ((page_size * pages_total) - addr):
                 self.ui.twrite_ledit_size.setText("ошибка")
                 self.ui.twrite_ledit_pages.setText("ошибка")
@@ -443,14 +462,18 @@ class MyMainWindow(QMainWindow):
         else:
             return 'region_main'
 
+    def get_curr_start_page(self):
+        return 'start_page_nvr' if self.ui.rbtn_regionnvr.isChecked() else 'start_page_main'
+
     def upd_gbox_flash(self):
         self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
         if len(self.mcu.flash) == 2:
             self.ui.rbtn_flash1.setEnabled(True)
             self.ui.rbtn_flash1.setText(self.mcu.flash[1]['name'].upper())
         else:
-            self.ui.rbtn_flash1.setEnabled(False)
-            self.ui.rbtn_flash1.setText('')
+            self.ui.rbtn_flash1.setVisible(False)
+            # self.ui.rbtn_flash1.setEnabled(False)
+            # self.ui.rbtn_flash1.setText('')
 
     def upd_tinfo_values(self):
         self.ui.tinfo_ledit_chipid.setText(self.mcu.chipid)
@@ -460,38 +483,48 @@ class MyMainWindow(QMainWindow):
 
     def upd_flash_selected(self):
         table = self.ui.tinfo_tbl_flash
+        lockable = self.current_controller_flash()['lockable']
+        if lockable:
+            table.showColumn(3)
+            table.showColumn(4)
+        else:
+            table.hideColumn(3)
+            table.hideColumn(4)
 
         table.clearContents()
 
         for r in reversed(range(table.rowCount())):
             table.removeRow(r)
-        pages = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].pages
-        page_size = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].page_size
-        rd_lock = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].rd_lock
-        wr_lock = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()].wr_lock
+        pages = self.current_controller_flash()[self.get_curr_region()].pages
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        rd_lock = self.current_controller_flash()[self.get_curr_region()].rd_lock
+        wr_lock = self.current_controller_flash()[self.get_curr_region()].wr_lock
+        start_address = self.current_controller_flash()[self.get_curr_start_page()] if self.get_curr_start_page() in self.current_controller_flash() else 0
         for r in range(0, pages):
+            current_page = r + start_address
             table.insertRow(r)
-            table.setItem(r, 0, QTableWidgetItem("Страница %d" % r))
-            table.setItem(r, 1, QTableWidgetItem("0x%x" % (r * page_size)))
+            table.setItem(r, 0, QTableWidgetItem("Страница %d" % current_page))
+            table.setItem(r, 1, QTableWidgetItem("0x%x" % (current_page * page_size)))
             if page_size < 1024:
                 page_size_str = "0x%x (%d)" % (page_size, page_size)
             else:
                 page_size_str = "0x%x (%dK)" % (page_size, page_size // 1024)
             table.setItem(r, 2, QTableWidgetItem("%s" % page_size_str))
-            if rd_lock[r]:
-                rd_cell = QTableWidgetItem(self.icon_lock, "")
-                rd_cell.setToolTip("Заблокировано")
-            else:
-                rd_cell = QTableWidgetItem(self.icon_unlock, "")
-                rd_cell.setToolTip("Разблокировано")
-            table.setItem(r, 3, rd_cell)
-            if wr_lock[r]:
-                wr_cell = QTableWidgetItem(self.icon_lock, "")
-                wr_cell.setToolTip("Заблокировано")
-            else:
-                wr_cell = QTableWidgetItem(self.icon_unlock, "")
-                wr_cell.setToolTip("Разблокировано")
-            table.setItem(r, 4, wr_cell)
+            if lockable:
+                if rd_lock[r]:
+                    rd_cell = QTableWidgetItem(self.icon_lock, "")
+                    rd_cell.setToolTip("Заблокировано")
+                else:
+                    rd_cell = QTableWidgetItem(self.icon_unlock, "")
+                    rd_cell.setToolTip("Разблокировано")
+                table.setItem(r, 3, rd_cell)
+                if wr_lock[r]:
+                    wr_cell = QTableWidgetItem(self.icon_lock, "")
+                    wr_cell.setToolTip("Заблокировано")
+                else:
+                    wr_cell = QTableWidgetItem(self.icon_unlock, "")
+                    wr_cell.setToolTip("Разблокировано")
+                table.setItem(r, 4, wr_cell)
 
     def upd_twrite_jumpaddr(self):
         self.ui.twrite_ledit_jumpaddr.setEnabled(False)
@@ -499,17 +532,20 @@ class MyMainWindow(QMainWindow):
             self.ui.twrite_ledit_jumpaddr.setText('0x00000000')
         elif self.mcu.name == 'k1921vk028':
             self.ui.twrite_ledit_jumpaddr.setText('0x10000000')
+        if self.mcu.name == 'k1921vg015':
+            self.ui.twrite_ledit_jumpaddr.setText('0x80004000')
         elif self.mcu.name == 'k1921vk01t':
             self.ui.twrite_ledit_jumpaddr.setText('0x00002000')
         elif self.mcu.name == 'k1921vkx':
             self.ui.twrite_ledit_jumpaddr.setText('0x00000000')
 
+    def update_address_fields(self):
+        for address_field in self.address_fields:
+            address_field.setText('0x%08X' % (0 if self.get_curr_region() == 'region_nvr' else self.current_controller_flash()['bootflash_end_address']))
+            address_field.editingFinished.emit()
+
     def upd_twrite_addr(self):
-        if self.mcu.name == 'k1921vk01t':
-            self.ui.twrite_ledit_addr.setText('0x00002000')
-        else:
-            self.ui.twrite_ledit_addr.setText('0x00000000')
-        self.ui.twrite_ledit_addr.editingFinished.emit()
+        self.update_address_fields()
 
     def upd_tconfig_widget_cfg(self):
         self.ui.tconfig_rbtn_read.setChecked(True)
@@ -524,6 +560,8 @@ class MyMainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui = Ui_Config035()
         elif self.mcu.name == 'k1921vk028':
             self.ui.tconfig_widget_cfg.ui = Ui_Config028()
+        elif self.mcu.name == 'k1921vg015':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config015()            
         elif self.mcu.name == 'k1921vk01t':
             self.ui.tconfig_widget_cfg.ui = Ui_Config01T()
         elif self.mcu.name == 'k1921vkx':
@@ -541,6 +579,8 @@ class MyMainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui.ledit_wrc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
             self.ui.tconfig_widget_cfg.ui.ledit_rdc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
             self.ui.tconfig_widget_cfg.ui.ledit_tac.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        if self.mcu.name == 'k1921vg015':
+            self.exec_tab_config_015(self.mcu.cfgword)            
         elif self.mcu.name == 'k1921vk01t':
             self.exec_tab_config_01t(self.mcu.cfgword)
         elif self.mcu.name == 'k1921vkx':
@@ -568,7 +608,7 @@ class MyMainWindow(QMainWindow):
 
     def exec_tab_write(self):
         self.log_info('Подготовка к выполнению команды записи. Чтение опций ...')
-        self.log_info('Флеш - %s' % self.mcu.flash[self.get_curr_flash()]["name"].upper())
+        self.log_info('Флеш - %s' % self.current_controller_flash()["name"].upper())
         self.log_info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
         filepath = self.ui.twrite_ledit_filepath.text()
         filevalid = self.is_valid_path(self.ui.twrite_ledit_filepath)
@@ -602,7 +642,7 @@ class MyMainWindow(QMainWindow):
         else:
             return self.log_err('Не выполнено - режим стирания не определён')
 
-        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
+        curr_flash = self.current_controller_flash()[self.get_curr_region()]
         if verif:
             for p in range(firstpage, lastpage + 1):
                 if curr_flash.rd_lock[p]:
@@ -630,13 +670,13 @@ class MyMainWindow(QMainWindow):
 
     def exec_tab_erase(self):
         self.log_info('Подготовка к выполнению команды стирания. Чтение опций ...')
-        self.log_info('Флеш - %s' % self.mcu.flash[self.get_curr_flash()]["name"].upper())
+        self.log_info('Флеш - %s' % self.current_controller_flash()["name"].upper())
         self.log_info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
 
         erall = True if self.ui.terase_rbtn_erall.isChecked() else False
         erpages = True if self.ui.terase_rbtn_erpages.isChecked() else False
 
-        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
+        curr_flash = self.current_controller_flash()[self.get_curr_region()]
         if erall:
             firstpage = 0
             lastpage = curr_flash.pages - 1
@@ -667,7 +707,7 @@ class MyMainWindow(QMainWindow):
 
     def exec_tab_read(self):
         self.log_info('Подготовка к выполнению команды чтения. Чтение опций ...')
-        self.log_info('Флеш - %s' % self.mcu.flash[self.get_curr_flash()]["name"].upper())
+        self.log_info('Флеш - %s' % self.current_controller_flash()["name"].upper())
         self.log_info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
         filepath = self.ui.tread_ledit_filepath.text()
         try:
@@ -685,7 +725,7 @@ class MyMainWindow(QMainWindow):
 
         self.log_info('Считываемые страницы - %d ... %d' % (firstpage, lastpage))
 
-        curr_flash = self.mcu.flash[self.get_curr_flash()][self.get_curr_region()]
+        curr_flash = self.current_controller_flash()[self.get_curr_region()]
         for p in range(firstpage, lastpage + 1):
             if curr_flash.rd_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
@@ -705,6 +745,8 @@ class MyMainWindow(QMainWindow):
                 self.exec_tab_config_035(cfgword)
             elif self.mcu.name == 'k1921vk028':
                 self.exec_tab_config_028(cfgword)
+            if self.mcu.name == 'k1921vg015':
+                self.exec_tab_config_015(cfgword)                
             elif self.mcu.name == 'k1921vk01t':
                 self.exec_tab_config_01t(cfgword)
         else:
@@ -712,6 +754,8 @@ class MyMainWindow(QMainWindow):
                 cfgword = self.exec_tab_config_035()
             elif self.mcu.name == 'k1921vk028':
                 cfgword = self.exec_tab_config_028()
+            if self.mcu.name == 'k1921vg015':
+                cfgword = self.exec_tab_config_015()                
             elif self.mcu.name == 'k1921vk01t':
                 cfgword = self.exec_tab_config_01t()
             self.exec_prot_wrapper(str_ok='Команда записи CFGWORD выполнена!',
@@ -719,6 +763,19 @@ class MyMainWindow(QMainWindow):
                                    cmdf=lambda: self.prot.set_cfgword(cfgword=cfgword))
             self.mcu.apply_cfgword(cfgword)
             self.upd_flash_selected()
+
+    def exec_tab_config_015(self, cfgword=None):
+        widget015 = self.ui.tconfig_widget_cfg
+        if cfgword:
+            widget015.ui.chbox_flashwe.setChecked(cfgword['flashwe'])
+            widget015.ui.chbox_nvrwe.setChecked(cfgword['nvrwe'])
+            widget015.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
+        else:
+            cfgword = {}
+            cfgword['flashwe'] = widget015.ui.chbox_flashwe.isChecked()
+            cfgword['nvrwe'] = widget015.ui.chbox_nvrwe.isChecked()
+            cfgword['jtagen'] = widget015.ui.chbox_jtagen.isChecked()
+            return cfgword
 
     def exec_tab_config_035(self, cfgword=None):
         widget035 = self.ui.tconfig_widget_cfg
@@ -863,7 +920,7 @@ class ArgParser:
         Полное стирание
         python3 k1921vkx_flasher.py -cE -p /dev/ttyUSB0 -b 115200 -f mflash -n main
 
-НИИЭТ, 2019""" % (VERSION))
+НИИЭТ, 2025""" % (VERSION))
 
     def do(self, app, win):
         conf = {

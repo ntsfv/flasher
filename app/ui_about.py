@@ -60,8 +60,8 @@ class Ui_AboutDialog(object):
         _translate = QtCore.QCoreApplication.translate
         AboutDialog.setWindowTitle(_translate("AboutDialog", "About"))
         self.lab_version.setText(_translate("AboutDialog", "<html><head/><body><p><span style=\" font-size:16pt; font-weight:600;\">K1921VKx Flasher vx.x</span></p><p><img src=\":/icons/flasher.png\"/></p></body></html>"))
-        self.lab_version_2.setText(_translate("AboutDialog", "<html><head/><body><p align=\"center\">Утилита взаимодействия с UART загрузчиками </p><p align=\"center\">микроконтроллеров серии К1921ВКх</p></body></html>"))
-        self.label_3.setText(_translate("AboutDialog", "АО \"НИИЭТ\", 2019"))
+        self.lab_version_2.setText(_translate("AboutDialog", "<html><head/><body><p align=\"center\">Утилита взаимодействия с UART загрузчиками </p><p align=\"center\">микроконтроллеров серии К1921ВКх, К1921ВГх</p></body></html>"))
+        self.label_3.setText(_translate("AboutDialog", "АО \"НИИЭТ\", 2025"))
 
 import ui_rc
 

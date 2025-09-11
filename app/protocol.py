@@ -264,7 +264,7 @@ class RxPacket(Packet):
         return info
 
     def receive(self):
-        # device signature detection
+        # device si`gnature detection
         rx_sign = 0
         while (rx_sign != self.device_sign):
             temp = self.serport.read_int()
@@ -421,9 +421,9 @@ class CmdInterface:
         packet = TxPacket(self.mcu, self.serport, self.win)
         packet.cmd_code = CmdCode["ERASE_FULL"]
         packet.data8_n = 4
-        packet.data += [(0 >> 0) & 0xFF]
-        packet.data += [(0 >> 8) & 0xFF]
-        packet.data += [(0 >> 16) & 0xFF]
+        packet.data += [(self.mcu.flash[0]['bootflash_end_address'] >> 0) & 0xFF]
+        packet.data += [(self.mcu.flash[0]['bootflash_end_address'] >> 8) & 0xFF]
+        packet.data += [(self.mcu.flash[0]['bootflash_end_address'] >> 16) & 0xFF]
         nvr = 1 if 'nvr' in region else 0
         packet.data += [((nvr << 7) | (flash << 5)) & 0xFF]
         self.log_dbg(LogId["HOST"] + "ERASE_FULL - NVR=[%01d] FLASH=[%01d]" % (nvr, flash))

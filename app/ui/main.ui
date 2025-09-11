@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>760</height>
+    <width>600</width>
+    <height>776</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -99,7 +102,7 @@
             <widget class="QComboBox" name="combo_baud">
              <property name="maximumSize">
               <size>
-               <width>80</width>
+               <width>100</width>
                <height>23</height>
               </size>
              </property>
@@ -327,16 +330,17 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>320</height>
+        <height>375</height>
        </size>
       </property>
       <property name="font">
        <font>
+        <family>DejaVu Sans</family>
         <pointsize>10</pointsize>
        </font>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_info">
        <property name="enabled">
@@ -379,13 +383,13 @@
              <widget class="QLineEdit" name="tinfo_ledit_chipid">
               <property name="minimumSize">
                <size>
-                <width>90</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>90</width>
+                <width>100</width>
                 <height>23</height>
                </size>
               </property>
@@ -414,13 +418,13 @@
              <widget class="QLineEdit" name="tinfo_ledit_cpuid">
               <property name="minimumSize">
                <size>
-                <width>90</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>90</width>
+                <width>100</width>
                 <height>23</height>
                </size>
               </property>
@@ -449,13 +453,13 @@
              <widget class="QLineEdit" name="tinfo_ledit_bootver">
               <property name="minimumSize">
                <size>
-                <width>90</width>
+                <width>100</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>90</width>
+                <width>100</width>
                 <height>23</height>
                </size>
               </property>
@@ -484,7 +488,7 @@
              </size>
             </property>
             <property name="text">
-             <string notr="true">К1921ВКххх</string>
+             <string notr="true">К1921Вxххх</string>
             </property>
            </widget>
           </item>
@@ -514,7 +518,7 @@
            <bool>false</bool>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
@@ -656,14 +660,14 @@
                 <widget class="QLineEdit" name="twrite_ledit_addr">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
-                   <height>23</height>
+                   <width>100</width>
+                   <height>30</height>
                   </size>
                  </property>
                  <property name="text">
@@ -688,13 +692,13 @@
                 <widget class="QLineEdit" name="twrite_ledit_page">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>23</height>
                   </size>
                  </property>
@@ -727,13 +731,13 @@
                 <widget class="QLineEdit" name="twrite_ledit_size">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>23</height>
                   </size>
                  </property>
@@ -759,13 +763,13 @@
                 <widget class="QLineEdit" name="twrite_ledit_pages">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>23</height>
                   </size>
                  </property>
@@ -789,7 +793,7 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>40</height>
+            <height>43</height>
            </size>
           </property>
           <property name="frameShape">
@@ -894,13 +898,13 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>23</height>
                 </size>
                </property>
@@ -951,7 +955,7 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>40</height>
+            <height>43</height>
            </size>
           </property>
           <property name="frameShape">
@@ -1024,13 +1028,13 @@
               <widget class="QLineEdit" name="terase_ledit_addr">
                <property name="minimumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>23</height>
                 </size>
                </property>
@@ -1056,13 +1060,13 @@
               <widget class="QLineEdit" name="terase_ledit_page">
                <property name="minimumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>23</height>
                 </size>
                </property>
@@ -1095,13 +1099,13 @@
               <widget class="QLineEdit" name="terase_ledit_size">
                <property name="minimumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>23</height>
                 </size>
                </property>
@@ -1127,13 +1131,13 @@
               <widget class="QLineEdit" name="terase_ledit_pages">
                <property name="minimumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>90</width>
+                 <width>100</width>
                  <height>23</height>
                 </size>
                </property>
@@ -1258,13 +1262,13 @@
                 <widget class="QLineEdit" name="tread_ledit_addr">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>23</height>
                   </size>
                  </property>
@@ -1290,13 +1294,13 @@
                 <widget class="QLineEdit" name="tread_ledit_page">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>23</height>
                   </size>
                  </property>
@@ -1329,13 +1333,13 @@
                 <widget class="QLineEdit" name="tread_ledit_size">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>23</height>
                   </size>
                  </property>
@@ -1361,13 +1365,13 @@
                 <widget class="QLineEdit" name="tread_ledit_pages">
                  <property name="minimumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>0</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>90</width>
+                   <width>100</width>
                    <height>23</height>
                   </size>
                  </property>
@@ -1509,6 +1513,7 @@
       <property name="font">
        <font>
         <family>Fixed</family>
+        <pointsize>10</pointsize>
        </font>
       </property>
       <property name="readOnly">
@@ -1530,8 +1535,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>500</width>
-     <height>25</height>
+     <width>600</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -1713,8 +1718,8 @@
    <slot>handle_btn_filesave_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>472</x>
-     <y>261</y>
+     <x>470</x>
+     <y>269</y>
     </hint>
     <hint type="destinationlabel">
      <x>493</x>
@@ -1729,8 +1734,8 @@
    <slot>handle_btn_updport_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>36</x>
-     <y>75</y>
+     <x>37</x>
+     <y>99</y>
     </hint>
     <hint type="destinationlabel">
      <x>4</x>
@@ -1793,8 +1798,8 @@
    <slot>handle_terase_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>352</x>
-     <y>234</y>
+     <x>471</x>
+     <y>233</y>
     </hint>
     <hint type="destinationlabel">
      <x>494</x>
@@ -1825,8 +1830,8 @@
    <slot>handle_tconfig_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>102</x>
-     <y>346</y>
+     <x>128</x>
+     <y>340</y>
     </hint>
     <hint type="destinationlabel">
      <x>1</x>
@@ -1841,8 +1846,8 @@
    <slot>handle_tconfig_mode_select_toggled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>352</x>
-     <y>346</y>
+     <x>470</x>
+     <y>340</y>
     </hint>
     <hint type="destinationlabel">
      <x>495</x>
@@ -2039,6 +2044,54 @@
     <hint type="destinationlabel">
      <x>1</x>
      <y>486</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tread_ledit_page</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_addr_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>177</x>
+     <y>301</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>387</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twrite_ledit_page</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_addr_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>177</x>
+     <y>303</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>387</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>terase_ledit_page</sender>
+   <signal>editingFinished()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_addr_edited()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>176</x>
+     <y>293</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>387</y>
     </hint>
    </hints>
   </connection>

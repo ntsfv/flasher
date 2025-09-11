@@ -14,23 +14,91 @@ class Flash:
         self.rd_lock = [False] * pages
 
 
-class K1921VKx:
+class MCU:
     def __init__(self):
-        self.chipid = '0xFFFFFFFF'
         self.cpuid = '0xFFFFFFFF'
+        self.bootver = '0.0'
+
+
+class K1921VKx(MCU):
+    def __init__(self):
+        super().__init__()
+        self.chipid = '0xFFFFFFF'
         self.name = 'k1921vkx'
         self.name_ru = 'К1921ВКххх'
-        self.bootver = '0.0'
         self.flash = [{'name': 'flash0',
                        'region_main': Flash(size=(64 * K), pages=64),
-                       'region_nvr': Flash(size=(4 * K), pages=4)},
+                       'region_nvr': Flash(size=(4 * K), pages=4),
+                       'bootflash_end_address': 0x0,
+                       'lockable': True },
                       {'name': 'flash1',
                        'region_main': Flash(size=(32 * K), pages=16),
-                       'region_nvr': Flash(size=(8 * K), pages=4)}]
+                       'region_nvr': Flash(size=(8 * K), pages=4),
+                       'bootflash_end_address': 0x0,
+                       'lockable': True}]
         self.booten_active = False
 
 
-class K1921VK035:
+class K1921VG015(MCU):
+    CFGWORD_FLASHWE_POS = 0
+    CFGWORD_NVRWE_POS = 1
+    CFGWORD_JTAGEN_POS = 2
+    CFGWORD_FLASHWE_MSK = 1 << CFGWORD_FLASHWE_POS
+    CFGWORD_NVRWE_MSK = 1 << CFGWORD_NVRWE_POS
+    CFGWORD_JTAGEN_MSK = 1 << CFGWORD_JTAGEN_POS
+
+    def __init__(self):
+        super().__init__()
+        self.chipid = '0xDEADBEE0'
+        self.name = 'k1921vg015'
+        self.name_ru = 'К1921ВГ015'
+        self.flash = [{'name': 'flash',
+                       'region_main': Flash(size=(1024 * K), pages=256),
+                       'region_nvr': Flash(size=(8 * K), pages=2),
+                       'bootflash_end_address': 0x2000,
+                       'start_page_main': 2,
+                       'start_page_nvr': 0,
+                       'lockable': False }]
+        self.cfgword = {}
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+        self.booten_active = True
+
+    def parse_cfgword(self, data):
+        cfgword = {}
+        cfgword['jtagen'] = (data[0] & self.CFGWORD_JTAGEN_MSK) >> self.CFGWORD_JTAGEN_POS
+        cfgword['nvrwe'] = (data[0] & self.CFGWORD_NVRWE_MSK) >> self.CFGWORD_NVRWE_POS
+        cfgword['flashwe'] = (data[0] & self.CFGWORD_FLASHWE_MSK) >> self.CFGWORD_FLASHWE_POS
+        cfgword['res_str'] = ("JTAGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d]" %
+                              (cfgword['jtagen'], cfgword['nvrwe'], cfgword['flashwe']))
+                              # (cfgword['jtagen'], cfgword['nvrwe'], cfgword['flashwe'], cfgword['bmodedis']))
+        return cfgword
+
+    def pack_cfgword(self, cfgword):
+        data = [0xFF] * 4
+        data[0] &= 1
+        data[0] &= 1
+        data[0] &= ~(0 if cfgword['jtagen'] else self.CFGWORD_JTAGEN_MSK)
+        data[0] &= 1
+        data[0] &= ~(0 if cfgword['nvrwe'] else self.CFGWORD_NVRWE_MSK)
+        data[0] &= ~(0 if cfgword['flashwe'] else self.CFGWORD_FLASHWE_MSK)
+        data[0] &= 1
+        res_str = ("FLASHRE=[%01d] NVRRE=[%01d] JTAGEN=[%01d] DEBUGEN=[%01d] NVRWE=[%01d] FLASHWE=[%01d] BMODEDIS=[%01d]" %
+                   (cfgword['flashre'], cfgword['nvrre'], cfgword['jtagen'], cfgword['debugen'], cfgword['nvrwe'], cfgword['flashwe'], cfgword['bmodedis']))
+        return (data, res_str)
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['flashwe'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['nvrwe'] else True
+        # bootloader pages
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+
+
+class K1921VK035(MCU):
     CFGWORD_FLASHRE_POS = 7
     CFGWORD_NVRRE_POS = 6
     CFGWORD_BMODEDIS_POS = 4
@@ -47,14 +115,15 @@ class K1921VK035:
     CFGWORD_JTAGEN_MSK = 1 << CFGWORD_JTAGEN_POS
 
     def __init__(self):
+        super().__init__()
         self.chipid = '0x5A298FE1'
         self.name = 'k1921vk035'
         self.name_ru = 'К1921ВК035'
-        self.cpuid = '0xFFFFFFFF'
-        self.bootver = '0.0'
         self.flash = [{'name': 'mflash',
                        'region_main': Flash(size=(64 * K), pages=64),
-                       'region_nvr': Flash(size=(4 * K), pages=4)}]
+                       'region_nvr': Flash(size=(4 * K), pages=4),
+                       'bootflash_end_address': 0x0,
+                       'lockable': True }]
         self.cfgword = {}
         self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
         self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
@@ -101,7 +170,7 @@ class K1921VK035:
         self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
 
 
-class K1921VK028:
+class K1921VK028(MCU):
     CFGWORD0_RDC_POS = 0
     CFGWORD0_WRC_POS = 4
     CFGWORD0_MASK_POS = 8
@@ -136,17 +205,20 @@ class K1921VK028:
     CFGWORD1_BNVRRE_MSK = 1 << CFGWORD1_BNVRRE_POS
 
     def __init__(self):
+        super().__init__()
         self.chipid = '0x3ABF2FD1'
         self.name = 'k1921vk028'
         self.name_ru = 'К1921ВК028'
-        self.cpuid = '0xFFFFFFFF'
-        self.bootver = '0.0'
         self.flash = [{'name': 'mflash',
                        'region_main': Flash(size=(2 * M), pages=128),
-                       'region_nvr': Flash(size=(64 * K), pages=4)},
+                       'region_nvr': Flash(size=(64 * K), pages=4),
+                       'bootflash_end_address': 0x0,
+                       'lockable': True },
                       {'name': 'bflash',
                        'region_main': Flash(size=(512 * K), pages=128),
-                       'region_nvr': Flash(size=(16 * K), pages=4)}]
+                       'region_nvr': Flash(size=(16 * K), pages=4),
+                       'bootflash_end_address': 0x0,
+                       'lockable': True }]
         self.cfgword = {}
         self.flash[1]['region_main'].wr_lock[0] = True
         self.flash[1]['region_main'].rd_lock[0] = True
@@ -239,7 +311,7 @@ class K1921VK028:
         self.flash[1]['region_main'].rd_lock[1] = True
 
 
-class K1921VK01T:
+class K1921VK01T(MCU):
     CFGWORD_UFIFBRE_POS = 26
     CFGWORD_UFRE_POS = 25
     CFGWORD_LOCKIFBUF_POS = 24
@@ -264,17 +336,20 @@ class K1921VK01T:
     CFGWORD_BOOTFROMIFB_MSK = (1 << CFGWORD_BOOTFROMIFB_POS)
 
     def __init__(self):
+        super().__init__()
         self.chipid = '0x00000000'
         self.name = 'k1921vk01t'
         self.name_ru = 'К1921ВК01Т'
-        self.cpuid = '0xFFFFFFFF'
-        self.bootver = '0.0'
         self.flash = [{'name': 'bootflash',
                        'region_main': Flash(size=(1 * M), pages=128),
-                       'region_nvr': Flash(size=(8 * K), pages=1)},
+                       'region_nvr': Flash(size=(8 * K), pages=1),
+                       'bootflash_end_address': 0x0,
+                       'lockable': True },
                       {'name': 'userflash',
                        'region_main': Flash(size=(64 * K), pages=256),
-                       'region_nvr': Flash(size=512, pages=2)}]
+                       'region_nvr': Flash(size=512, pages=2),
+                       'bootflash_end_address': 0x0,
+                       'lockable': True }]
         self.cfgword = {}
         self.flash[0]['region_nvr'].wr_lock[0] = True
         self.flash[0]['region_nvr'].rd_lock[0] = True
@@ -365,7 +440,7 @@ class K1921VK01T:
         self.flash[0]['region_main'].rd_lock[0] = True
 
 
-db = [K1921VKx(), K1921VK035(), K1921VK028(), K1921VK01T()]
+db = [K1921VKx(), K1921VG015(), K1921VK035(), K1921VK028(), K1921VK01T()]
 
 
 def get_by_chipid(chipid):
