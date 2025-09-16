@@ -665,7 +665,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.combo_baud.setCurrentIndex(4)
-        self.tabs_cmd.setCurrentIndex(4)
+        self.tabs_cmd.setCurrentIndex(1)
         self.act_exit.triggered.connect(MainWindow.close) # type: ignore
         self.act_about.triggered.connect(MainWindow.handle_act_about_triggered) # type: ignore
         self.btn_connect.clicked.connect(MainWindow.handle_btn_connect_clicked) # type: ignore
