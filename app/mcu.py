@@ -26,6 +26,7 @@ class K1921VKx(MCU):
         self.chipid = '0xFFFFFFF'
         self.name = 'k1921vkx'
         self.name_ru = 'К1921ВКххх'
+        self.flash_base_address = 0x0
         self.flash = [{'name': 'flash0',
                        'region_main': Flash(size=(64 * K), pages=64),
                        'region_nvr': Flash(size=(4 * K), pages=4),
@@ -52,10 +53,12 @@ class K1921VG015(MCU):
         self.chipid = '0xDEADBEE0'
         self.name = 'k1921vg015'
         self.name_ru = 'К1921ВГ015'
+        self.flash_base_address = 0x80000000
         self.flash = [{'name': 'flash',
                        'region_main': Flash(size=(1024 * K), pages=256),
                        'region_nvr': Flash(size=(8 * K), pages=2),
                        'bootflash_end_address': 0x2000,
+                       'base_address': 0x80000000,
                        'start_page_main': 2,
                        'start_page_nvr': 0,
                        'lockable': False }]
@@ -119,10 +122,12 @@ class K1921VK035(MCU):
         self.chipid = '0x5A298FE1'
         self.name = 'k1921vk035'
         self.name_ru = 'К1921ВК035'
+        self.flash_base_address = 0x0
         self.flash = [{'name': 'mflash',
                        'region_main': Flash(size=(64 * K), pages=64),
                        'region_nvr': Flash(size=(4 * K), pages=4),
                        'bootflash_end_address': 0x0,
+                       'base_address': 0x0,
                        'lockable': True }]
         self.cfgword = {}
         self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
@@ -209,6 +214,7 @@ class K1921VK028(MCU):
         self.chipid = '0x3ABF2FD1'
         self.name = 'k1921vk028'
         self.name_ru = 'К1921ВК028'
+        self.flash_base_address = 0x10000000
         self.flash = [{'name': 'mflash',
                        'region_main': Flash(size=(2 * M), pages=128),
                        'region_nvr': Flash(size=(64 * K), pages=4),
@@ -340,6 +346,7 @@ class K1921VK01T(MCU):
         self.chipid = '0x00000000'
         self.name = 'k1921vk01t'
         self.name_ru = 'К1921ВК01Т'
+        self.flash_base_address = 0x00002000
         self.flash = [{'name': 'bootflash',
                        'region_main': Flash(size=(1 * M), pages=128),
                        'region_nvr': Flash(size=(8 * K), pages=1),

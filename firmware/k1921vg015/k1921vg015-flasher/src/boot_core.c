@@ -48,16 +48,16 @@ static  void flash_erase_full_ramfunc(void);
 static  void save_and_erase_all_ramfunc(void);
 
 int wait_uart_rx(uint32_t value){
-    uint32_t timeout_start;
-    TIMEOUT_TMR->CTRL_bit.MODE = 0;
-    TIMEOUT_TMR->CTRL_bit.CLR = 1;
-    timeout_start = TIMEOUT_TMR->COUNT;
-    TIMEOUT_TMR->CTRL_bit.MODE = 2;
+//    uint32_t timeout_start;
+//    TIMEOUT_TMR->CTRL_bit.MODE = 0;
+//    TIMEOUT_TMR->CTRL_bit.CLR = 1;
+//    timeout_start = TIMEOUT_TMR->COUNT;
+//    TIMEOUT_TMR->CTRL_bit.MODE = 2;
 
     while (UART_PORT->MASKLB[1 << UART_PIN_RX_POS].MASKLB != value ) {
-        if((uint32_t)(TIMEOUT_TMR->COUNT - timeout_start) > (uint32_t)(SYSCLK / 1000 * UART_TIMEOUT_MS)) {
-            return -1;
-        }
+//        if((uint32_t)(TIMEOUT_TMR->COUNT - timeout_start) > (uint32_t)(SYSCLK / 1000 * UART_TIMEOUT_MS)) {
+//            return -1;
+//        }
     }
     return 0;
 }

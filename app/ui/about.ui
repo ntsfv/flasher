@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
-    <height>285</height>
+    <width>387</width>
+    <height>298</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,16 +19,10 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>350</width>
-    <height>285</height>
-   </size>
-  </property>
   <property name="maximumSize">
    <size>
-    <width>350</width>
-    <height>285</height>
+    <width>387</width>
+    <height>298</height>
    </size>
   </property>
   <property name="font">
@@ -43,6 +37,9 @@
   <property name="windowIcon">
    <iconset resource="ui.qrc">
     <normaloff>:/icons/flasher.png</normaloff>:/icons/flasher.png</iconset>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
   </property>
   <property name="modal">
    <bool>false</bool>
@@ -64,7 +61,7 @@
    <item>
     <widget class="QLabel" name="lab_version_2">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Утилита взаимодействия с UART загрузчиками &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;микроконтроллеров серии К1921ВКх&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Утилита взаимодействия с UART загрузчиками &lt;/p&gt;&lt;p align=&quot;center&quot;&gt;микроконтроллеров серии К1921ВКх, К1921ВГx&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -77,7 +74,7 @@
    <item>
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>АО &quot;НИИЭТ&quot;, 2019</string>
+      <string>АО &quot;НИИЭТ&quot;, 2025</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

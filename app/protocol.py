@@ -264,7 +264,7 @@ class RxPacket(Packet):
         return info
 
     def receive(self):
-        # device si`gnature detection
+        # device signature detection
         rx_sign = 0
         while (rx_sign != self.device_sign):
             temp = self.serport.read_int()

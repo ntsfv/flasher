@@ -94,15 +94,15 @@ void TimersInit(void){
 
     //tbd015
 
-    RCU->CGCFGAPB |= UART_TMR_EN_Msk | TIMEOUT_TMR_EN_Msk;
-    RCU->RSTDISAPB |= UART_TMR_EN_Msk | TIMEOUT_TMR_EN_Msk;
+    RCU->CGCFGAPB |= UART_TMR_EN_Msk; // | TIMEOUT_TMR_EN_Msk;
+    RCU->RSTDISAPB |= UART_TMR_EN_Msk; // | TIMEOUT_TMR_EN_Msk;
     UART_TMR->CTRL_bit.MODE = 0;
     UART_TMR->CTRL_bit.DIV = 0; //turn off divider
     UART_TMR->CTRL_bit.CLR = 1;
 
-    TIMEOUT_TMR->CTRL_bit.MODE = 0;
-    TIMEOUT_TMR->CTRL_bit.DIV = 0; //turn off divider
-    TIMEOUT_TMR->CTRL_bit.CLR = 1;
+//    TIMEOUT_TMR->CTRL_bit.MODE = 0;
+//    TIMEOUT_TMR->CTRL_bit.DIV = 0; //turn off divider
+//    TIMEOUT_TMR->CTRL_bit.CLR = 1;
 }
 
 void PeriphInit(void){

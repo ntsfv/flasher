@@ -89,7 +89,7 @@
 #define UART_RX_IRQn        IsrVect_IRQ_UART0
 
 #ifndef UART_TIMEOUT_MS
-	#define UART_TIMEOUT_MS        2000
+	#define UART_TIMEOUT_MS        100
 #endif
 
 /**

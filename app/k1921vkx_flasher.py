@@ -16,7 +16,6 @@ import serport
 import mcu
 import protocol
 import traceback
-import threading
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem, QMessageBox,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox, QCheckBox)
@@ -528,16 +527,7 @@ class MyMainWindow(QMainWindow):
 
     def upd_twrite_jumpaddr(self):
         self.ui.twrite_ledit_jumpaddr.setEnabled(False)
-        if self.mcu.name == 'k1921vk035':
-            self.ui.twrite_ledit_jumpaddr.setText('0x00000000')
-        elif self.mcu.name == 'k1921vk028':
-            self.ui.twrite_ledit_jumpaddr.setText('0x10000000')
-        if self.mcu.name == 'k1921vg015':
-            self.ui.twrite_ledit_jumpaddr.setText('0x80004000')
-        elif self.mcu.name == 'k1921vk01t':
-            self.ui.twrite_ledit_jumpaddr.setText('0x00002000')
-        elif self.mcu.name == 'k1921vkx':
-            self.ui.twrite_ledit_jumpaddr.setText('0x00000000')
+        self.ui.twrite_ledit_jumpaddr.setText('0x%08X' % (self.mcu.flash_base_address + self.current_controller_flash()['bootflash_end_address']))
 
     def update_address_fields(self):
         for address_field in self.address_fields:
