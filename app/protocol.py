@@ -23,6 +23,8 @@ CmdCode = {
     "GET_CFGWORD": 0x3A,
     # Set commands
     "SET_CFGWORD": 0x65,
+    # Jump commands
+    "JUMP": 0x75,
     # Write commands
     "WRITE_PAGE": 0x9A,
     # Read commands
@@ -324,20 +326,24 @@ class CmdInterface:
         else:
             print("ERR: %s" % msg)
 
-    def reset_chip(self):
+    def reset_chip(self, is_riscv: bool):
         self.log_info(LogId["PROG"] + "Сброс микроконтроллера ...")
         time.sleep(0.1)
+        if is_riscv:
+            self.serport.rts = True
         self.serport.dtr = True
         time.sleep(0.3)
+        if is_riscv:
+            self.serport.rts = False
         self.serport.dtr = False
         time.sleep(0.5)
 
-    def init_device(self):
+    def init_device(self, is_riscv: bool):
         self.log_info(LogId["PROG"] + "Подключение к устройству ...")
         # try RTS active 1
         self.log_info(LogId["PROG"] + "Активация загрузчика: 1-ый вариант ....")
         self.serport.rts = False
-        self.reset_chip()
+        self.reset_chip(is_riscv)
         self.serport.write_bytes([0x7F])
         ack = self.serport.read_int(2)
         self.log_dbg(LogId["DEVICE"] + "ack = 0x%04X" % ack)
@@ -348,7 +354,7 @@ class CmdInterface:
             self.log_info(LogId["PROG"] + "Активация загрузчика: 2-ой вариант ....")
             self.serport.reset_input_buffer()
             self.serport.rts = True
-            self.reset_chip()
+            self.reset_chip(is_riscv)
             self.serport.write_bytes([0x7F])
             ack = self.serport.read_int(2)
             self.log_dbg(LogId["DEVICE"] + "ack = 0x%04X" % ack)
@@ -361,10 +367,10 @@ class CmdInterface:
         if ((rx_info['cmd_code'] != CmdCode["NONE"]) or (rx_info['msg_code'] != MsgCode["READY"])):
             raise ProtException("Получено неизвестное сообщение, когда ожидался ответ о готовности", self.win)
 
-    def release_device(self):
+    def release_device(self, is_riscv: bool):
         self.log_info(LogId["PROG"] + "Отключение от устройства ...")
         self.serport.rts = not self.mcu.booten_active
-        self.reset_chip()
+        self.reset_chip(is_riscv)
 
     def cmd_get_info(self):
         self.log_info(LogId["PROG"] + "Чтение идентификаторов устройства ...")
@@ -447,6 +453,20 @@ class CmdInterface:
                      (nvr, flash, erase, addr, page))
         packet.transmit()
 
+    def cmd_jump(self, address):
+        self.log_info(LogId["PROG"] + "Переход по адресу исполнения 0x%08x" % address)
+        packet = TxPacket(self.mcu, self.serport, self.win)
+        packet.cmd_code = CmdCode["JUMP"]
+        packet.data8_n = 4
+        packet.data += [(address >> 0) & 0xFF]
+        packet.data += [(address >> 8) & 0xFF]
+        packet.data += [(address >> 16) & 0xFF]
+        packet.data += [(address >> 24) & 0xFF]
+        packet.transmit()
+
+        self.cmd_msg()
+        self.cmd_dummy()
+
     def cmd_read_page(self, page, flash, region):
         self.log_info(LogId["PROG"] + "Чтение страницы %d ..." % page)
         addr = page * self.mcu.flash[flash][region].page_size
@@ -471,6 +491,12 @@ class CmdInterface:
         self.log_dbg(LogId["HOST"] + "EXIT_BOOTLOADER")
         packet.transmit()
 
+    def cmd_dummy(self):
+        packet = TxPacket(self.mcu, self.serport, self.win)
+        packet.cmd_code = CmdCode["MSG"]
+        packet.data8_n = 0
+        packet.transmit()
+
     def cmd_msg(self):
         packet = RxPacket(self.mcu, self.serport, self.win)
         return packet.receive()
@@ -478,7 +504,7 @@ class CmdInterface:
 
 class Protocol:
     def __init__(self, serport, win=None):
-        self.mcu = mcu.get_by_name('k1921vkx')
+        self.mcu = mcu.get_by_name('k1921')
         self.serport = serport
         self.win = win
 
@@ -530,7 +556,7 @@ class Protocol:
             raise ProtException("Ошибка порта!", self.win)
         self.serport.reset_input_buffer()
         self.win.pbar_set(25)
-        cmd.init_device()
+        cmd.init_device(kwargs['is_riscv'])
         self.win.pbar_set(50)
         mcu_info = cmd.cmd_get_info()
         inited_mcu = mcu.get_by_chipid(mcu_info["chipid"])
@@ -553,8 +579,8 @@ class Protocol:
         self.log_dbg(kwargs)
         cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
         self.win.pbar_set(50)
-        cmd.release_device()
-        #self.serport.close_port()
+        cmd.release_device(kwargs['is_riscv'])
+        self.serport.close_port()
         self.log_info("Произведено отключение от устройства")
         self.win.pbar_set(100)
         return True
@@ -567,6 +593,8 @@ class Protocol:
         region = self.win.get_curr_region()
         flash = self.win.get_curr_flash()
         page_size = self.mcu.flash[flash][region].page_size
+        jump = kwargs['jump']
+        jumpaddr = kwargs['jumpaddr']
 
         raw_data = self.open_bin(kwargs['filepath'])
         self.log_info("Дополнение бинарного файла до размера целой страницы ...")
@@ -621,6 +649,11 @@ class Protocol:
                         if err_limit == 0:
                             self.log_err("Показаны первые 16 ошибок верификации, дальнейшие показываться не будут")
             self.log_info("Верификация завершилась, количество ошибок: %0d" % err)
+
+        if jump:
+            self.log_info('Переход к исполнению программы - адрес 0x%08X' % jumpaddr)
+            cmd.cmd_jump(jumpaddr)
+
         self.win.pbar_set(100)
 
     def erase(self, **kwargs):
@@ -690,3 +723,15 @@ class Protocol:
         self.win.pbar_set(50)
         cmd.cmd_set_cfgword(kwargs['cfgword'])
         self.win.pbar_set(100)
+
+    def jump(self, **kwargs):
+        self.serport.reset_input_buffer()
+        self.log_dbg("%s->%s()" % (os.path.basename(__file__), self.win.whoami()))
+        self.log_dbg(kwargs)
+        jumpaddr = kwargs['jumpaddr']
+        self.log_info('Переход к исполнению программы - адрес 0x%08X' % jumpaddr)
+        cmd = CmdInterface(mcu=self.mcu, serport=self.serport, win=self.win)
+        self.win.pbar_set(50)
+        cmd.cmd_jump(jumpaddr)
+        self.win.pbar_set(100)
+

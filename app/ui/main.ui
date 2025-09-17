@@ -31,14 +31,20 @@
     <pointsize>10</pointsize>
    </font>
   </property>
+  <property name="acceptDrops">
+   <bool>false</bool>
+  </property>
   <property name="windowTitle">
-   <string notr="true">K1921VKx Flasher</string>
+   <string notr="true">NIIET Flasher</string>
   </property>
   <property name="windowIcon">
    <iconset resource="ui.qrc">
     <normaloff>:/icons/flasher.png</normaloff>:/icons/flasher.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="acceptDrops">
+    <bool>false</bool>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout_12">
     <item>
      <layout class="QVBoxLayout" name="vbox_options">
@@ -72,8 +78,8 @@
              </property>
              <property name="maximumSize">
               <size>
-               <width>24</width>
-               <height>24</height>
+               <width>25</width>
+               <height>25</height>
               </size>
              </property>
              <property name="toolTip">
@@ -90,10 +96,16 @@
            </item>
            <item>
             <widget class="QComboBox" name="combo_port">
+             <property name="minimumSize">
+              <size>
+               <width>200</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>23</height>
+               <height>25</height>
               </size>
              </property>
             </widget>
@@ -103,7 +115,7 @@
              <property name="maximumSize">
               <size>
                <width>100</width>
-               <height>23</height>
+               <height>25</height>
               </size>
              </property>
              <property name="currentIndex">
@@ -151,6 +163,26 @@
              </item>
             </widget>
            </item>
+           <item>
+            <widget class="QComboBox" name="combo_arch">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>25</height>
+              </size>
+             </property>
+             <item>
+              <property name="text">
+               <string notr="true">RISC-V</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string notr="true">ARM</string>
+              </property>
+             </item>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -164,7 +196,7 @@
            <property name="maximumSize">
             <size>
              <width>150</width>
-             <height>23</height>
+             <height>25</height>
             </size>
            </property>
            <property name="text">
@@ -208,7 +240,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>21</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="layoutDirection">
@@ -230,7 +262,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>21</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -246,7 +278,7 @@
         <item>
          <widget class="QGroupBox" name="gbox_region">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="title">
            <string>Выбор области</string>
@@ -268,10 +300,16 @@
             <layout class="QHBoxLayout" name="hbox_region">
              <item>
               <widget class="QRadioButton" name="rbtn_regionmain">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>23</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>21</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="layoutDirection">
@@ -290,10 +328,16 @@
              </item>
              <item>
               <widget class="QRadioButton" name="rbtn_regionnvr">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>23</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>21</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -338,6 +382,9 @@
         <family>DejaVu Sans</family>
         <pointsize>10</pointsize>
        </font>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
       </property>
       <property name="currentIndex">
        <number>1</number>
@@ -390,7 +437,7 @@
               <property name="maximumSize">
                <size>
                 <width>100</width>
-                <height>23</height>
+                <height>25</height>
                </size>
               </property>
               <property name="text">
@@ -425,7 +472,7 @@
               <property name="maximumSize">
                <size>
                 <width>100</width>
-                <height>23</height>
+                <height>25</height>
                </size>
               </property>
               <property name="text">
@@ -460,7 +507,7 @@
               <property name="maximumSize">
                <size>
                 <width>100</width>
-                <height>23</height>
+                <height>25</height>
                </size>
               </property>
               <property name="text">
@@ -564,7 +611,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_write">
+      <widget class="FileWidget" name="tab_write">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -580,12 +627,18 @@
          <height>480</height>
         </size>
        </property>
+       <property name="acceptDrops">
+        <bool>true</bool>
+       </property>
        <attribute name="title">
         <string notr="true">Запись</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
          <widget class="QFrame" name="twrite_frm_file">
+          <property name="acceptDrops">
+           <bool>true</bool>
+          </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -604,14 +657,23 @@
             <layout class="QHBoxLayout" name="twrite_hbox_file">
              <item>
               <widget class="QLineEdit" name="twrite_ledit_filepath">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
+               </property>
+               <property name="acceptDrops">
+                <bool>false</bool>
                </property>
                <property name="toolTip">
                 <string>Файл для записи</string>
+               </property>
+               <property name="text">
+                <string/>
                </property>
                <property name="readOnly">
                 <bool>false</bool>
@@ -667,7 +729,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>30</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -699,7 +761,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>23</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -738,7 +800,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>23</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -770,7 +832,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>23</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -808,8 +870,11 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>23</height>
+               <height>25</height>
               </size>
+             </property>
+             <property name="acceptDrops">
+              <bool>true</bool>
              </property>
              <property name="text">
               <string notr="true">Не стирать</string>
@@ -821,7 +886,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>23</height>
+               <height>25</height>
               </size>
              </property>
              <property name="text">
@@ -834,7 +899,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>23</height>
+               <height>25</height>
               </size>
              </property>
              <property name="text">
@@ -862,7 +927,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>23</height>
+               <height>25</height>
               </size>
              </property>
              <property name="text">
@@ -874,45 +939,88 @@
             </widget>
            </item>
            <item>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="twrite_chbox_jump">
-               <property name="enabled">
-                <bool>false</bool>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <layout class="QFormLayout" name="formLayout">
+               <item row="2" column="1">
+                <widget class="QLineEdit" name="twrite_ledit_jumpaddr">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>100</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>100</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string notr="true">0x00000000</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QCheckBox" name="twrite_chbox_jump">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>Переход к исполнению по адресу после подключения</string>
+                 </property>
+                 <property name="text">
+                  <string notr="true">Переход к исполнению по адресу</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_jump">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
-               <property name="text">
-                <string notr="true">Переход к исполнению по адресу</string>
+               <property name="font">
+                <font>
+                 <pointsize>10</pointsize>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                 <underline>false</underline>
+                 <strikeout>false</strikeout>
+                 <kerning>true</kerning>
+                </font>
                </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="twrite_ledit_jumpaddr">
-               <property name="enabled">
+               <property name="acceptDrops">
                 <bool>false</bool>
                </property>
-               <property name="minimumSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>100</width>
-                 <height>23</height>
-                </size>
+               <property name="toolTip">
+                <string>Переход  к исполнению по адресу</string>
                </property>
                <property name="text">
-                <string notr="true">0x00000000</string>
-               </property>
-               <property name="readOnly">
-                <bool>false</bool>
+                <string>Перейти</string>
                </property>
               </widget>
              </item>
@@ -970,7 +1078,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>23</height>
+               <height>25</height>
               </size>
              </property>
              <property name="text">
@@ -986,7 +1094,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>23</height>
+               <height>25</height>
               </size>
              </property>
              <property name="text">
@@ -1035,7 +1143,7 @@
                <property name="maximumSize">
                 <size>
                  <width>100</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -1067,7 +1175,7 @@
                <property name="maximumSize">
                 <size>
                  <width>100</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -1106,7 +1214,7 @@
                <property name="maximumSize">
                 <size>
                  <width>100</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -1138,7 +1246,7 @@
                <property name="maximumSize">
                 <size>
                  <width>100</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -1169,7 +1277,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_read">
+      <widget class="FileWidget" name="tab_read">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -1178,6 +1286,9 @@
          <width>16777215</width>
          <height>480</height>
         </size>
+       </property>
+       <property name="acceptDrops">
+        <bool>true</bool>
        </property>
        <attribute name="title">
         <string notr="true">Чтение</string>
@@ -1203,10 +1314,13 @@
             <layout class="QHBoxLayout" name="tread_hbox_file">
              <item>
               <widget class="QLineEdit" name="tread_ledit_filepath">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="toolTip">
@@ -1269,7 +1383,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>23</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -1301,7 +1415,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>23</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -1340,7 +1454,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>23</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -1372,7 +1486,7 @@
                  <property name="maximumSize">
                   <size>
                    <width>100</width>
-                   <height>23</height>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="text">
@@ -1447,7 +1561,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -1463,7 +1577,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="text">
@@ -1579,6 +1693,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>FileWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">widgets.filechooserline</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="ui.qrc"/>
  </resources>
@@ -1676,22 +1798,6 @@
     <hint type="destinationlabel">
      <x>496</x>
      <y>468</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>twrite_ledit_filepath</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_ledit_filepath_changed(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>65</x>
-     <y>261</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>0</x>
-     <y>191</y>
     </hint>
    </hints>
   </connection>
@@ -2032,22 +2138,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>twrite_chbox_jump</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_twrite_chbox_jump_toggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>109</x>
-     <y>436</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1</x>
-     <y>486</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>tread_ledit_page</sender>
    <signal>editingFinished()</signal>
    <receiver>MainWindow</receiver>
@@ -2095,6 +2185,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>twrite_chbox_jump</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_twrite_chbox_jump_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>109</x>
+     <y>436</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>486</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_jump</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_btn_jump_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>520</x>
+     <y>427</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>387</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twrite_ledit_filepath</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_ledit_filepath_changed(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>65</x>
+     <y>261</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>0</x>
+     <y>191</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>handle_act_about_triggered()</slot>
@@ -2115,5 +2253,6 @@
   <slot>handle_ledit_page_edited()</slot>
   <slot>handle_ledit_pages_edited()</slot>
   <slot>handle_twrite_chbox_jump_toggled(bool)</slot>
+  <slot>handle_btn_jump_clicked()</slot>
  </slots>
 </ui>

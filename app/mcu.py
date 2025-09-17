@@ -20,12 +20,12 @@ class MCU:
         self.bootver = '0.0'
 
 
-class K1921VKx(MCU):
+class K1921Vx(MCU):
     def __init__(self):
         super().__init__()
         self.chipid = '0xFFFFFFF'
-        self.name = 'k1921vkx'
-        self.name_ru = 'К1921ВКххх'
+        self.name = 'k1921'
+        self.name_ru = 'К1921Вxххх'
         self.flash_base_address = 0x0
         self.flash = [{'name': 'flash0',
                        'region_main': Flash(size=(64 * K), pages=64),
@@ -447,7 +447,7 @@ class K1921VK01T(MCU):
         self.flash[0]['region_main'].rd_lock[0] = True
 
 
-db = [K1921VKx(), K1921VG015(), K1921VK035(), K1921VK028(), K1921VK01T()]
+db = [K1921Vx(), K1921VG015(), K1921VK035(), K1921VK028(), K1921VK01T()]
 
 
 def get_by_chipid(chipid):

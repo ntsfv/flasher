@@ -19,7 +19,7 @@ import traceback
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem, QMessageBox,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox, QCheckBox)
-from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator, QTextCursor)
+from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator, QTextCursor, QPalette, QColor)
 from ui_main import Ui_MainWindow
 from ui_about import Ui_AboutDialog
 from ui_config015 import Ui_Config015
@@ -40,9 +40,12 @@ class MyMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 
+        self.mem = QWidget()
+
+
         self.debug = False
 
-        self.mcu = mcu.get_by_name('k1921vkx')
+        self.mcu = mcu.get_by_name('k1921')
         self.serport = serport.SerPort(self)
         self.prot = protocol.Protocol(serport=self.serport, win=self)
 
@@ -112,10 +115,17 @@ class MyMainWindow(QMainWindow):
             self.ui.terase_ledit_addr,
             self.ui.tread_ledit_addr,
         ]
+        self.filepaths = [
+            self.ui.twrite_ledit_filepath,
+            self.ui.tread_ledit_filepath,
+        ]
 
     # -- Helpers --
     def current_controller_flash(self):
         return self.mcu.flash[self.get_curr_flash()]
+
+    def is_riscv_arch(self):
+        return self.ui.combo_arch.currentText() == "RISC-V"
 
     def whoami(self):
         return inspect.getouterframes(inspect.currentframe())[1].function
@@ -171,7 +181,7 @@ class MyMainWindow(QMainWindow):
     # -- Events --
     def closeEvent(self, event):
         if self.serport.is_open:
-            self.prot.deinit()
+            self.prot.deinit(is_riscv=self.is_riscv_arch())
         event.accept()
 
     # -- Slots --
@@ -179,25 +189,33 @@ class MyMainWindow(QMainWindow):
         self.log_dbg("Handler <%s> called" % self.whoami())
         ledit_addr = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_addr$'))[0]
         ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
+        # ledit_jumpaddr = self.sender().parent().parent().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_jumpaddr$'))
+        # ledit_jumpaddr = ledit_jumpaddr[0] if len(ledit_jumpaddr) != 0 else None
         self.log_dbg("Object <%s>" % ledit_addr.objectName())
         addr, addr_format = self.text2int(ledit_addr)
         page_size = self.current_controller_flash()[self.get_curr_region()].page_size
         pages = self.current_controller_flash()[self.get_curr_region()].pages
+        base_address = self.mcu.flash_base_address
+        bootloader_end = base_address + self.current_controller_flash()['bootflash_end_address']
 
-        if addr >= (page_size * pages):
-            self.log_warn("Адрес выходит за границы диапазона 0x00000000-0x%08X" % ((page_size * pages) - 1))
-            addr = 0
+        if base_address > addr or addr >= (page_size * pages) + base_address:
+            self.log_warn("Адрес выходит за границы диапазона 0x%08X-0x%08X" % (base_address, base_address +  (page_size * pages) - 1))
+            addr = bootloader_end
 
-        if self.get_curr_region() != 'region_nvr' and 'bootflash_end_address' in self.current_controller_flash() and addr < self.current_controller_flash()['bootflash_end_address']:
+        if self.get_curr_region() != 'region_nvr' and 'bootflash_end_address' in self.current_controller_flash() and addr < bootloader_end:
             self.log_warn(f'Начальный адрес задевает прошивку бутлоадера')
-            addr = self.current_controller_flash()['bootflash_end_address']
+            addr = bootloader_end
 
-        aligned_addr = ((addr & 0xFFFFFF) // page_size) * page_size
+        aligned_addr = ((addr & 0xFFFFFFFF) // page_size) * page_size
         ledit_addr.setText("%s" % ("%d" % aligned_addr if addr_format == 'dec' else "0x%08X" % aligned_addr))
         if addr != aligned_addr:
             self.log_info("Адрес 0x%08X был выровнен по размеру страницы (0x%X) - 0x%08X" % (addr, page_size, aligned_addr))
 
-        ledit_page.setText("%d" % (aligned_addr // page_size))
+        # if ledit_jumpaddr:
+        #     ledit_jumpaddr.setText("0x%08X" % addr)
+
+        ledit_page.setText("%d" % ((aligned_addr - self.mcu.flash_base_address) // page_size))
+
 
     def handle_ledit_size_edited(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -209,9 +227,10 @@ class MyMainWindow(QMainWindow):
         size, size_format = self.text2int(ledit_size)
         page_size = self.current_controller_flash()[self.get_curr_region()].page_size
         pages_total = self.current_controller_flash()[self.get_curr_region()].pages
+        base_address = self.mcu.flash_base_address
 
-        if size > ((page_size * pages_total) - addr):
-            self.log_warn("Размер области должен быть не более 0x%X байт" % ((page_size * pages_total) - addr))
+        if size > ((page_size * pages_total) - addr + base_address):
+            self.log_warn("Размер области должен быть не более 0x%X байт" % ((page_size * pages_total) - addr + base_address))
             size = 0
 
         aligned_size = ((size // page_size) + (1 if size % page_size else 0)) * page_size
@@ -235,7 +254,7 @@ class MyMainWindow(QMainWindow):
             page = 0
 
         ledit_page.setText("%d" % page)
-        ledit_addr.setText("0x%08X" % (page * page_size))
+        ledit_addr.setText("0x%08X" % (page * page_size + self.mcu.flash_base_address))
 
     def handle_ledit_pages_edited(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -286,6 +305,7 @@ class MyMainWindow(QMainWindow):
         update_gui = False
         port = self.ui.combo_port.currentText()
         baud = self.ui.combo_baud.currentText()
+        is_riscv = self.is_riscv_arch()
         if (not self.is_connected()):
             if not self.ui.combo_port.count():
                 self.log_warn("Выберите COM-порт!")
@@ -293,17 +313,17 @@ class MyMainWindow(QMainWindow):
                 state = True
                 btn_text = "Отключиться"
                 try:
-                    self.mcu = self.prot.init(port=port, baud=baud)
+                    self.mcu = self.prot.init(port=port, baud=baud, is_riscv=is_riscv)
                     update_gui = True
                 except:
-                    self.prot.deinit()
+                    self.prot.deinit(is_riscv=self.is_riscv_arch())
                     self.log_err("Подключиться не удалось. Убедитесь что загрузчик разрешён и сбросьте устройство.")
                     traceback.print_exc()
         else:
             state = False
             btn_text = "Подключиться"
-            self.prot.deinit()
-            self.mcu = mcu.get_by_name('k1921vkx')
+            self.prot.deinit(is_riscv=self.is_riscv_arch())
+            self.mcu = mcu.get_by_name('k1921')
             update_gui = True
 
         if update_gui:
@@ -325,9 +345,10 @@ class MyMainWindow(QMainWindow):
         self.upd_gbox_flash()
         self.upd_tinfo_values()
         self.upd_flash_selected()
-        self.upd_twrite_jumpaddr()
+        self.upd_twrite_jumpaddr(state)
         self.upd_twrite_addr()
         self.upd_tconfig_widget_cfg()
+        self.update_filepaths(state)
 
     def handle_flash_select_toggled(self, state):
         self.log_dbg("Handler <%s> called" % (self.whoami() + "(%d)" % state))
@@ -339,6 +360,11 @@ class MyMainWindow(QMainWindow):
         if state:
             self.upd_flash_selected()
             self.upd_twrite_addr()
+
+    def handle_btn_jump_clicked(self):
+        self.log_dbg("Handler <%s> called" % self.whoami())
+        self.ui.pbar.reset()
+        self.exec_jump()
 
     def handle_btn_exec_clicked(self):
         self.log_dbg("Handler <%s> called" % self.whoami())
@@ -353,6 +379,7 @@ class MyMainWindow(QMainWindow):
             self.exec_tab_write()
         elif curr_tab == "tab_read":
             self.exec_tab_read()
+
         elif curr_tab == "tab_erase":
             self.exec_tab_erase()
         elif curr_tab == "tab_config":
@@ -364,10 +391,14 @@ class MyMainWindow(QMainWindow):
 
         if self.sender().path_for_open:
             if (os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text):
-
-                self.sender().setStyleSheet("color: black;")
+                palette = self.sender().palette()
+                palette.setColor(QPalette.Text, QColor("black"))
+                self.sender().setPalette(palette)
+                pass
             else:
-                self.sender().setStyleSheet("color: red;")
+                palette = self.sender().palette()
+                palette.setColor(QPalette.Text, QColor("red"))
+                self.sender().setPalette(palette)
         self.sender().last_text = self.sender().text()
 
         if ("twrite" in self.sender().objectName() and
@@ -376,7 +407,7 @@ class MyMainWindow(QMainWindow):
             page_size = self.current_controller_flash()[self.get_curr_region()].page_size
             addr, addr_format = self.text2int(self.ui.twrite_ledit_addr)
             pages_total = self.current_controller_flash()[self.get_curr_region()].pages
-            if filesize > ((page_size * pages_total) - addr):
+            if filesize > ((page_size * pages_total) - addr + self.mcu.flash_base_address):
                 self.ui.twrite_ledit_size.setText("ошибка")
                 self.ui.twrite_ledit_pages.setText("ошибка")
             else:
@@ -525,13 +556,25 @@ class MyMainWindow(QMainWindow):
                     wr_cell.setToolTip("Разблокировано")
                 table.setItem(r, 4, wr_cell)
 
-    def upd_twrite_jumpaddr(self):
-        self.ui.twrite_ledit_jumpaddr.setEnabled(False)
+    def upd_twrite_jumpaddr(self, state: bool):
+        if not self.is_riscv_arch():
+            return
+
+        if not state:
+            self.ui.twrite_chbox_jump.setChecked(False)
+        self.ui.twrite_chbox_jump.setEnabled(state)
+        # self.ui.twrite_ledit_jumpaddr.setEnabled(state)
         self.ui.twrite_ledit_jumpaddr.setText('0x%08X' % (self.mcu.flash_base_address + self.current_controller_flash()['bootflash_end_address']))
+
+    def update_filepaths(self, state: bool):
+        for filepath in self.filepaths:
+            palette = filepath.palette()
+            palette.setColor(QPalette.Text, QColor("black" if state else "gray"))
+            filepath.setPalette(palette)
 
     def update_address_fields(self):
         for address_field in self.address_fields:
-            address_field.setText('0x%08X' % (0 if self.get_curr_region() == 'region_nvr' else self.current_controller_flash()['bootflash_end_address']))
+            address_field.setText('0x%08X' % (0 if self.get_curr_region() == 'region_nvr' else self.mcu.flash_base_address + self.current_controller_flash()['bootflash_end_address']))
             address_field.editingFinished.emit()
 
     def upd_twrite_addr(self):
@@ -554,7 +597,7 @@ class MyMainWindow(QMainWindow):
             self.ui.tconfig_widget_cfg.ui = Ui_Config015()            
         elif self.mcu.name == 'k1921vk01t':
             self.ui.tconfig_widget_cfg.ui = Ui_Config01T()
-        elif self.mcu.name == 'k1921vkx':
+        elif self.mcu.name == 'k1921':
             self.ui.tconfig_widget_cfg.ui = Ui_Config1921()
         # setup
         self.ui.tconfig_widget_cfg.ui.setupUi(self.ui.tconfig_widget_cfg)
@@ -573,7 +616,7 @@ class MyMainWindow(QMainWindow):
             self.exec_tab_config_015(self.mcu.cfgword)            
         elif self.mcu.name == 'k1921vk01t':
             self.exec_tab_config_01t(self.mcu.cfgword)
-        elif self.mcu.name == 'k1921vkx':
+        elif self.mcu.name == 'k1921':
             pass
 
     def exec_prot_wrapper(self, str_ok, str_fail, cmdf):
@@ -596,6 +639,17 @@ class MyMainWindow(QMainWindow):
     def exec_tab_info(self):
         pass
 
+    def exec_jump(self):
+        jumpaddr = self.text2int(self.ui.twrite_ledit_jumpaddr)[0]
+
+        self.exec_prot_wrapper(str_ok='Команда перехода выполнена!',
+                               str_fail='Команда перехода не выполнена - ошибка протокола!',
+                               cmdf=lambda: self.prot.jump(jumpaddr=jumpaddr))
+
+        self.log_info('Устройство отключено')
+        self.mcu = mcu.get_by_name('k1921')
+        self.update_gui("Подключиться", False)
+
     def exec_tab_write(self):
         self.log_info('Подготовка к выполнению команды записи. Чтение опций ...')
         self.log_info('Флеш - %s' % self.current_controller_flash()["name"].upper())
@@ -609,11 +663,11 @@ class MyMainWindow(QMainWindow):
         else:
             lastpage = firstpage + self.text2int(self.ui.twrite_ledit_pages)[0] - 1
 
-        ernone = True if self.ui.twrite_rbtn_ernone.isChecked() else False
-        erall = True if self.ui.twrite_rbtn_erall.isChecked() else False
-        erpages = True if self.ui.twrite_rbtn_erpages.isChecked() else False
-        verif = True if self.ui.twrite_chbox_verif.isChecked() else False
-        jump = True if self.ui.twrite_chbox_jump.isChecked() else False
+        ernone = self.ui.twrite_rbtn_ernone.isChecked()
+        erall = self.ui.twrite_rbtn_erall.isChecked()
+        erpages = self.ui.twrite_rbtn_erpages.isChecked()
+        verif = self.ui.twrite_chbox_verif.isChecked()
+        jump = self.ui.twrite_chbox_jump.isChecked() and self.is_riscv_arch()
         jumpaddr = self.text2int(self.ui.twrite_ledit_jumpaddr)[0]
 
         if filevalid:
@@ -639,14 +693,11 @@ class MyMainWindow(QMainWindow):
                     verif = False
                     self.log_warn('Верификация невозможна - одна или несколько считываемых страниц защищены от чтения')
         self.log_info('Верификация - %s' % ("да" if verif else "нет"))
-        if jump:
-            self.log_info('Переход к исполнению программы - адрес 0x%08X' % jumpaddr)
-        else:
-            self.log_info('Переход к исполнению программы - нет')
 
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
                 return self.log_err('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+
         if erall:
             for page_locked in curr_flash.wr_lock:
                 if page_locked:
@@ -657,6 +708,14 @@ class MyMainWindow(QMainWindow):
                                cmdf=lambda: self.prot.write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
                                                             ernone=ernone, erall=erall, erpages=erpages,
                                                             verif=verif, jump=jump, jumpaddr=jumpaddr))
+
+        if jump:
+            self.log_info('Устройство отключено')
+            self.mcu = mcu.get_by_name('k1921')
+            self.update_gui("Подключиться", False)
+        else:
+            self.log_info('Перехода к исполнению программы - нет')
+
 
     def exec_tab_erase(self):
         self.log_info('Подготовка к выполнению команды стирания. Чтение опций ...')
@@ -1002,7 +1061,7 @@ if __name__ == '__main__':
         def cmd_exit():
             global main_window
             if main_window.serport.is_open:
-                main_window.prot.deinit()
+                main_window.prot.deinit(is_riscv=main_window.is_riscv_arch())
             sys.exit()
 
         main_window.log_info("Режим без графического интерфейса")
@@ -1017,7 +1076,7 @@ if __name__ == '__main__':
             traceback.print_exc()
             cmd_exit()
         main_window.ui.btn_connect.clicked.emit()
-        if main_window.mcu.name == 'k1921vkx':
+        if main_window.mcu.name == 'k1921':
             cmd_exit()
         flash = {'bootflash': 0, 'userflash': 1, 'mflash': 0, 'bflash': 1}
         region = {'main': 0, 'nvr': 1, 'info': 1}
