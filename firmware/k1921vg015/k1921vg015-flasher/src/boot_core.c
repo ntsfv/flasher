@@ -39,6 +39,7 @@ static  void get_cfgword_cmd(Packet_TypeDef* packet);
 static  void set_cfgword_cmd(Packet_TypeDef* packet);
 static  void read_page_cmd(Packet_TypeDef* packet);
 static  void write_page_cmd(Packet_TypeDef* packet);
+static  void jump_cmd(Packet_TypeDef* packet);
 static  void erase_cmd(Packet_TypeDef* packet);
 static  void exit_cmd(Packet_TypeDef* packet);
 static  void memcpy_ramfunc(uint8_t* to, uint8_t* from, uint32_t size);
@@ -73,20 +74,28 @@ int boot_init()
     //Waiting for the start bit - 0
     UART_TMR->CTRL_bit.CLR = 1;
     UART_TMR->COUNT = 0;
-    if(wait_uart_rx(0) < 0){
-        return -1;
-    }
+    wait_uart_rx(0);
+
+//    if(wait_uart_rx(0) < 0){
+//        return -1;
+//    }
+
     //turn on timer
     //We are waiting for the start of a group of seven 1 (0x7F)
     UART_TMR->CTRL_bit.MODE = 2;
-    if(wait_uart_rx(1) < 0){
-        return -1;
-    }
+    wait_uart_rx(1);
+
+//    if(wait_uart_rx(1) < 0){
+//        return -1;
+//    }
+
     ticks_counted = UART_TMR->COUNT;
     //Waiting for bit - 0
-    if(wait_uart_rx(0) < 0){
-        return -1;
-    }
+    wait_uart_rx(0);
+
+//    if(wait_uart_rx(0) < 0){
+//        return -1;
+//    }
 
     ticks_counted = UART_TMR->COUNT - ticks_counted;
     UART_TMR->CTRL_bit.MODE = 0;
@@ -95,9 +104,11 @@ int boot_init()
     baud_f = (uint32_t)((ticks_counted / (16 * 7.0f) - baud_i) * 64 + 0.5f);
 
     //Waiting for stop bit - 1
-    if(wait_uart_rx(1) < 0){
-        return -1;
-    }
+    wait_uart_rx(1);
+
+//    if(wait_uart_rx(1) < 0){
+//        return -1;
+//    }
 
     //turn on UART
     UART->IBRD = baud_i;
@@ -111,7 +122,7 @@ int boot_init()
     return 0;
 }
 
-void boot_exit()
+void boot_exit(uint32_t jumpaddr)
 {
 	/* Restore PLIC to known state: */
     //disable all interrupts
@@ -139,7 +150,7 @@ void boot_exit()
 
 
 	/* Start executing from  after end of bootloader section: */
-    __asm__ volatile("jr %0" : : "value" (USER_JUMP_ADDRESS));
+    __asm__ volatile("jr %0" : : "value" (jumpaddr));
     
     /*User application execution should now start and never return here.... */
 }
@@ -171,6 +182,10 @@ __attribute__((noreturn)) void boot_core()
         case CMD_SET_CFGWORD:
            set_cfgword_cmd(&packet);
            break;
+        // Jump commands
+        case CMD_JUMP:
+        	jump_cmd(&packet);
+        	break;
         // Write commands
         case CMD_WRITE_PAGE:
             write_page_cmd(&packet);
@@ -361,6 +376,30 @@ void write_page_cmd(Packet_TypeDef* packet)
     msg_cmd(packet);
 }
 
+void jump_cmd(Packet_TypeDef* packet)
+{
+	uint32_t jumpaddr;
+	uint32_t rx_data;
+	uint16_t calc_crc;
+	uint16_t rx_crc;
+
+	jumpaddr = rx_data = packet_fifo_read_u32();
+	calc_crc = crc_upd_u32(packet->crc, rx_data);
+
+	rx_crc = packet_fifo_read_u16();
+	if (calc_crc != rx_crc) {
+		packet->tmp_data8[0] = MSG_ERR_CRC;
+	}
+
+	packet->tmp_data32[1] = rx_data;
+
+	msg_cmd(packet);
+
+	packet_fifo_read_u32();
+
+	boot_exit(jumpaddr);
+}
+
 void read_page_cmd(Packet_TypeDef* packet)
 {
     uint32_t rx_data;
@@ -482,7 +521,7 @@ void exit_cmd(Packet_TypeDef* packet)
     while (packet_transmit_status_busy()) {
     };
 
-    boot_exit();
+    boot_exit(USER_JUMP_ADDRESS);
 }
 
 

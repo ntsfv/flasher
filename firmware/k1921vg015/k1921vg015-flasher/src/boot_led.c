@@ -1,7 +1,5 @@
 /*==============================================================================
- * UART загрузчик для К1921ВГ015
- *
- * Заголовочный файл ядра загрузчика
+ * ШИМ загрузчика для К1921ВГ015
  *------------------------------------------------------------------------------
  * НИИЭТ, Александр Дыхно <dykhno@niiet.ru>
  * НИИЭТ, Штоколов Филипп
@@ -21,30 +19,40 @@
  *==============================================================================
  */
 
-#ifndef BOOT_CORE_H
-#define BOOT_CORE_H
-
+#include "boot_led.h"
 #include "boot_conf.h"
 
 
-// return 0 if start UART byte received
-// return -1 If a UART timeout has occurred
+void led_blink_init()
+{
+    RCU->CGCFGAHB  = BOOTLED_PORT_EN;
+    RCU->RSTDISAHB = BOOTLED_PORT_EN;
 
-/**
- * \brief           Try receive start byte from HOST and calculate UART speed
- * \return          0 if start UART byte received  
- *                  -1 If a UART timeout has occurred
- */
-int boot_init(void); 
+    BOOTLED_PORT->OUTENSET = BOOTLED_PIN_MSK;
 
-/**
- * \brief           Exit from bootloader to main firmware
- */
- void boot_exit(uint32_t jumpaddr);
+    BOOTLED_TMR->CTRL_bit.CLR = 1;
+    BOOTLED_TMR->CTRL_bit.DIV = TMR_CTRL_DIV_Div1;
 
-/**
- * \brief           Starts bootloader core loop and receives packets from HOST
- */
- void boot_core(void);
+    BOOTLED_TMR->CTRL_bit.MODE = TMR_CTRL_MODE_Multiple;
+    BOOTLED_TMR->IM_bit.TMR = 1;
+}
 
-#endif //BOOT_CORE_H
+void led_blink_deinit()
+{
+	BOOTLED_TMR->CTRL_bit.CLR = 1;
+    BOOTLED_TMR->IM_bit.TMR = 0;
+
+    BOOTLED_PORT->DATAOUTSET = BOOTLED_PIN_MSK;
+}
+
+void led_blink_irq()
+{
+	static uint32_t delay_cycles = 0;
+
+	if (delay_cycles++ >= LED_DELAY_CYCLES) {
+		delay_cycles = 0;
+		BOOTLED_PORT->DATAOUTTGL = BOOTLED_PIN_MSK;
+	}
+
+	BOOTLED_TMR->IC_bit.TMR = 1;
+}

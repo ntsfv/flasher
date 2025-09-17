@@ -47,6 +47,8 @@ typedef enum {
     // Set commands
     CMD_SET_CFGWORD = 0x65,
     CMD_SET_BAUDRATE = 0x6A,
+	// Jump commands
+	CMD_JUMP = 0x75,
     // Write commands
     CMD_WRITE_PAGE = 0x9A,
     // Read commands
