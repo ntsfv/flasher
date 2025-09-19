@@ -6,3 +6,4 @@ firmware/*/build-*
 build/
 dist/
 *.spec
+.DS_Store

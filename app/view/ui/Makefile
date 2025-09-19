@@ -10,7 +10,7 @@ PYRCC = pyrcc5
 APPPATH = ..
 
 UIFILES = $(wildcard *.ui)
-UIPYFILES = $(addprefix ${APPPATH}/ui_, $(patsubst %.ui, %.py, $(UIFILES)))
+UIPYFILES = $(addprefix ${APPPATH}/, $(patsubst %.ui, %_view.py, $(UIFILES)))
 
 RCFILES = $(wildcard *.qrc)
 RCPYFILES = $(addprefix ${APPPATH}/, $(patsubst %.qrc, %_rc.py, $(RCFILES)))
@@ -25,7 +25,7 @@ all: ui rc
 #===============================================================================
 ui: $(UIPYFILES)
 
-${APPPATH}/ui_%.py: %.ui
+${APPPATH}/%_view.py: %.ui
 	@echo $< "->" $@
 	@$(PYUIC) -x $< -o $@
 

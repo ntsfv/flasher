@@ -35,7 +35,7 @@
    <string>About</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="ui.qrc">
+   <iconset resource="view.ui.qrc">
     <normaloff>:/icons/flasher.png</normaloff>:/icons/flasher.png</iconset>
   </property>
   <property name="sizeGripEnabled">
@@ -48,7 +48,7 @@
    <item>
     <widget class="QLabel" name="lab_version">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;K1921VKx Flasher vx.x&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;:/icons/flasher.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;K1921VKx Flasher vx.x&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;:/icons/flasher.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -103,7 +103,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="ui.qrc"/>
+  <include location="view.ui.qrc"/>
  </resources>
  <connections>
   <connection>

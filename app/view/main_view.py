@@ -757,9 +757,7 @@ class Ui_MainWindow(object):
         self.btn_jump.setText(_translate("MainWindow", "Перейти"))
         self.tread_ledit_filepath.setToolTip(_translate("MainWindow", "Файл для чтения"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
-from widgets.filechooserline import FileWidget
-import ui_rc
-
+from view.widgets.filechooserline import FileWidget
 
 if __name__ == "__main__":
     import sys
