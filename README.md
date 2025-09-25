@@ -1,4 +1,4 @@
-## UART загрузчик для микроконтроллеров К1921ВКх
+## UART загрузчик для микроконтроллеров К1921Вх
 
 Репозиторий содержит Python утилиту UART загручика и прошивки для микроконтроллеров:
 
@@ -14,14 +14,18 @@
 
 ### Требования и сборка
 
-Скрипт ```app/k1921vkx_flasher.py``` требует для запуска:
+Скрипт ```app/k1921vx_flasher.py``` требует для запуска:
 
 * Python 3.4+
 * pySerial 3.x+
 * PyQt5
 
 
+<<<<<<< OURS
+В [Release](https://gitflic.ru/project/niiet/k1921vkx_flasher/release) репозитория расположены собранные в статичный утилиты ```.exe``` не требующие наличия Python на ПК.
+=======
 В [Релизах](https://gitflic.ru/project/niiet/k1921vkx_flasher/release/793b2797-36f3-48b8-9eda-0f418d4e5c51) репозитория расположена последняя версия утилиты, собранная в статичный ```.exe``` и не требующая наличия Python на ПК.
+>>>>>>> THEIRS
 
 Собрать самостоятельно такой ```.exe``` можно с помощью скрипта ```app/misc/make_exe.bat```, если хостовая система Windows.
 Если используется Linux и Wine с помощью ```app/misc/make_exe.sh```.
@@ -31,9 +35,9 @@
 Запуск:
 
 ```bash
-python3 k1921vkx_flasher.py
+python3 k1921vx_flasher.py
 или
-k1921vkx_flasher.exe
+k1921vx_flasher.exe
 ```
 
 Утилита также может работать в командном режиме без графического интерфейса.
@@ -67,25 +71,25 @@ k1921vkx_flasher.exe
 
 Запись файла led.bin в основную область MFLASH К1921ВК035 с 0 страницы с полным стиранием, верификацией записанного:
 ```bash
-python3 k1921vkx_flasher.py -cwEv -f mflash -n main -F 0 -p /dev/ttyUSB0 -b 115200 led.bin
+python3 k1921vx_flasher.py -cwEv -f mflash -n main -F 0 -p /dev/ttyUSB0 -b 115200 led.bin
 ```
 
 Чтение 4096 байт данных с 0 адреса в файл dump.bin
 ```bash
-python3 k1921vkx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -a 0 -s 0x1000 dump.bin
+python3 k1921vx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -a 0 -s 0x1000 dump.bin
 ```
 
 Чтение первых 8 страниц в файл dump.bin
 ```bash
-python3 k1921vkx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8 dump.bin
+python3 k1921vx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8 dump.bin
 ```
 
 Стирание первых 8 страниц
 ```bash
-python3 k1921vkx_flasher.py -ce -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8
+python3 k1921vx_flasher.py -ce -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8
 ```
 
 Полное стирание
 ```bash
-python3 k1921vkx_flasher.py -cE -p /dev/ttyUSB0 -b 115200 -f mflash -n main
+python3 k1921vx_flasher.py -cE -p /dev/ttyUSB0 -b 115200 -f mflash -n main
 ```

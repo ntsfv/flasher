@@ -1,0 +1,1016 @@
+#!/user/bin/env python3
+# coding:utf-8
+
+"""
+K1921VKx Flasher Utility
+"""
+# -- Imports ------------------------------------------------------------------
+import os
+
+from PyQt5.QtCore import QThreadPool
+
+from utils.constants import VERSION
+from viewmodel.logger.logger_handler import LoggerWidgetHandler
+from viewmodel.protocol.protocol import Protocol
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import (QMainWindow, QDialog, QTableWidgetItem,
+                             QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox, QCheckBox)
+from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator, QTextCursor, QPalette, QColor)
+
+from model.logger.loggable import Loggable
+from model.mcu import mcu
+from model.protocol.serport.sync_serport import SyncSerPort
+from model.protocol.serport.util import list_ports
+from utils.utils import whoami, text2int
+from view.about_view import Ui_AboutDialog
+from view.config015_view import Ui_Config015
+from view.config01t_view import Ui_Config01T
+from view.config028_view import Ui_Config028
+from view.config035_view import Ui_Config035
+from view.config1921_view import Ui_Config1921
+from view.main_view import Ui_MainWindow
+
+
+# This class still have some View layer functionality
+# But this is not doesnt matter for now
+class MainWindowViewModel(QMainWindow, Loggable):
+    def __init__(self):
+        Loggable.__init__(self)
+        QMainWindow.__init__(self)
+
+        # add logging
+        self.handler = LoggerWidgetHandler(self.log)
+        self.logger.add_handler(self.handler)
+
+        self.mcu = mcu.get_by_name('k1921')
+        self.serport = SyncSerPort()
+        self.prot = Protocol(self.mcu, self.serport, self.pbar_set)
+
+        # Set up the user interface from QtDesigner
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.change_pbar_style()
+
+        self.ui.tconfig_frm_cfg = QFrame(self.ui.tab_config)
+
+        self.ui.btn_updport.clicked.emit()
+
+        self.ui.tedit_log.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self.ui.tedit_log.customContextMenuRequested.connect(self.handle_tedit_log_context_menu)
+
+        allowed_nums = "^((0x|)[0-9A-Fa-f]{1,8})|([0-9]{1,10})$"
+        self.ui.twrite_ledit_addr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_size.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_page.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_pages.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.twrite_ledit_jumpaddr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_addr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_size.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_page.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.terase_ledit_pages.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_addr.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_size.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_page.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        self.ui.tread_ledit_pages.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+
+        self.icon_lock = QIcon()
+        self.icon_unlock = QIcon()
+        self.icon_lock.addPixmap(QPixmap(":/icons/lock.png"))
+        self.icon_unlock.addPixmap(QPixmap(":/icons/unlock.png"))
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(1, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(2, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(3, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().setSectionResizeMode(4, QHeaderView.Fixed)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(0, 120)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(1, 120)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(2, 120)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(3, 40)
+        self.ui.tinfo_tbl_flash.horizontalHeader().resizeSection(4, 40)
+        self.ui.tinfo_tbl_flash.horizontalHeaderItem(0).setToolTip("Номер страницы")
+        self.ui.tinfo_tbl_flash.horizontalHeaderItem(1).setToolTip("Начальный адрес страницы")
+        self.ui.tinfo_tbl_flash.horizontalHeaderItem(2).setToolTip("Размер страницы в байтах")
+        self.ui.tinfo_tbl_flash.horizontalHeaderItem(3).setToolTip("Защита страницы от чтения")
+        self.ui.tinfo_tbl_flash.horizontalHeaderItem(4).setToolTip("Защита страницы от записи")
+
+        self.ui.twrite_ledit_filepath.path_for_open = True
+        self.ui.tread_ledit_filepath.path_for_open = False
+        self.ui.twrite_ledit_filepath.last_text = ""
+        self.ui.tread_ledit_filepath.last_text = ""
+
+        self.about_dialog = QDialog(self)
+        self.about_dialog.ui = Ui_AboutDialog()
+        self.about_dialog.ui.setupUi(self.about_dialog)
+
+        # self.upd_flash_selected()
+        # self.upd_tconfig_widget_cfg()
+
+        self.address_fields = [
+            self.ui.twrite_ledit_addr,
+            self.ui.terase_ledit_addr,
+            self.ui.tread_ledit_addr,
+        ]
+        self.filepaths = [
+            self.ui.twrite_ledit_filepath,
+            self.ui.tread_ledit_filepath,
+        ]
+
+        # collection of buttons that can send commands
+        # tho in multithreaded should be blocked
+        # because mcu is not multithreadable
+        self.command_senders = [
+            self.ui.btn_connect,
+            self.ui.btn_exec,
+            self.ui.btn_jump
+        ]
+
+        # last executed command (should be in memory for callbacks via signals)
+        self.command = None
+
+    @staticmethod
+    def _blockable(func):
+        def wrapper(self, *args, **kwargs):
+            self.pbar_set(0)
+            self.change_pbar_style()
+            self.block_commands()
+            akwargs = func(self, *args, **kwargs)
+            self.command.finished.connect(self._default_protocol_callback())
+            self.command.start(self.mcu, self.serport, **akwargs)
+
+        return wrapper
+
+    def _default_protocol_callback(self):
+        def wrapped_callback(data):
+            error = data['error']
+            self.unblock_commands()
+
+            if error and self.serport.name not in list_ports():
+                self.pbar_set(100)
+                self.change_pbar_style(True)
+                self.update_gui("Подключиться", False)
+
+        return wrapped_callback
+
+
+    # -- Protocol wrappers --
+    @_blockable
+    def _protocol_init(self, port, baud):
+        def init_callback(data):
+            error = data['error']
+            mcu = data['data']
+
+            if not error:
+                self.mcu = mcu
+                self.update_gui("Отключиться", True)
+                return
+
+        self.command = self.prot.Init()
+        self.command.finished.connect(init_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            'port': port,
+            'baud': baud,
+            'is_riscv': self.is_riscv_arch()
+        }
+
+    @_blockable
+    def _protocol_deinit(self):
+        def deinit_callback(data):
+            self.unblock_commands()
+            self.mcu = mcu.get_by_name('k1921')
+            self.update_gui("Подключиться", False)
+
+        self.command = self.prot.DeInit()
+        self.command.finished.connect(deinit_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            'is_riscv': self.is_riscv_arch()
+        }
+
+
+    @_blockable
+    def _protocol_write(self, **kwargs):
+        def write_callback(data):
+            is_jumped = data['data']
+            self.unblock_commands()
+
+            if not is_jumped:
+                self.logger.info('Перехода к исполнению программы - нет')
+                return
+
+            self.logger.info('Устройство отключено')
+            self.mcu = mcu.get_by_name('k1921')
+            self.update_gui("Подключиться", False)
+
+
+        self.command = self.prot.Write()
+        self.command.finished.connect(write_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_erase(self, **kwargs):
+        self.command = self.prot.Erase()
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_read(self, **kwargs):
+        self.command = self.prot.Read()
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_get_cfg_word(self, **kwargs):
+        def get_cfg_word_callback(data):
+            cfgword = data['data']
+            if cfgword:
+                self.update_cfg_word(cfgword)
+
+
+        self.command = self.prot.GetCfgWord()
+        self.command.finished.connect(get_cfg_word_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_set_cfg_word(self, **kwargs):
+        cfgword = self.get_cfg_word()
+        def set_cfg_word_callback(data):
+            self.mcu.apply_cfgword(cfgword)
+            self.upd_flash_selected()
+
+        self.command = self.prot.SetCfgWord()
+        self.command.finished.connect(set_cfg_word_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            'cfgword': cfgword,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_jump(self, **kwargs):
+        self.command = self.prot.Jump()
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    def update_cfg_word(self, cfgword):
+        self.mcu.apply_cfgword(cfgword)
+        self.upd_flash_selected()
+        if self.mcu.name == 'k1921vk035':
+            self.exec_tab_config_035(cfgword)
+        elif self.mcu.name == 'k1921vk028':
+            self.exec_tab_config_028(cfgword)
+        if self.mcu.name == 'k1921vg015':
+            self.exec_tab_config_015(cfgword)
+        elif self.mcu.name == 'k1921vk01t':
+            self.exec_tab_config_01t(cfgword)
+
+    def get_cfg_word(self):
+        match self.mcu.name:
+            case 'k1921vk035':
+                return self.exec_tab_config_035()
+            case 'k1921vk028':
+                return self.exec_tab_config_028()
+            case 'k1921vg015':
+                return self.exec_tab_config_015()
+            case 'k1921vk01t':
+                return self.exec_tab_config_01t()
+        return None
+
+    # -- Helpers --
+    def current_controller_flash(self):
+        return self.mcu.flash[self.get_curr_flash()]
+
+    def is_riscv_arch(self):
+        return self.ui.combo_arch.currentText() == "RISC-V"
+
+    def change_pbar_style(self, is_error=False):
+        self.ui.pbar.setStyleSheet("""
+             QProgressBar::chunk {
+                 background-color: %s;
+             }
+         """ % '#dc3545' if is_error else '#28a745')
+
+    def pbar_set(self, value):
+        self.logger.debug("<%s> %d" % (whoami(), int(value)))
+        self.ui.pbar.setValue(int(value))
+
+    def log(self, status):
+        self.ui.tedit_log.appendHtml(status)
+
+    # -- Events --
+    def closeEvent(self, event):
+        if self.serport.is_open:
+            self._protocol_deinit()
+
+        QThreadPool.globalInstance().waitForDone()
+        self.logger.remove_handler(self.handler)
+        del self.handler
+        event.accept()
+
+    # -- Slots --
+    def handle_ledit_addr_edited(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        ledit_addr = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_addr$'))[0]
+        ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
+        # ledit_jumpaddr = self.sender().parent().parent().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_jumpaddr$'))
+        # ledit_jumpaddr = ledit_jumpaddr[0] if len(ledit_jumpaddr) != 0 else None
+        self.logger.debug("Object <%s>" % ledit_addr.objectName())
+        addr, addr_format = text2int(ledit_addr)
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages = self.current_controller_flash()[self.get_curr_region()].pages
+        base_address = self.mcu.flash_base_address
+        bootloader_end = base_address + self.current_controller_flash()['bootflash_end_address']
+
+        if base_address > addr or addr >= (page_size * pages) + base_address:
+            self.logger.warning("Адрес выходит за границы диапазона 0x%08X-0x%08X" % (base_address, base_address +  (page_size * pages) - 1))
+            addr = bootloader_end
+
+        if self.get_curr_region() != 'region_nvr' and 'bootflash_end_address' in self.current_controller_flash() and addr < bootloader_end:
+            self.logger.warning(f'Начальный адрес задевает прошивку бутлоадера')
+            addr = bootloader_end
+
+        aligned_addr = ((addr & 0xFFFFFFFF) // page_size) * page_size
+        ledit_addr.setText("%s" % ("%d" % aligned_addr if addr_format == 'dec' else "0x%08X" % aligned_addr))
+        if addr != aligned_addr:
+            self.logger.info("Адрес 0x%08X был выровнен по размеру страницы (0x%X) - 0x%08X" % (addr, page_size, aligned_addr))
+
+        # if ledit_jumpaddr:
+        #     ledit_jumpaddr.setText("0x%08X" % addr)
+
+        ledit_page.setText("%d" % ((aligned_addr - self.mcu.flash_base_address) // page_size))
+
+
+    def handle_ledit_size_edited(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        ledit_addr = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_addr$'))[0]
+        ledit_size = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_size$'))[0]
+        ledit_pages = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_pages$'))[0]
+        self.logger.debug("Object <%s>" % ledit_size.objectName())
+        addr, addr_format = text2int(ledit_addr)
+        size, size_format = text2int(ledit_size)
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages_total = self.current_controller_flash()[self.get_curr_region()].pages
+        base_address = self.mcu.flash_base_address
+
+        if size > ((page_size * pages_total) - addr + base_address):
+            self.logger.warning("Размер области должен быть не более 0x%X байт" % ((page_size * pages_total) - addr + base_address))
+            size = 0
+
+        aligned_size = ((size // page_size) + (1 if size % page_size else 0)) * page_size
+        ledit_size.setText("%s" % ("%d" % aligned_size if size_format == 'dec' else "0x%08X" % aligned_size))
+        if size != aligned_size:
+            self.logger.info("Размер 0x%X был выровнен по размеру страницы (0x%X) - 0x%X" % (size, page_size, aligned_size))
+
+        ledit_pages.setText("%d" % (aligned_size // page_size))
+
+    def handle_ledit_page_edited(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        ledit_addr = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_addr$'))[0]
+        ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
+        self.logger.debug("Object <%s>" % ledit_page.objectName())
+        page, page_format = text2int(ledit_page)
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages = self.current_controller_flash()[self.get_curr_region()].pages
+
+        if page >= pages:
+            self.logger.warning("Номер страницы выходит за границы диапазона 0-%d" % (pages - 1))
+            page = 0
+
+        ledit_page.setText("%d" % page)
+        ledit_addr.setText("0x%08X" % (page * page_size + self.mcu.flash_base_address))
+
+    def handle_ledit_pages_edited(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        ledit_size = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_size$'))[0]
+        ledit_pages = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_pages$'))[0]
+        ledit_page = self.sender().parent().findChildren(QLineEdit, QtCore.QRegExp('^.*_page$'))[0]
+        self.logger.debug("Object <%s>" % ledit_pages.objectName())
+        pages, pages_format = text2int(ledit_pages)
+        page, page_format = text2int(ledit_page)
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        pages_total = self.current_controller_flash()[self.get_curr_region()].pages
+
+        if pages > (pages_total - page):
+            self.logger.warning("Указанное количество страниц больше максимального (%d)" % (pages_total - page))
+            pages = 0
+
+        ledit_pages.setText("%d" % pages)
+        ledit_size.setText("0x%08X" % (pages * page_size))
+
+    def handle_twrite_chbox_jump_toggled(self, state):
+        self.logger.debug("Handler <%s> called" % (whoami() + "(%d)" % state))
+        #self.ui.twrite_ledit_jumpaddr.setEnabled(state)
+
+    def handle_tedit_log_context_menu(self, pos):
+        self.logger.debug("Handler <%s> called" % whoami())
+        menu = self.ui.tedit_log.createStandardContextMenu()
+        menu.act_clear = QAction("Очистить")
+        menu.act_clear.triggered.connect(self.ui.tedit_log.clear)
+        menu.insertActions(menu.actions()[0], [menu.act_clear])
+        menu.exec_(QCursor.pos())
+
+    def handle_btn_updport_clicked(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        self.ui.combo_port.clear()
+        [self.ui.combo_port.addItem(port) for port in list_ports()]
+
+    def handle_act_about_triggered(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        text = self.about_dialog.ui.lab_version.text().replace("x.x", VERSION)
+        self.about_dialog.ui.lab_version.setText(text)
+        self.about_dialog.exec_()
+
+    def handle_btn_connect_clicked(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        self.ui.tedit_log.moveCursor(QTextCursor.End)
+        self.ui.pbar.reset()
+        self.logger.info("--------------------")
+        port = self.ui.combo_port.currentText()
+        baud = self.ui.combo_baud.currentText()
+        if self.is_connected():
+            self._protocol_deinit()
+            return
+        if not self.ui.combo_port.count():
+            self.logger.warning("Выберите COM-порт!")
+            return
+
+        self._protocol_init(port, baud)
+
+    def block_commands(self):
+        for sender in self.command_senders:
+            sender.setEnabled(False)
+
+    def unblock_commands(self):
+        for sender in self.command_senders:
+            if sender.objectName() == 'btn_jump' and self.is_riscv_arch():
+                sender.setEnabled(False)
+                continue
+            sender.setEnabled(True)
+
+    def update_gui(self, btn_text, state):
+        self.ui.btn_connect.setText(btn_text)
+        self.ui.combo_port.setEnabled(not state)
+        self.ui.combo_baud.setEnabled(not state)
+        self.ui.btn_updport.setEnabled(not state)
+        self.ui.btn_exec.setEnabled(state)
+        self.ui.tab_info.setEnabled(state)
+        self.ui.tab_write.setEnabled(state)
+        self.ui.tab_erase.setEnabled(state)
+        self.ui.tab_read.setEnabled(state)
+        self.ui.tab_config.setEnabled(state)
+        self.ui.gbox_flash.setEnabled(state)
+        self.ui.gbox_region.setEnabled(state)
+        self.upd_gbox_flash()
+        self.upd_tinfo_values()
+        self.upd_flash_selected()
+        self.upd_twrite_jumpaddr(state)
+        self.upd_twrite_addr()
+        self.upd_tconfig_widget_cfg()
+        self.update_filepaths(state)
+
+    def handle_flash_select_toggled(self, state):
+        self.logger.debug("Handler <%s> called" % (whoami() + "(%d)" % state))
+        if state:
+            self.upd_flash_selected()
+
+    def handle_region_select_toggled(self, state):
+        self.logger.debug("Handler <%s> called" % (whoami() + "(%d)" % state))
+        if state:
+            self.upd_flash_selected()
+            self.upd_twrite_addr()
+
+    def handle_btn_jump_clicked(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        self.ui.pbar.reset()
+        self.exec_jump()
+
+    def handle_btn_exec_clicked(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        curr_tab = self.ui.tabs_cmd.currentWidget().objectName()
+        self.logger.debug("Tab <%s> active" % curr_tab)
+        self.ui.tedit_log.moveCursor(QTextCursor.End)
+        self.ui.pbar.reset()
+        self.logger.info("--------------------")
+        if curr_tab == "tab_info":
+            self.exec_tab_info()
+        elif curr_tab == "tab_write":
+            self.exec_tab_write()
+        elif curr_tab == "tab_read":
+            self.exec_tab_read()
+
+        elif curr_tab == "tab_erase":
+            self.exec_tab_erase()
+        elif curr_tab == "tab_config":
+            self.exec_tab_config()
+
+    def handle_ledit_filepath_changed(self, text):
+        self.logger.debug("Handler <%s> called" % whoami())
+        self.logger.debug("Sender <%s>" % self.sender().objectName())
+
+        if self.sender().path_for_open:
+            if os.path.isfile(self.sender().text()) and self.sender().text()[-4:] == '.bin' and self.sender().text() != self.sender().last_text:
+                palette = self.sender().palette()
+                palette.setColor(QPalette.Text, QColor("black"))
+                self.sender().setPalette(palette)
+                pass
+            else:
+                palette = self.sender().palette()
+                palette.setColor(QPalette.Text, QColor("red"))
+                self.sender().setPalette(palette)
+        self.sender().last_text = self.sender().text()
+
+        if ("twrite" in self.sender().objectName() and
+           self.is_valid_path(self.ui.twrite_ledit_filepath)):
+            filesize = os.path.getsize(self.ui.twrite_ledit_filepath.text())
+            page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+            addr, addr_format = text2int(self.ui.twrite_ledit_addr)
+            pages_total = self.current_controller_flash()[self.get_curr_region()].pages
+            if filesize > ((page_size * pages_total) - addr + self.mcu.flash_base_address):
+                self.ui.twrite_ledit_size.setText("ошибка")
+                self.ui.twrite_ledit_pages.setText("ошибка")
+            else:
+                self.ui.twrite_ledit_size.setText("0x%08X" % (((filesize // page_size) + (1 if filesize % page_size else 0)) * page_size))
+                self.ui.twrite_ledit_pages.setText("%d" % ((filesize // page_size) + (1 if filesize % page_size else 0)))
+
+    def handle_btn_fileopen_clicked(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        rexp_ledit = QtCore.QRegExp('^.*_filepath$')
+        linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
+        options = QFileDialog.Options()
+        filename, _ = QFileDialog.getOpenFileName(self, "Открыть бинарный файл", linked_ledit.text(), "Бинарные файлы (*.bin)",
+                                                  options=options)
+        if filename:
+            linked_ledit.setText(filename)
+
+    def handle_btn_filesave_clicked(self):
+        self.logger.debug("Handler <%s> called" % whoami())
+        rexp_ledit = QtCore.QRegExp('^.*_filepath$')
+        linked_ledit = self.sender().parent().findChildren(QLineEdit, rexp_ledit)[0]
+        options = QFileDialog.Options()
+        if linked_ledit.text():
+            save_name = linked_ledit.text()
+        else:
+            save_name = "dump.bin"
+        filename, _ = QFileDialog.getSaveFileName(self, "Сохранить бинарный файл", save_name, "Бинарные файлы (*.bin)",
+                                                  options=options)
+        if filename:
+            linked_ledit.setText(filename)
+
+    def handle_terase_mode_select_toggled(self, state):
+        self.logger.debug("Handler <%s> called" % (whoami() + "(%d)" % state))
+        if state:
+            self.ui.terase_frm_addr.setEnabled(self.ui.terase_rbtn_erpages.isChecked())
+
+    def handle_tconfig_mode_select_toggled(self, state):
+        self.logger.debug("Handler <%s> called" % (whoami() + "(%d)" % state))
+        if state:
+            for child in self.ui.tconfig_widget_cfg.findChildren(QCheckBox, QtCore.QRegExp('.*')):
+                child.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
+            for child in self.ui.tconfig_widget_cfg.findChildren(QComboBox, QtCore.QRegExp('.*')):
+                child.setEnabled(self.ui.tconfig_rbtn_write.isChecked())
+
+    def handle_tabs_cmd_changed(self, num):
+        self.logger.debug("Handler <%s> called" % (whoami() + "(%d)" % num))
+        self.ui.pbar.reset()
+        if self.is_connected():
+            if self.ui.tabs_cmd.currentWidget().objectName() == 'tab_info':
+                self.ui.btn_exec.setEnabled(False)
+            else:
+                self.ui.btn_exec.setEnabled(True)
+
+    def handle_firstpage_select_changed(self, num):
+        self.logger.debug("Handler <%s> called" % (whoami() + "(%d)" % num))
+        self.logger.debug("Sender <%s>" % self.sender().objectName())
+        if num != -1:
+            rexp_combo = QtCore.QRegExp('^.*_lastpage$')
+            combo_firstpage = self.sender()
+            combo_lastpage = self.sender().parent().findChildren(QComboBox, rexp_combo)[0]
+            combo_lastpage.clear()
+            for i in range(combo_firstpage.currentIndex(), combo_firstpage.count()):
+                combo_lastpage.addItem(combo_firstpage.itemText(i))
+            if "twrite" in self.sender().objectName():
+                self.handle_twrite_combo_lastpage_changed(0)
+
+    # -- Application specific code --
+    def is_connected(self):
+        return not self.ui.combo_port.isEnabled()
+
+    def is_valid_path(self, ledit_path):
+        return False if ('red' in ledit_path.styleSheet()) or (not ledit_path.text()) else True
+
+    def get_curr_flash(self):
+        if self.ui.rbtn_flash0.isChecked():
+            return 0
+        else:
+            return 1
+
+    def get_curr_region(self):
+        if self.ui.rbtn_regionnvr.isChecked():
+            return 'region_nvr'
+        else:
+            return 'region_main'
+
+    def get_curr_start_page(self):
+        return 'start_page_nvr' if self.ui.rbtn_regionnvr.isChecked() else 'start_page_main'
+
+    def upd_gbox_flash(self):
+        self.ui.rbtn_flash0.setText(self.mcu.flash[0]['name'].upper())
+        if len(self.mcu.flash) == 2:
+            self.ui.rbtn_flash1.setEnabled(True)
+            self.ui.rbtn_flash1.setText(self.mcu.flash[1]['name'].upper())
+        else:
+            self.ui.rbtn_flash1.setVisible(False)
+            # self.ui.rbtn_flash1.setEnabled(False)
+            # self.ui.rbtn_flash1.setText('')
+
+    def upd_tinfo_values(self):
+        self.ui.tinfo_ledit_chipid.setText(self.mcu.chipid)
+        self.ui.tinfo_ledit_cpuid.setText(self.mcu.cpuid)
+        self.ui.tinfo_ledit_bootver.setText(self.mcu.bootver)
+        self.ui.tinfo_lab_mcu.setText(self.mcu.name_ru)
+
+    def upd_flash_selected(self):
+        table = self.ui.tinfo_tbl_flash
+        lockable = self.current_controller_flash()['lockable']
+        if lockable:
+            table.showColumn(3)
+            table.showColumn(4)
+        else:
+            table.hideColumn(3)
+            table.hideColumn(4)
+
+        table.clearContents()
+
+        for r in reversed(range(table.rowCount())):
+            table.removeRow(r)
+        pages = self.current_controller_flash()[self.get_curr_region()].pages
+        page_size = self.current_controller_flash()[self.get_curr_region()].page_size
+        rd_lock = self.current_controller_flash()[self.get_curr_region()].rd_lock
+        wr_lock = self.current_controller_flash()[self.get_curr_region()].wr_lock
+        start_address = self.current_controller_flash()[self.get_curr_start_page()] if self.get_curr_start_page() in self.current_controller_flash() else 0
+        for r in range(0, pages):
+            current_page = r + start_address
+            table.insertRow(r)
+            table.setItem(r, 0, QTableWidgetItem("Страница %d" % current_page))
+            table.setItem(r, 1, QTableWidgetItem("0x%x" % (current_page * page_size)))
+            if page_size < 1024:
+                page_size_str = "0x%x (%d)" % (page_size, page_size)
+            else:
+                page_size_str = "0x%x (%dK)" % (page_size, page_size // 1024)
+            table.setItem(r, 2, QTableWidgetItem("%s" % page_size_str))
+            if lockable:
+                if rd_lock[r]:
+                    rd_cell = QTableWidgetItem(self.icon_lock, "")
+                    rd_cell.setToolTip("Заблокировано")
+                else:
+                    rd_cell = QTableWidgetItem(self.icon_unlock, "")
+                    rd_cell.setToolTip("Разблокировано")
+                table.setItem(r, 3, rd_cell)
+                if wr_lock[r]:
+                    wr_cell = QTableWidgetItem(self.icon_lock, "")
+                    wr_cell.setToolTip("Заблокировано")
+                else:
+                    wr_cell = QTableWidgetItem(self.icon_unlock, "")
+                    wr_cell.setToolTip("Разблокировано")
+                table.setItem(r, 4, wr_cell)
+
+    def upd_twrite_jumpaddr(self, state: bool):
+        if not self.is_riscv_arch():
+            return
+
+        if not state:
+            self.ui.twrite_chbox_jump.setChecked(False)
+        self.ui.twrite_chbox_jump.setEnabled(state)
+        # self.ui.twrite_ledit_jumpaddr.setEnabled(state)
+        self.ui.twrite_ledit_jumpaddr.setText('0x%08X' % (self.mcu.flash_base_address + self.current_controller_flash()['bootflash_end_address']))
+
+    def update_filepaths(self, state: bool):
+        for filepath in self.filepaths:
+            palette = filepath.palette()
+            palette.setColor(QPalette.Text, QColor("black" if state else "gray"))
+            filepath.setPalette(palette)
+
+    def update_address_fields(self):
+        for address_field in self.address_fields:
+            address_field.setText('0x%08X' % (0 if self.get_curr_region() == 'region_nvr' else self.mcu.flash_base_address + self.current_controller_flash()['bootflash_end_address']))
+            address_field.editingFinished.emit()
+
+    def upd_twrite_addr(self):
+        self.update_address_fields()
+
+    def upd_tconfig_widget_cfg(self):
+        self.ui.tconfig_rbtn_read.setChecked(True)
+        self.ui.tconfig_vbox.removeWidget(self.ui.tconfig_widget_cfg)
+        self.ui.tconfig_widget_cfg.deleteLater()
+        self.ui.tconfig_widget_cfg = None
+
+        self.ui.tconfig_widget_cfg = QWidget(self.ui.tab_config)
+        self.ui.tconfig_vbox.addWidget(self.ui.tconfig_widget_cfg)
+        # pre-setup
+        if self.mcu.name == 'k1921vk035':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config035()
+        elif self.mcu.name == 'k1921vk028':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config028()
+        elif self.mcu.name == 'k1921vg015':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config015()
+        elif self.mcu.name == 'k1921vk01t':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config01T()
+        elif self.mcu.name == 'k1921':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config1921()
+        # setup
+        self.ui.tconfig_widget_cfg.ui.setupUi(self.ui.tconfig_widget_cfg)
+        self.ui.tconfig_rbtn_read.toggled['bool'].emit(True)
+        # post-setup
+        if self.mcu.name == 'k1921vk035':
+            self.exec_tab_config_035(self.mcu.cfgword)
+        elif self.mcu.name == 'k1921vk028':
+            allowed_nums = "^((0x|)[0-9A-Fa-f]{1,3})|([0-9]{1,4})$"
+            self.ui.tconfig_widget_cfg.ui.ledit_mask.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+            allowed_nums = "^((0x|)[0-9A-Fa-f]{1})|([0-9]{1,2})$"
+            self.ui.tconfig_widget_cfg.ui.ledit_wrc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+            self.ui.tconfig_widget_cfg.ui.ledit_rdc.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+            self.ui.tconfig_widget_cfg.ui.ledit_tac.setValidator(QRegExpValidator(QtCore.QRegExp(allowed_nums)))
+        if self.mcu.name == 'k1921vg015':
+            self.exec_tab_config_015(self.mcu.cfgword)
+        elif self.mcu.name == 'k1921vk01t':
+            self.exec_tab_config_01t(self.mcu.cfgword)
+        elif self.mcu.name == 'k1921':
+            pass
+
+    def exec_tab_info(self):
+        pass
+
+    def exec_jump(self):
+        jumpaddr = text2int(self.ui.twrite_ledit_jumpaddr)[0]
+
+        self._protocol_jump(jumpaddr=jumpaddr)
+
+        self.logger.info('Устройство отключено')
+        self.mcu = mcu.get_by_name('k1921')
+        self.update_gui("Подключиться", False)
+
+    def exec_tab_write(self):
+        self.logger.info('Подготовка к выполнению команды записи. Чтение опций ...')
+        self.logger.info('Флеш - %s' % self.current_controller_flash()["name"].upper())
+        self.logger.info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
+        filepath = self.ui.twrite_ledit_filepath.text()
+        filevalid = self.is_valid_path(self.ui.twrite_ledit_filepath)
+        addr = text2int(self.ui.twrite_ledit_addr)[0]
+        firstpage = text2int(self.ui.twrite_ledit_page)[0]
+        if self.ui.twrite_ledit_size.text() == 'ошибка':
+            self.logger.error('Не выполнено - размер файла превышает размер выбранной области!')
+            return
+        else:
+            lastpage = firstpage + text2int(self.ui.twrite_ledit_pages)[0] - 1
+
+        ernone = self.ui.twrite_rbtn_ernone.isChecked()
+        erall = self.ui.twrite_rbtn_erall.isChecked()
+        erpages = self.ui.twrite_rbtn_erpages.isChecked()
+        verif = self.ui.twrite_chbox_verif.isChecked()
+        jump = self.ui.twrite_chbox_jump.isChecked() and self.is_riscv_arch()
+        jumpaddr = text2int(self.ui.twrite_ledit_jumpaddr)[0]
+
+        if filevalid:
+            self.logger.info('Файл - "%s", размер %d байт' % (filepath, os.path.getsize(filepath)))
+        else:
+            self.logger.error('Не выполнено - файла "%s" не существует!' % filepath)
+            return
+
+        self.logger.info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
+
+        if ernone:
+            self.logger.info('Стирание - нет')
+        elif erall:
+            self.logger.info('Стирание - вся область')
+        elif erpages:
+            self.logger.info('Стирание - только необходимые страницы')
+        else:
+            self.logger.error('Не выполнено - режим стирания не определён')
+            return
+
+        curr_flash = self.current_controller_flash()[self.get_curr_region()]
+        if verif:
+            for p in range(firstpage, lastpage + 1):
+                if curr_flash.rd_lock[p]:
+                    verif = False
+                    self.logger.warning('Верификация невозможна - одна или несколько считываемых страниц защищены от чтения')
+        self.logger.info('Верификация - %s' % ("да" if verif else "нет"))
+
+        for p in range(firstpage, lastpage + 1):
+            if curr_flash.wr_lock[p]:
+                self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                return
+
+        if erall:
+            for page_locked in curr_flash.wr_lock:
+                if page_locked:
+                    self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                    return
+        
+        self._protocol_write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage, ernone=ernone,
+                             erall=erall, erpages=erpages, verif=verif, jump=jump, jumpaddr=jumpaddr,
+                             current_region=self.get_curr_region(), current_flash=self.get_curr_flash())
+
+    def exec_tab_erase(self):
+        self.logger.info('Подготовка к выполнению команды стирания. Чтение опций ...')
+        self.logger.info('Флеш - %s' % self.current_controller_flash()["name"].upper())
+        self.logger.info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
+
+        erall = True if self.ui.terase_rbtn_erall.isChecked() else False
+        erpages = True if self.ui.terase_rbtn_erpages.isChecked() else False
+
+        curr_flash = self.current_controller_flash()[self.get_curr_region()]
+        if erall:
+            firstpage = 0
+            lastpage = curr_flash.pages - 1
+            self.logger.info('Стирание - вся область')
+        elif erpages:
+            firstpage = text2int(self.ui.terase_ledit_page)[0]
+            pages = text2int(self.ui.terase_ledit_pages)[0]
+            if pages:
+                lastpage = firstpage + pages - 1
+            else:
+                self.logger.error('Не выполнено - не определён размер стираемой области')
+                return
+        else:
+            self.logger.error('Не выполнено - режим стирания не определён')
+            return
+
+        if erpages:
+            size = text2int(self.ui.terase_ledit_size)[0]
+        else:
+            size = curr_flash.size
+        self.logger.info('Модифицируемые страницы - %d ... %d (%d байт)' % (firstpage, lastpage, size))
+
+        for p in range(firstpage, lastpage + 1):
+            if curr_flash.wr_lock[p]:
+                self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                return
+
+        self._protocol_erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages,
+                             current_region=self.get_curr_region(), current_flash=self.get_curr_flash())
+
+
+    def exec_tab_read(self):
+        self.logger.info('Подготовка к выполнению команды чтения. Чтение опций ...')
+        self.logger.info('Флеш - %s' % self.current_controller_flash()["name"].upper())
+        self.logger.info('Область - %s' % ("основная" if self.get_curr_region() == "region_main" else "NVR/Info"))
+        filepath = self.ui.tread_ledit_filepath.text()
+        try:
+            open(filepath, 'w')
+        except (FileNotFoundError, IsADirectoryError, PermissionError):
+            self.logger.error('Не выполнено - некорректный путь для сохранения')
+            return
+        size = text2int(self.ui.tread_ledit_size)[0]
+        self.logger.info('Файл - "%s", размер %d байт' % (filepath, size))
+        firstpage = text2int(self.ui.tread_ledit_page)[0]
+        pages = text2int(self.ui.tread_ledit_pages)[0]
+        if pages:
+            lastpage = firstpage + pages - 1
+        else:
+            self.logger.error('Не выполнено - не определён размер считываемой области')
+            return
+
+        self.logger.info('Считываемые страницы - %d ... %d' % (firstpage, lastpage))
+
+        curr_flash = self.current_controller_flash()[self.get_curr_region()]
+        for p in range(firstpage, lastpage + 1):
+            if curr_flash.rd_lock[p]:
+                self.logger.error('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
+                return
+
+        self._protocol_read(filepath=filepath, firstpage=firstpage, lastpage=lastpage,
+                            current_region=self.get_curr_region(), current_flash=self.get_curr_flash())
+
+    def exec_tab_config(self):
+        if self.ui.tconfig_rbtn_read.isChecked():
+            self._protocol_get_cfg_word()
+            return
+
+        self._protocol_set_cfg_word()
+
+    def exec_tab_config_015(self, cfgword=None):
+        widget015 = self.ui.tconfig_widget_cfg
+        if cfgword:
+            widget015.ui.chbox_flashwe.setChecked(cfgword['flashwe'])
+            widget015.ui.chbox_nvrwe.setChecked(cfgword['nvrwe'])
+            widget015.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
+        else:
+            cfgword = dict()
+            cfgword['flashwe'] = widget015.ui.chbox_flashwe.isChecked()
+            cfgword['nvrwe'] = widget015.ui.chbox_nvrwe.isChecked()
+            cfgword['jtagen'] = widget015.ui.chbox_jtagen.isChecked()
+        return cfgword
+
+    def exec_tab_config_035(self, cfgword=None):
+        widget035 = self.ui.tconfig_widget_cfg
+        if cfgword:
+            widget035.ui.chbox_bmodedis.setChecked(cfgword['bmodedis'])
+            widget035.ui.chbox_flashwe.setChecked(cfgword['flashwe'])
+            widget035.ui.chbox_nvrwe.setChecked(cfgword['nvrwe'])
+            widget035.ui.chbox_debugen.setChecked(cfgword['debugen'])
+            widget035.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
+            widget035.ui.chbox_flashre.setChecked(cfgword['flashre'])
+            widget035.ui.chbox_nvrre.setChecked(cfgword['nvrre'])
+        else:
+            cfgword = dict()
+            cfgword['bmodedis'] = widget035.ui.chbox_bmodedis.isChecked()
+            cfgword['flashwe'] = widget035.ui.chbox_flashwe.isChecked()
+            cfgword['nvrwe'] = widget035.ui.chbox_nvrwe.isChecked()
+            cfgword['debugen'] = widget035.ui.chbox_debugen.isChecked()
+            cfgword['jtagen'] = widget035.ui.chbox_jtagen.isChecked()
+            cfgword['flashre'] = widget035.ui.chbox_flashre.isChecked()
+            cfgword['nvrre'] = widget035.ui.chbox_nvrre.isChecked()
+        return cfgword
+
+    def exec_tab_config_028(self, cfgword=None):
+        widget028 = self.ui.tconfig_widget_cfg
+        if cfgword:
+            widget028.ui.chbox_bflashre.setChecked(cfgword['bflashre'])
+            widget028.ui.chbox_bflashwe.setChecked(cfgword['bflashwe'])
+            widget028.ui.chbox_bnvrre.setChecked(cfgword['bnvrre'])
+            widget028.ui.chbox_bnvrwe.setChecked(cfgword['bnvrwe'])
+            widget028.ui.chbox_mflashre.setChecked(cfgword['mflashre'])
+            widget028.ui.chbox_mflashwe.setChecked(cfgword['mflashwe'])
+            widget028.ui.chbox_mnvrre.setChecked(cfgword['mnvrre'])
+            widget028.ui.chbox_mnvrwe.setChecked(cfgword['mnvrwe'])
+            widget028.ui.chbox_debugen.setChecked(cfgword['debugen'])
+            widget028.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
+            widget028.ui.combo_af.setCurrentIndex(int(cfgword['af']))
+            widget028.ui.combo_mode.setCurrentIndex(int(cfgword['mode']))
+            widget028.ui.ledit_mask.setText('0x%03x' % cfgword['mask'])
+            widget028.ui.ledit_rdc.setText('0x%01x' % cfgword['rdc'])
+            widget028.ui.ledit_wrc.setText('0x%01x' % cfgword['wrc'])
+            widget028.ui.ledit_tac.setText('0x%01x' % cfgword['tac'])
+        else:
+            cfgword = dict()
+            cfgword['bflashre'] = widget028.ui.chbox_bflashre.isChecked()
+            cfgword['bflashwe'] = widget028.ui.chbox_bflashwe.isChecked()
+            cfgword['bnvrre'] = widget028.ui.chbox_bnvrre.isChecked()
+            cfgword['bnvrwe'] = widget028.ui.chbox_bnvrwe.isChecked()
+            cfgword['mflashre'] = widget028.ui.chbox_mflashre.isChecked()
+            cfgword['mflashwe'] = widget028.ui.chbox_mflashwe.isChecked()
+            cfgword['mnvrre'] = widget028.ui.chbox_mnvrre.isChecked()
+            cfgword['mnvrwe'] = widget028.ui.chbox_mnvrwe.isChecked()
+            cfgword['debugen'] = widget028.ui.chbox_debugen.isChecked()
+            cfgword['jtagen'] = widget028.ui.chbox_jtagen.isChecked()
+            cfgword['af'] = widget028.ui.combo_af.currentIndex()
+            cfgword['mode'] = widget028.ui.combo_mode.currentIndex()
+            cfgword['mask'] = text2int(widget028.ui.ledit_mask)[0]
+            cfgword['rdc'] = text2int(widget028.ui.ledit_rdc)[0]
+            cfgword['wrc'] = text2int(widget028.ui.ledit_wrc)[0]
+            cfgword['tac'] = text2int(widget028.ui.ledit_tac)[0]
+        return cfgword
+
+    def exec_tab_config_01t(self, cfgword=None):
+        widget01t = self.ui.tconfig_widget_cfg
+        bflock = widget01t.findChildren(QCheckBox, QtCore.QRegExp('^chbox_bf_lock_page_.*$'))
+        uflock = widget01t.findChildren(QCheckBox, QtCore.QRegExp('^chbox_uf_lock_page_.*$'))
+        if cfgword:
+            widget01t.ui.chbox_bootfrom_ifb.setChecked(cfgword['boot_from_ifb'])
+            widget01t.ui.chbox_en_gpio.setChecked(cfgword['en_gpio'])
+            widget01t.ui.combo_extmemsel.setCurrentIndex(int(cfgword['extmem_sel']))
+            widget01t.ui.combo_pinnum.setCurrentIndex(int(cfgword['pinnum']))
+            widget01t.ui.combo_portnum.setCurrentIndex(int(cfgword['portnum']) & 7)
+            widget01t.ui.chbox_lock_ifb_lf.setChecked(cfgword['lock_ifb_lf'])
+            widget01t.ui.chbox_bfre.setChecked(cfgword['bfre'])
+            widget01t.ui.chbox_bfifbre.setChecked(cfgword['bfifbre'])
+            widget01t.ui.chbox_lock_ifb_uf.setChecked(cfgword['lock_ifb_uf'])
+            widget01t.ui.chbox_ufre.setChecked(cfgword['ufre'])
+            widget01t.ui.chbox_ufifbre.setChecked(cfgword['ufifbre'])
+            for p in range(0, len(bflock)):
+                bflock[p].setChecked(cfgword['bflock'][p])
+            for p in range(0, len(uflock)):
+                uflock[p].setChecked(cfgword['uflock'][p])
+        else:
+            cfgword = dict()
+            cfgword['boot_from_ifb'] = widget01t.ui.chbox_bootfrom_ifb.isChecked()
+            cfgword['en_gpio'] = widget01t.ui.chbox_en_gpio.isChecked()
+            cfgword['extmem_sel'] = widget01t.ui.combo_extmemsel.currentIndex()
+            cfgword['pinnum'] = widget01t.ui.combo_pinnum.currentIndex()
+            cfgword['portnum'] = widget01t.ui.combo_portnum.currentIndex() & 7
+            cfgword['lock_ifb_lf'] = widget01t.ui.chbox_lock_ifb_lf.isChecked()
+            cfgword['bfre'] = widget01t.ui.chbox_bfre.isChecked()
+            cfgword['bfifbre'] = widget01t.ui.chbox_bfifbre.isChecked()
+            cfgword['lock_ifb_uf'] = widget01t.ui.chbox_lock_ifb_uf.isChecked()
+            cfgword['ufre'] = widget01t.ui.chbox_ufre.isChecked()
+            cfgword['ufifbre'] = widget01t.ui.chbox_ufifbre.isChecked()
+            cfgword['bflock'] = [1] * len(bflock)
+            cfgword['uflock'] = [1] * len(uflock)
+            for p in range(0, len(bflock)):
+                cfgword['bflock'][p] = 1 if bflock[p].isChecked() else 0
+            for p in range(0, len(uflock)):
+                cfgword['uflock'][p] = 1 if uflock[p].isChecked() else 0
+        return cfgword

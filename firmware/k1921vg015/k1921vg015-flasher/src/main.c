@@ -27,6 +27,7 @@
 #include "csr.h"
 #include "arch.h"
 #include "boot_packet.h"
+#include "boot_led.h"
 
 
 static void DebugInit(void)
@@ -94,8 +95,8 @@ void TimersInit(void){
 
     //tbd015
 
-    RCU->CGCFGAPB |= UART_TMR_EN_Msk; // | TIMEOUT_TMR_EN_Msk;
-    RCU->RSTDISAPB |= UART_TMR_EN_Msk; // | TIMEOUT_TMR_EN_Msk;
+    RCU->CGCFGAPB |= UART_TMR_EN_Msk | BOOTLED_TMR_EN_Msk; // | TIMEOUT_TMR_EN_Msk;
+    RCU->RSTDISAPB |= UART_TMR_EN_Msk | BOOTLED_TMR_EN_Msk; // | TIMEOUT_TMR_EN_Msk;
     UART_TMR->CTRL_bit.MODE = 0;
     UART_TMR->CTRL_bit.DIV = 0; //turn off divider
     UART_TMR->CTRL_bit.CLR = 1;
@@ -103,6 +104,12 @@ void TimersInit(void){
 //    TIMEOUT_TMR->CTRL_bit.MODE = 0;
 //    TIMEOUT_TMR->CTRL_bit.DIV = 0; //turn off divider
 //    TIMEOUT_TMR->CTRL_bit.CLR = 1;
+
+    led_blink_init();
+
+	PLIC_SetIrqHandler (Plic_Mach_Target, BOOTLED_IRQn, led_blink_irq);
+    PLIC_SetPriority   (BOOTLED_IRQn, 0x1);
+    PLIC_IntEnable     (Plic_Mach_Target, BOOTLED_IRQn);
 }
 
 void PeriphInit(void){
@@ -139,9 +146,12 @@ void enter_boot_mode() {
 int main(void) {
     PeriphInit();
 
-    if(boot_init() < 0) {
-        boot_exit();
-    }
+//    if(boot_init() < 0) {
+//        boot_exit(USER_JUMP_ADDRESS);
+//    }
+    boot_init();
+
+    led_blink_deinit();
 
     boot_core();
 

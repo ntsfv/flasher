@@ -1,7 +1,5 @@
 /*==============================================================================
- * UART загрузчик для К1921ВГ015
- *
- * Заголовочный файл ядра загрузчика
+ * ШИМ загрузчика для К1921ВГ015
  *------------------------------------------------------------------------------
  * НИИЭТ, Александр Дыхно <dykhno@niiet.ru>
  * НИИЭТ, Штоколов Филипп
@@ -21,30 +19,15 @@
  *==============================================================================
  */
 
-#ifndef BOOT_CORE_H
-#define BOOT_CORE_H
+#ifndef BOOT_PWM_H
+#define BOOT_PWM_H
 
-#include "boot_conf.h"
+#define LED_DELAY_CYCLES 500
 
 
-// return 0 if start UART byte received
-// return -1 If a UART timeout has occurred
+void led_blink_init();
+void led_blink_deinit();
 
-/**
- * \brief           Try receive start byte from HOST and calculate UART speed
- * \return          0 if start UART byte received  
- *                  -1 If a UART timeout has occurred
- */
-int boot_init(void); 
+void led_blink_irq();
 
-/**
- * \brief           Exit from bootloader to main firmware
- */
- void boot_exit(uint32_t jumpaddr);
-
-/**
- * \brief           Starts bootloader core loop and receives packets from HOST
- */
- void boot_core(void);
-
-#endif //BOOT_CORE_H
+#endif // BOOT_PWM_H
