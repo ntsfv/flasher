@@ -8,7 +8,7 @@ from model.logger.loggable import Loggable
 import model.protocol.serport.serport
 
 
-class SyncSerPort(serial.Serial, model.protocol.serport.serport.SerPort, Loggable):
+class SyncSerPort(model.protocol.serport.serport.SerPort, serial.Serial, Loggable):
     def __init__(self):
         Loggable.__init__(self)
         super().__init__()
@@ -26,13 +26,10 @@ class SyncSerPort(serial.Serial, model.protocol.serport.serport.SerPort, Loggabl
         serial.Serial.open(self)
 
     def reset_input_buffer(self):
-        pass
+        serial.Serial.reset_input_buffer(self)
 
-    @staticmethod
-    def open(port='/dev/ttyUSB0', baudrate=115200) -> model.protocol.serport.serport.SerPort:
-        result = SyncSerPort()
-        result._open(port, baudrate)
-        return result
+    def open(self, port='/dev/ttyUSB0', baudrate=115200):
+        self._open(port, baudrate)
 
     def close(self,):
         serial.Serial.close(self)
@@ -46,7 +43,8 @@ class SyncSerPort(serial.Serial, model.protocol.serport.serport.SerPort, Loggabl
 
 
 if __name__ == '__main__':
-    serport = SyncSerPort.open('COM7')
+    serport = SyncSerPort()
+    serport.open()
     serport.write([0x7F])
     a = serport.read(1)
     print(a)

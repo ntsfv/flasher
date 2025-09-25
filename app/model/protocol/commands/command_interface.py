@@ -16,6 +16,9 @@ class CommandInterface(Loggable):
         self.mcu = mcu
         self.serport = serport
 
+    def open_port(self, port='/dev/ttyUSB0', baudrate=115200):
+        self.serport.open(port, baudrate)
+
     def reset_chip(self, is_riscv: bool):
         self.logger.info(LogId["PROG"] + "Сброс микроконтроллера ...")
         time.sleep(0.1)

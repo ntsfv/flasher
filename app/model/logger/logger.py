@@ -22,6 +22,7 @@ class Logger(metaclass=Singleton):
         logging.addLevelName(logging.CRITICAL, "[CRIT]")
 
         self.logger = logging.getLogger(__name__)
+        self.logger.propagate = False
 
         match log_level:
             case "DEBUG":
@@ -76,10 +77,11 @@ class Logger(metaclass=Singleton):
     def critical(self, message):
         self.logger.critical(message)
 
-    def add_handler(self, handler: logging.Handler, formatter=formatter):
-        handler.setFormatter(formatter)
+    def add_handler(self, handler: logging.Handler):
         self.logger.addHandler(handler)
 
+    def remove_handler(self, handler: logging.Handler):
+        self.logger.removeHandler(handler)
 
 
 class ColoredFormatter(logging.Formatter):

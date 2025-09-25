@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="enabled">
    <bool>true</bool>
   </property>
@@ -9,20 +12,32 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>776</height>
+    <width>666</width>
+    <height>800</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>500</width>
-    <height>650</height>
+    <width>666</width>
+    <height>800</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>600</width>
-    <height>100000</height>
+    <width>920</width>
+    <height>1100</height>
+   </size>
+  </property>
+  <property name="sizeIncrement">
+   <size>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="font">
@@ -38,22 +53,55 @@
    <string notr="true">NIIET Flasher</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="ui.qrc">
+   <iconset resource="view.ui.qrc">
     <normaloff>:/icons/flasher.png</normaloff>:/icons/flasher.png</iconset>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="acceptDrops">
     <bool>false</bool>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_12">
+   <layout class="QVBoxLayout" name="verticalLayout_12" stretch="0,0,0,1,0">
     <item>
      <layout class="QVBoxLayout" name="vbox_options">
       <item>
        <widget class="QGroupBox" name="gbox_connect">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>500</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>166675</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="title">
          <string>Подключение</string>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0,0">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -67,19 +115,25 @@
           <number>0</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="hbox_port">
+          <layout class="QHBoxLayout" name="hbox_port" stretch="1,4,3,2">
            <item>
             <widget class="QPushButton" name="btn_updport">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimumSize">
               <size>
-               <width>21</width>
+               <width>0</width>
                <height>0</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>25</width>
-               <height>25</height>
+               <width>40</width>
+               <height>40</height>
               </size>
              </property>
              <property name="toolTip">
@@ -89,33 +143,51 @@
               <string notr="true"/>
              </property>
              <property name="icon">
-              <iconset resource="ui.qrc">
+              <iconset resource="view.ui.qrc">
                <normaloff>:/icons/update.png</normaloff>:/icons/update.png</iconset>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QComboBox" name="combo_port">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="minimumSize">
               <size>
-               <width>200</width>
+               <width>0</width>
                <height>0</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>16777215</width>
-               <height>25</height>
+               <width>166675</width>
+               <height>40</height>
               </size>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QComboBox" name="combo_baud">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
-               <width>100</width>
-               <height>25</height>
+               <width>166675</width>
+               <height>40</height>
               </size>
              </property>
              <property name="currentIndex">
@@ -165,10 +237,22 @@
            </item>
            <item>
             <widget class="QComboBox" name="combo_arch">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
-               <width>16777215</width>
-               <height>25</height>
+               <width>166675</width>
+               <height>40</height>
               </size>
              </property>
              <item>
@@ -187,16 +271,22 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_connect">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
-             <width>100</width>
+             <width>0</width>
              <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>150</width>
-             <height>25</height>
+             <width>166675</width>
+             <height>40</height>
             </size>
            </property>
            <property name="text">
@@ -237,10 +327,16 @@
             <layout class="QHBoxLayout" name="hbox_flash_select">
              <item>
               <widget class="QRadioButton" name="rbtn_flash0">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="layoutDirection">
@@ -259,10 +355,16 @@
              </item>
              <item>
               <widget class="QRadioButton" name="rbtn_flash1">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="text">
@@ -303,13 +405,13 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="layoutDirection">
@@ -331,13 +433,13 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>23</height>
+                 <height>25</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="text">
@@ -360,21 +462,21 @@
        <bool>true</bool>
       </property>
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
        <size>
-        <width>488</width>
+        <width>520</width>
         <height>320</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>375</height>
+        <height>450</height>
        </size>
       </property>
       <property name="font">
@@ -386,8 +488,32 @@
       <property name="acceptDrops">
        <bool>false</bool>
       </property>
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>4</number>
+      </property>
+      <property name="elideMode">
+       <enum>Qt::ElideNone</enum>
+      </property>
+      <property name="usesScrollButtons">
+       <bool>true</bool>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>false</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
       </property>
       <widget class="QWidget" name="tab_info">
        <property name="enabled">
@@ -418,7 +544,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>23</height>
+                <height>40</height>
                </size>
               </property>
               <property name="text">
@@ -436,9 +562,15 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>100</width>
-                <height>25</height>
+                <width>170</width>
+                <height>40</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Consolas</family>
+                <pointsize>10</pointsize>
+               </font>
               </property>
               <property name="text">
                <string notr="true">0xFFFFFFFF</string>
@@ -453,7 +585,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>23</height>
+                <height>40</height>
                </size>
               </property>
               <property name="text">
@@ -471,9 +603,15 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>100</width>
-                <height>25</height>
+                <width>170</width>
+                <height>40</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Consolas</family>
+                <pointsize>10</pointsize>
+               </font>
               </property>
               <property name="text">
                <string notr="true">0xFFFFFFFF</string>
@@ -488,7 +626,7 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>23</height>
+                <height>40</height>
                </size>
               </property>
               <property name="text">
@@ -500,15 +638,21 @@
              <widget class="QLineEdit" name="tinfo_ledit_bootver">
               <property name="minimumSize">
                <size>
-                <width>100</width>
+                <width>130</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>100</width>
-                <height>25</height>
+                <width>170</width>
+                <height>40</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <family>Consolas</family>
+                <pointsize>10</pointsize>
+               </font>
               </property>
               <property name="text">
                <string notr="true">0.0</string>
@@ -532,6 +676,12 @@
              <size>
               <width>16777215</width>
               <height>83</height>
+             </size>
+            </property>
+            <property name="sizeIncrement">
+             <size>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="text">
@@ -663,7 +813,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="acceptDrops">
@@ -690,8 +840,8 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>20</width>
-                 <height>23</height>
+                 <width>40</width>
+                 <height>40</height>
                 </size>
                </property>
                <property name="text">
@@ -728,9 +878,15 @@
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>100</width>
-                   <height>25</height>
+                   <width>170</width>
+                   <height>40</height>
                   </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0x00000000</string>
@@ -760,9 +916,15 @@
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>100</width>
-                   <height>25</height>
+                   <width>170</width>
+                   <height>40</height>
                   </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0</string>
@@ -791,17 +953,29 @@
                </item>
                <item row="0" column="1">
                 <widget class="QLineEdit" name="twrite_ledit_size">
-                 <property name="minimumSize">
-                  <size>
-                   <width>100</width>
-                   <height>0</height>
-                  </size>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
                  </property>
-                 <property name="maximumSize">
+                 <property name="minimumSize">
                   <size>
                    <width>100</width>
                    <height>25</height>
                   </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>170</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0x00000000</string>
@@ -831,9 +1005,15 @@
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>100</width>
-                   <height>25</height>
+                   <width>170</width>
+                   <height>40</height>
                   </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0</string>
@@ -855,7 +1035,7 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>43</height>
+            <height>56</height>
            </size>
           </property>
           <property name="frameShape">
@@ -870,7 +1050,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>25</height>
+               <height>40</height>
               </size>
              </property>
              <property name="acceptDrops">
@@ -886,7 +1066,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>25</height>
+               <height>40</height>
               </size>
              </property>
              <property name="text">
@@ -899,7 +1079,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>25</height>
+               <height>40</height>
               </size>
              </property>
              <property name="text">
@@ -927,7 +1107,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>25</height>
+               <height>40</height>
               </size>
              </property>
              <property name="text">
@@ -939,54 +1119,56 @@
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,0">
              <item>
-              <layout class="QFormLayout" name="formLayout">
-               <item row="2" column="1">
-                <widget class="QLineEdit" name="twrite_ledit_jumpaddr">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>100</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>100</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string notr="true">0x00000000</string>
-                 </property>
-                 <property name="readOnly">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="0">
-                <widget class="QCheckBox" name="twrite_chbox_jump">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>Переход к исполнению по адресу после подключения</string>
-                 </property>
-                 <property name="text">
-                  <string notr="true">Переход к исполнению по адресу</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <widget class="QCheckBox" name="twrite_chbox_jump">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Переход к исполнению по адресу после подключения</string>
+               </property>
+               <property name="text">
+                <string notr="true">Исполнение по адресу</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="twrite_ledit_jumpaddr">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>170</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Consolas</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string notr="true">0x00000000</string>
+               </property>
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QPushButton" name="btn_jump">
@@ -996,14 +1178,27 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>25</height>
+                </size>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="baseSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
                 </size>
                </property>
                <property name="font">
                 <font>
+                 <family>DejaVu Sans</family>
                  <pointsize>10</pointsize>
                  <weight>50</weight>
                  <italic>false</italic>
@@ -1063,7 +1258,7 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>43</height>
+            <height>56</height>
            </size>
           </property>
           <property name="frameShape">
@@ -1078,7 +1273,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>25</height>
+               <height>40</height>
               </size>
              </property>
              <property name="text">
@@ -1094,7 +1289,7 @@
              <property name="maximumSize">
               <size>
                <width>16777215</width>
-               <height>25</height>
+               <height>40</height>
               </size>
              </property>
              <property name="text">
@@ -1142,9 +1337,15 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>100</width>
-                 <height>25</height>
+                 <width>170</width>
+                 <height>40</height>
                 </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Consolas</family>
+                 <pointsize>10</pointsize>
+                </font>
                </property>
                <property name="text">
                 <string notr="true">0x00000000</string>
@@ -1174,9 +1375,15 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>100</width>
-                 <height>25</height>
+                 <width>170</width>
+                 <height>40</height>
                 </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Consolas</family>
+                 <pointsize>10</pointsize>
+                </font>
                </property>
                <property name="text">
                 <string notr="true">0</string>
@@ -1213,9 +1420,15 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>100</width>
-                 <height>25</height>
+                 <width>170</width>
+                 <height>40</height>
                 </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Consolas</family>
+                 <pointsize>10</pointsize>
+                </font>
                </property>
                <property name="text">
                 <string notr="true">0x00000000</string>
@@ -1245,9 +1458,15 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>100</width>
-                 <height>25</height>
+                 <width>170</width>
+                 <height>40</height>
                 </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>Consolas</family>
+                 <pointsize>10</pointsize>
+                </font>
                </property>
                <property name="text">
                 <string notr="true">0</string>
@@ -1320,7 +1539,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="toolTip">
@@ -1382,9 +1601,15 @@
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>100</width>
-                   <height>25</height>
+                   <width>170</width>
+                   <height>40</height>
                   </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0x00000000</string>
@@ -1414,9 +1639,15 @@
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>100</width>
-                   <height>25</height>
+                   <width>170</width>
+                   <height>40</height>
                   </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0</string>
@@ -1453,9 +1684,15 @@
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>100</width>
-                   <height>25</height>
+                   <width>170</width>
+                   <height>40</height>
                   </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0x00000000</string>
@@ -1485,9 +1722,15 @@
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>100</width>
-                   <height>25</height>
+                   <width>170</width>
+                   <height>40</height>
                   </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <family>Consolas</family>
+                   <pointsize>10</pointsize>
+                  </font>
                  </property>
                  <property name="text">
                   <string notr="true">0</string>
@@ -1546,7 +1789,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>40</height>
+              <height>56</height>
              </size>
             </property>
             <property name="frameShape">
@@ -1561,7 +1804,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="text">
@@ -1577,7 +1820,7 @@
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
-                 <height>25</height>
+                 <height>40</height>
                 </size>
                </property>
                <property name="text">
@@ -1587,6 +1830,9 @@
              </item>
             </layout>
            </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="tconfig_widget_cfg" native="true"/>
           </item>
          </layout>
         </item>
@@ -1602,7 +1848,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>23</height>
+        <height>40</height>
        </size>
       </property>
       <property name="text">
@@ -1640,6 +1886,12 @@
       <property name="value">
        <number>0</number>
       </property>
+      <property name="textVisible">
+       <bool>false</bool>
+      </property>
+      <property name="invertedAppearance">
+       <bool>false</bool>
+      </property>
      </widget>
     </item>
    </layout>
@@ -1649,7 +1901,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
+     <width>666</width>
      <height>26</height>
     </rect>
    </property>
@@ -1667,17 +1919,6 @@
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_help"/>
-  </widget>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <action name="act_exit">
    <property name="text">
@@ -1697,12 +1938,12 @@
   <customwidget>
    <class>FileWidget</class>
    <extends>QWidget</extends>
-   <header location="global">widgets.filechooserline</header>
+   <header location="global">view.widgets.filechooserline</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="ui.qrc"/>
+  <include location="view.ui.qrc"/>
  </resources>
  <connections>
   <connection>
@@ -2186,22 +2427,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>twrite_chbox_jump</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>MainWindow</receiver>
-   <slot>handle_twrite_chbox_jump_toggled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>109</x>
-     <y>436</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1</x>
-     <y>486</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>btn_jump</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
@@ -2230,6 +2455,22 @@
     <hint type="destinationlabel">
      <x>0</x>
      <y>191</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>twrite_chbox_jump</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>handle_twrite_chbox_jump_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>109</x>
+     <y>436</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1</x>
+     <y>486</y>
     </hint>
    </hints>
   </connection>

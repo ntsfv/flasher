@@ -4,17 +4,16 @@
 """
 K1921VKx Flasher Utility
 """
-
 # -- Imports ------------------------------------------------------------------
-import sys
 import os
-import time
-import getopt
 
+from PyQt5.QtCore import QThreadPool
+
+from utils.constants import VERSION
+from viewmodel.logger.logger_handler import LoggerWidgetHandler
 from viewmodel.protocol.protocol import Protocol
-import traceback
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QDialog, QTableWidgetItem, QMessageBox,
+from PyQt5.QtWidgets import (QMainWindow, QDialog, QTableWidgetItem,
                              QHeaderView, QAction, QFileDialog, QLineEdit, QFrame, QWidget, QComboBox, QCheckBox)
 from PyQt5.QtGui import (QIcon, QPixmap, QCursor, QRegExpValidator, QTextCursor, QPalette, QColor)
 
@@ -31,36 +30,32 @@ from view.config035_view import Ui_Config035
 from view.config1921_view import Ui_Config1921
 from view.main_view import Ui_MainWindow
 
-# -- Global variables ---------------------------------------------------------
-VERSION = "1.3"
 
-
-# -- Misc functions -----------------------------------------------------------
-
-# -- Main window --------------------------------------------------------------
-class MyMainWindow(QMainWindow, Loggable):
+# This class still have some View layer functionality
+# But this is not doesnt matter for now
+class MainWindowViewModel(QMainWindow, Loggable):
     def __init__(self):
         Loggable.__init__(self)
         QMainWindow.__init__(self)
 
-        self.debug = True
+        # add logging
+        self.handler = LoggerWidgetHandler(self.log)
+        self.logger.add_handler(self.handler)
 
         self.mcu = mcu.get_by_name('k1921')
         self.serport = SyncSerPort()
-        self.prot = Protocol(self.mcu, self.serport)
+        self.prot = Protocol(self.mcu, self.serport, self.pbar_set)
 
         # Set up the user interface from QtDesigner
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
-        self.ui.tconfig_widget_cfg = QWidget(self.ui.tab_config)
-        self.ui.tconfig_vbox.addWidget(self.ui.tconfig_widget_cfg)
+        self.change_pbar_style()
 
         self.ui.tconfig_frm_cfg = QFrame(self.ui.tab_config)
 
         self.ui.btn_updport.clicked.emit()
 
-        self.ui.tedit_log.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.tedit_log.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.tedit_log.customContextMenuRequested.connect(self.handle_tedit_log_context_menu)
 
         allowed_nums = "^((0x|)[0-9A-Fa-f]{1,8})|([0-9]{1,10})$"
@@ -120,6 +115,179 @@ class MyMainWindow(QMainWindow, Loggable):
             self.ui.tread_ledit_filepath,
         ]
 
+        # collection of buttons that can send commands
+        # tho in multithreaded should be blocked
+        # because mcu is not multithreadable
+        self.command_senders = [
+            self.ui.btn_connect,
+            self.ui.btn_exec,
+            self.ui.btn_jump
+        ]
+
+        # last executed command (should be in memory for callbacks via signals)
+        self.command = None
+
+    @staticmethod
+    def _blockable(func):
+        def wrapper(self, *args, **kwargs):
+            self.pbar_set(0)
+            self.change_pbar_style()
+            self.block_commands()
+            akwargs = func(self, *args, **kwargs)
+            self.command.finished.connect(self._default_protocol_callback())
+            self.command.start(self.mcu, self.serport, **akwargs)
+
+        return wrapper
+
+    def _default_protocol_callback(self):
+        def wrapped_callback(data):
+            error = data['error']
+            self.unblock_commands()
+
+            if error and self.serport.name not in list_ports():
+                self.pbar_set(100)
+                self.change_pbar_style(True)
+                self.update_gui("Подключиться", False)
+
+        return wrapped_callback
+
+
+    # -- Protocol wrappers --
+    @_blockable
+    def _protocol_init(self, port, baud):
+        def init_callback(data):
+            error = data['error']
+            mcu = data['data']
+
+            if not error:
+                self.mcu = mcu
+                self.update_gui("Отключиться", True)
+                return
+
+        self.command = self.prot.Init()
+        self.command.finished.connect(init_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            'port': port,
+            'baud': baud,
+            'is_riscv': self.is_riscv_arch()
+        }
+
+    @_blockable
+    def _protocol_deinit(self):
+        def deinit_callback(data):
+            self.unblock_commands()
+            self.mcu = mcu.get_by_name('k1921')
+            self.update_gui("Подключиться", False)
+
+        self.command = self.prot.DeInit()
+        self.command.finished.connect(deinit_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            'is_riscv': self.is_riscv_arch()
+        }
+
+
+    @_blockable
+    def _protocol_write(self, **kwargs):
+        def write_callback(data):
+            is_jumped = data['data']
+            self.unblock_commands()
+
+            if not is_jumped:
+                self.logger.info('Перехода к исполнению программы - нет')
+                return
+
+            self.logger.info('Устройство отключено')
+            self.mcu = mcu.get_by_name('k1921')
+            self.update_gui("Подключиться", False)
+
+
+        self.command = self.prot.Write()
+        self.command.finished.connect(write_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_erase(self, **kwargs):
+        self.command = self.prot.Erase()
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_read(self, **kwargs):
+        self.command = self.prot.Read()
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_get_cfg_word(self, **kwargs):
+        def get_cfg_word_callback(data):
+            cfgword = data['data']
+            if cfgword:
+                self.update_cfg_word(cfgword)
+
+
+        self.command = self.prot.GetCfgWord()
+        self.command.finished.connect(get_cfg_word_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_set_cfg_word(self, **kwargs):
+        cfgword = self.get_cfg_word()
+        def set_cfg_word_callback(data):
+            self.mcu.apply_cfgword(cfgword)
+            self.upd_flash_selected()
+
+        self.command = self.prot.SetCfgWord()
+        self.command.finished.connect(set_cfg_word_callback)
+        return {
+            'pbar_callback': self.pbar_set,
+            'cfgword': cfgword,
+            **kwargs
+        }
+
+    @_blockable
+    def _protocol_jump(self, **kwargs):
+        self.command = self.prot.Jump()
+        return {
+            'pbar_callback': self.pbar_set,
+            **kwargs
+        }
+
+    def update_cfg_word(self, cfgword):
+        self.mcu.apply_cfgword(cfgword)
+        self.upd_flash_selected()
+        if self.mcu.name == 'k1921vk035':
+            self.exec_tab_config_035(cfgword)
+        elif self.mcu.name == 'k1921vk028':
+            self.exec_tab_config_028(cfgword)
+        if self.mcu.name == 'k1921vg015':
+            self.exec_tab_config_015(cfgword)
+        elif self.mcu.name == 'k1921vk01t':
+            self.exec_tab_config_01t(cfgword)
+
+    def get_cfg_word(self):
+        match self.mcu.name:
+            case 'k1921vk035':
+                return self.exec_tab_config_035()
+            case 'k1921vk028':
+                return self.exec_tab_config_028()
+            case 'k1921vg015':
+                return self.exec_tab_config_015()
+            case 'k1921vk01t':
+                return self.exec_tab_config_01t()
+        return None
+
     # -- Helpers --
     def current_controller_flash(self):
         return self.mcu.flash[self.get_curr_flash()]
@@ -127,14 +295,28 @@ class MyMainWindow(QMainWindow, Loggable):
     def is_riscv_arch(self):
         return self.ui.combo_arch.currentText() == "RISC-V"
 
+    def change_pbar_style(self, is_error=False):
+        self.ui.pbar.setStyleSheet("""
+             QProgressBar::chunk {
+                 background-color: %s;
+             }
+         """ % '#dc3545' if is_error else '#28a745')
+
     def pbar_set(self, value):
         self.logger.debug("<%s> %d" % (whoami(), int(value)))
         self.ui.pbar.setValue(int(value))
 
+    def log(self, status):
+        self.ui.tedit_log.appendHtml(status)
+
     # -- Events --
     def closeEvent(self, event):
         if self.serport.is_open:
-            self.prot.deinit(is_riscv=self.is_riscv_arch())
+            self._protocol_deinit()
+
+        QThreadPool.globalInstance().waitForDone()
+        self.logger.remove_handler(self.handler)
+        del self.handler
         event.accept()
 
     # -- Slots --
@@ -255,32 +437,27 @@ class MyMainWindow(QMainWindow, Loggable):
         self.ui.tedit_log.moveCursor(QTextCursor.End)
         self.ui.pbar.reset()
         self.logger.info("--------------------")
-        update_gui = False
         port = self.ui.combo_port.currentText()
         baud = self.ui.combo_baud.currentText()
-        is_riscv = self.is_riscv_arch()
-        if not self.is_connected():
-            if not self.ui.combo_port.count():
-                self.logger.warning("Выберите COM-порт!")
-            else:
-                state = True
-                btn_text = "Отключиться"
-                try:
-                    self.mcu = self.prot.init(port=port, baud=baud, is_riscv=is_riscv)
-                    update_gui = True
-                except:
-                    self.prot.deinit(is_riscv=self.is_riscv_arch())
-                    self.logger.error("Подключиться не удалось. Убедитесь что загрузчик разрешён и сбросьте устройство.")
-                    traceback.print_exc()
-        else:
-            state = False
-            btn_text = "Подключиться"
-            self.prot.deinit(is_riscv=self.is_riscv_arch())
-            self.mcu = mcu.get_by_name('k1921')
-            update_gui = True
+        if self.is_connected():
+            self._protocol_deinit()
+            return
+        if not self.ui.combo_port.count():
+            self.logger.warning("Выберите COM-порт!")
+            return
 
-        if update_gui:
-            self.update_gui(btn_text, state)
+        self._protocol_init(port, baud)
+
+    def block_commands(self):
+        for sender in self.command_senders:
+            sender.setEnabled(False)
+
+    def unblock_commands(self):
+        for sender in self.command_senders:
+            if sender.objectName() == 'btn_jump' and self.is_riscv_arch():
+                sender.setEnabled(False)
+                continue
+            sender.setEnabled(True)
 
     def update_gui(self, btn_text, state):
         self.ui.btn_connect.setText(btn_text)
@@ -572,32 +749,13 @@ class MyMainWindow(QMainWindow, Loggable):
         elif self.mcu.name == 'k1921':
             pass
 
-    def exec_prot_wrapper(self, str_ok, str_fail, cmdf):
-        ret = None
-        msgbox = QMessageBox(self)
-        msgbox.addButton(QMessageBox.Ok)
-        msgbox.setIcon(QMessageBox.Information)
-        try:
-            exec_start = time.time()
-            ret = cmdf()
-            res_str = "%s Время: %0.3f сек." % (str_ok, (time.time() - exec_start))
-            self.logger.info(res_str)
-            msgbox.setText(res_str)
-            msgbox.exec_()
-        except:
-            self.logger.error(str_fail)
-            traceback.print_exc()
-        return ret
-
     def exec_tab_info(self):
         pass
 
     def exec_jump(self):
         jumpaddr = text2int(self.ui.twrite_ledit_jumpaddr)[0]
 
-        self.exec_prot_wrapper(str_ok='Команда перехода выполнена!',
-                               str_fail='Команда перехода не выполнена - ошибка протокола!',
-                               cmdf=lambda: self.prot.jump(jumpaddr=jumpaddr))
+        self._protocol_jump(jumpaddr=jumpaddr)
 
         self.logger.info('Устройство отключено')
         self.mcu = mcu.get_by_name('k1921')
@@ -612,7 +770,8 @@ class MyMainWindow(QMainWindow, Loggable):
         addr = text2int(self.ui.twrite_ledit_addr)[0]
         firstpage = text2int(self.ui.twrite_ledit_page)[0]
         if self.ui.twrite_ledit_size.text() == 'ошибка':
-            return self.logger.error('Не выполнено - размер файла превышает размер выбранной области!')
+            self.logger.error('Не выполнено - размер файла превышает размер выбранной области!')
+            return
         else:
             lastpage = firstpage + text2int(self.ui.twrite_ledit_pages)[0] - 1
 
@@ -626,7 +785,8 @@ class MyMainWindow(QMainWindow, Loggable):
         if filevalid:
             self.logger.info('Файл - "%s", размер %d байт' % (filepath, os.path.getsize(filepath)))
         else:
-            return self.logger.error('Не выполнено - файла "%s" не существует!' % filepath)
+            self.logger.error('Не выполнено - файла "%s" не существует!' % filepath)
+            return
 
         self.logger.info('Модифицируемые страницы - %d ... %d' % (firstpage, lastpage))
 
@@ -637,7 +797,8 @@ class MyMainWindow(QMainWindow, Loggable):
         elif erpages:
             self.logger.info('Стирание - только необходимые страницы')
         else:
-            return self.logger.error('Не выполнено - режим стирания не определён')
+            self.logger.error('Не выполнено - режим стирания не определён')
+            return
 
         curr_flash = self.current_controller_flash()[self.get_curr_region()]
         if verif:
@@ -649,26 +810,18 @@ class MyMainWindow(QMainWindow, Loggable):
 
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
-                return self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                return
 
         if erall:
             for page_locked in curr_flash.wr_lock:
                 if page_locked:
-                    return self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
-
-        self.exec_prot_wrapper(str_ok='Команда записи выполнена!',
-                               str_fail='Команда записи не выполнена - ошибка протокола!',
-                               cmdf=lambda: self.prot.write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage,
-                                                            ernone=ernone, erall=erall, erpages=erpages,
-                                                            verif=verif, jump=jump, jumpaddr=jumpaddr))
-
-        if jump:
-            self.logger.info('Устройство отключено')
-            self.mcu = mcu.get_by_name('k1921')
-            self.update_gui("Подключиться", False)
-        else:
-            self.logger.info('Перехода к исполнению программы - нет')
-
+                    self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                    return
+        
+        self._protocol_write(filepath=filepath, addr=addr, firstpage=firstpage, lastpage=lastpage, ernone=ernone,
+                             erall=erall, erpages=erpages, verif=verif, jump=jump, jumpaddr=jumpaddr,
+                             current_region=self.get_curr_region(), current_flash=self.get_curr_flash())
 
     def exec_tab_erase(self):
         self.logger.info('Подготовка к выполнению команды стирания. Чтение опций ...')
@@ -689,9 +842,11 @@ class MyMainWindow(QMainWindow, Loggable):
             if pages:
                 lastpage = firstpage + pages - 1
             else:
-                return self.logger.error('Не выполнено - не определён размер стираемой области')
+                self.logger.error('Не выполнено - не определён размер стираемой области')
+                return
         else:
-            return self.logger.error('Не выполнено - режим стирания не определён')
+            self.logger.error('Не выполнено - режим стирания не определён')
+            return
 
         if erpages:
             size = text2int(self.ui.terase_ledit_size)[0]
@@ -701,11 +856,12 @@ class MyMainWindow(QMainWindow, Loggable):
 
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
-                return self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
+                return
 
-        self.exec_prot_wrapper(str_ok='Команда стирания выполнена!',
-                               str_fail='Команда стирания не выполнена - ошибка протокола!',
-                               cmdf=lambda: self.prot.erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages))
+        self._protocol_erase(firstpage=firstpage, lastpage=lastpage, erall=erall, erpages=erpages,
+                             current_region=self.get_curr_region(), current_flash=self.get_curr_flash())
+
 
     def exec_tab_read(self):
         self.logger.info('Подготовка к выполнению команды чтения. Чтение опций ...')
@@ -715,7 +871,8 @@ class MyMainWindow(QMainWindow, Loggable):
         try:
             open(filepath, 'w')
         except (FileNotFoundError, IsADirectoryError, PermissionError):
-            return self.logger.error('Не выполнено - некорректный путь для сохранения')
+            self.logger.error('Не выполнено - некорректный путь для сохранения')
+            return
         size = text2int(self.ui.tread_ledit_size)[0]
         self.logger.info('Файл - "%s", размер %d байт' % (filepath, size))
         firstpage = text2int(self.ui.tread_ledit_page)[0]
@@ -723,48 +880,26 @@ class MyMainWindow(QMainWindow, Loggable):
         if pages:
             lastpage = firstpage + pages - 1
         else:
-            return self.logger.error('Не выполнено - не определён размер считываемой области')
+            self.logger.error('Не выполнено - не определён размер считываемой области')
+            return
 
         self.logger.info('Считываемые страницы - %d ... %d' % (firstpage, lastpage))
 
         curr_flash = self.current_controller_flash()[self.get_curr_region()]
         for p in range(firstpage, lastpage + 1):
             if curr_flash.rd_lock[p]:
-                return self.logger.error('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
+                self.logger.error('Не выполнено - одна или несколько считываемых страниц защищены от чтения')
+                return
 
-        self.exec_prot_wrapper(str_ok='Команда чтения выполнена!',
-                               str_fail='Команда чтения не выполнена - ошибка протокола!',
-                               cmdf=lambda: self.prot.read(filepath=filepath, firstpage=firstpage, lastpage=lastpage))
+        self._protocol_read(filepath=filepath, firstpage=firstpage, lastpage=lastpage,
+                            current_region=self.get_curr_region(), current_flash=self.get_curr_flash())
 
     def exec_tab_config(self):
         if self.ui.tconfig_rbtn_read.isChecked():
-            cfgword = self.exec_prot_wrapper(str_ok='Команда чтения CFGWORD выполнена!',
-                                             str_fail='Команда чтения CFGWORD не выполнена!',
-                                             cmdf=lambda: self.prot.get_cfgword())
-            self.mcu.apply_cfgword(cfgword)
-            self.upd_flash_selected()
-            if self.mcu.name == 'k1921vk035':
-                self.exec_tab_config_035(cfgword)
-            elif self.mcu.name == 'k1921vk028':
-                self.exec_tab_config_028(cfgword)
-            if self.mcu.name == 'k1921vg015':
-                self.exec_tab_config_015(cfgword)
-            elif self.mcu.name == 'k1921vk01t':
-                self.exec_tab_config_01t(cfgword)
-        else:
-            if self.mcu.name == 'k1921vk035':
-                cfgword = self.exec_tab_config_035()
-            elif self.mcu.name == 'k1921vk028':
-                cfgword = self.exec_tab_config_028()
-            if self.mcu.name == 'k1921vg015':
-                cfgword = self.exec_tab_config_015()
-            elif self.mcu.name == 'k1921vk01t':
-                cfgword = self.exec_tab_config_01t()
-            self.exec_prot_wrapper(str_ok='Команда записи CFGWORD выполнена!',
-                                   str_fail='Команда записи CFGWORD не выполнена!',
-                                   cmdf=lambda: self.prot.set_cfgword(cfgword=cfgword))
-            self.mcu.apply_cfgword(cfgword)
-            self.upd_flash_selected()
+            self._protocol_get_cfg_word()
+            return
+
+        self._protocol_set_cfg_word()
 
     def exec_tab_config_015(self, cfgword=None):
         widget015 = self.ui.tconfig_widget_cfg
@@ -773,7 +908,7 @@ class MyMainWindow(QMainWindow, Loggable):
             widget015.ui.chbox_nvrwe.setChecked(cfgword['nvrwe'])
             widget015.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
         else:
-            cfgword = {}
+            cfgword = dict()
             cfgword['flashwe'] = widget015.ui.chbox_flashwe.isChecked()
             cfgword['nvrwe'] = widget015.ui.chbox_nvrwe.isChecked()
             cfgword['jtagen'] = widget015.ui.chbox_jtagen.isChecked()
@@ -790,7 +925,7 @@ class MyMainWindow(QMainWindow, Loggable):
             widget035.ui.chbox_flashre.setChecked(cfgword['flashre'])
             widget035.ui.chbox_nvrre.setChecked(cfgword['nvrre'])
         else:
-            cfgword = {}
+            cfgword = dict()
             cfgword['bmodedis'] = widget035.ui.chbox_bmodedis.isChecked()
             cfgword['flashwe'] = widget035.ui.chbox_flashwe.isChecked()
             cfgword['nvrwe'] = widget035.ui.chbox_nvrwe.isChecked()
@@ -820,7 +955,7 @@ class MyMainWindow(QMainWindow, Loggable):
             widget028.ui.ledit_wrc.setText('0x%01x' % cfgword['wrc'])
             widget028.ui.ledit_tac.setText('0x%01x' % cfgword['tac'])
         else:
-            cfgword = {}
+            cfgword = dict()
             cfgword['bflashre'] = widget028.ui.chbox_bflashre.isChecked()
             cfgword['bflashwe'] = widget028.ui.chbox_bflashwe.isChecked()
             cfgword['bnvrre'] = widget028.ui.chbox_bnvrre.isChecked()
@@ -860,7 +995,7 @@ class MyMainWindow(QMainWindow, Loggable):
             for p in range(0, len(uflock)):
                 uflock[p].setChecked(cfgword['uflock'][p])
         else:
-            cfgword = {}
+            cfgword = dict()
             cfgword['boot_from_ifb'] = widget01t.ui.chbox_bootfrom_ifb.isChecked()
             cfgword['en_gpio'] = widget01t.ui.chbox_en_gpio.isChecked()
             cfgword['extmem_sel'] = widget01t.ui.combo_extmemsel.currentIndex()
@@ -879,243 +1014,3 @@ class MyMainWindow(QMainWindow, Loggable):
             for p in range(0, len(uflock)):
                 cfgword['uflock'][p] = 1 if uflock[p].isChecked() else 0
         return cfgword
-
-
-class ArgParser:
-    def help(self):
-        print("""Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921ВКх.
-Версия v.%s
-
-Доступные ключи: [-hDсeEwvr] [-f flash] [-n region] [-j addr] [-F first] [-L last] [-a addr] [-s size] [-p port] [-b baud] [file.bin]
-        -h          Вывод этого сообщения
-        -D          Включить вывод отладочной информации
-        -с          Командный режим (без графического интерфейса). Наличие ключа необходимо для выполнения любой команды.
-        -f flash    Выбор флеш-памяти. Допустимые значения 'flash' для разных микроконтроллеров:
-                    bootflash, userflash, mflash, bflash
-        -n region   Выбор области флеш-памяти. Допустимые значения 'region' для разных микроконтроллеров:
-                    main, nvr, info
-        -e          Стереть 'pages' страниц, начиная от 'first'
-        -E          Полное стирание
-        -w          Записать 'file.bin' начиная со страницы 'first'. Если добавлены ключи -e или -E - перед записью будет проведено стирание.
-        -v          Верифицировать записанный 'file.bin' (может быть использовано только в паре с -w)
-        -r          Прочитать в файл 'file.bin' страницы от 'first' по 'last' включительно
-        -j addr     Переход на исполнение по глобальному адресу (по этому адресу расположена таблица векторов прерываний)
-        -F first    Номер первой страницы для выполнения команд
-        -L pages    Количество страниц для выполнения команд
-        -a addr     Выбор адреса для выполнения команд
-        -s size     Выбор размера области для выполнения команд
-        -p port     COM-порт
-        -b baud     Баудрейт
-
-        Запись файла led.bin в основную область MFLASH К1921ВК035 с 0 страницы с полным стиранием, верификацией записанного:
-        python3 k1921vkx_flasher.py -cwEv -f mflash -n main -F 0 -p /dev/ttyUSB0 -b 115200 led.bin
-
-        Чтение 4096 байт данных с 0 адреса в файл dump.bin
-        python3 k1921vkx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -a 0 -s 0x1000 dump.bin
-
-        Чтение первых 8 страниц в файл dump.bin
-        python3 k1921vkx_flasher.py -cr -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8 dump.bin
-
-        Стирание первых 8 страниц
-        python3 k1921vkx_flasher.py -ce -p /dev/ttyUSB0 -b 115200 -f mflash -n main -F 0 -L 8
-
-        Полное стирание
-        python3 k1921vkx_flasher.py -cE -p /dev/ttyUSB0 -b 115200 -f mflash -n main
-
-НИИЭТ, 2025""" % (VERSION))
-
-    def do(self, app, win):
-        conf = {
-            "port": None,
-            "baud": None,
-            "flash": None,
-            "region": None,
-            "first_page": None,
-            "pages_used": None,
-            "addr": None,
-            "size": None,
-            "cmd_mode": None,
-            "debug": None,
-            "erase": None,
-            "mass_erase": None,
-            "write": None,
-            "verify": None,
-            "read": None,
-            "jump_prog": None,
-            "flash": None,
-            "region": None,
-        }
-
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "hDceEwvrf:n:j:F:L:a:s:p:b:")
-        except getopt.GetoptError:
-            self.help()
-            sys.exit(2)
-
-        if args:
-            conf['filepath'] = args[0]
-
-        for o, a in opts:
-            #print(o)
-            #print(a)
-            if o == '-h':
-                self.help()
-                sys.exit(0)
-            elif o == '-c':
-                conf['cmd_mode'] = True
-            elif o == '-D':
-                conf['debug'] = True
-            elif o == '-e':
-                conf['erase'] = True
-            elif o == '-E':
-                conf['mass_erase'] = True
-            elif o == '-w':
-                conf['write'] = True
-            elif o == '-v':
-                conf['verify'] = True
-            elif o == '-r':
-                conf['read'] = True
-            elif o == '-j':
-                conf['jump_prog'] = eval(a)
-            elif o == '-p':
-                conf['port'] = a
-            elif o == '-b':
-                conf['baud'] = a
-            elif o == '-f':
-                conf['flash'] = a
-            elif o == '-n':
-                conf['region'] = a
-            elif o == '-F':
-                conf['first_page'] = eval(a)
-            elif o == '-L':
-                conf['pages_used'] = eval(a)
-            elif o == '-a':
-                conf['addr'] = eval(a)
-            elif o == '-s':
-                conf['size'] = eval(a)
-            else:
-                self.help()
-                sys.exit(1)
-        return conf
-
-
-# -- Standalone run -----------------------------------------------------------
-if __name__ == '__main__':
-    from asyncqt import QEventLoop
-
-    import asyncio
-    app = QApplication(sys.argv)
-
-    loop = QEventLoop(app)
-    asyncio.set_event_loop(loop)
-
-    main_window = MyMainWindow()
-    arg_parser = ArgParser()
-    conf = arg_parser.do(app, main_window)
-    main_window.debug = conf['debug']
-    if conf['cmd_mode'] is None:
-        with loop:
-            main_window.show()
-            loop.run_forever()
-    else:
-        def cmd_exit():
-            global main_window
-            if main_window.serport.is_open:
-                main_window.prot.deinit(is_riscv=main_window.is_riscv_arch())
-            sys.exit()
-
-        main_window.logger.info("Режим без графического интерфейса")
-        main_window.ui.btn_updport.clicked.emit()
-        try:
-            port_i = main_window.ui.combo_port.findText(conf['port'])
-            main_window.ui.combo_port.setCurrentIndex(port_i)
-            baud_i = main_window.ui.combo_baud.findText(conf['baud'])
-            main_window.ui.combo_baud.setCurrentIndex(baud_i)
-        except:
-            main_window.logger.error("Заданы некорректные параметры порта!")
-            traceback.print_exc()
-            cmd_exit()
-        main_window.ui.btn_connect.clicked.emit()
-        if main_window.mcu.name == 'k1921':
-            cmd_exit()
-        flash = {'bootflash': 0, 'userflash': 1, 'mflash': 0, 'bflash': 1}
-        region = {'main': 0, 'nvr': 1, 'info': 1}
-        flash_rbtn = [main_window.ui.rbtn_flash0, main_window.ui.rbtn_flash1]
-        region_rbtn = [main_window.ui.rbtn_regionmain, main_window.ui.rbtn_regionnvr]
-        try:
-            flash_rbtn[flash[conf['flash']]].setChecked(True)
-            region_rbtn[region[conf['region']]].setChecked(True)
-        except:
-            main_window.logger.error("Заданы некорректные параметры флеш-памяти!")
-            traceback.print_exc()
-            cmd_exit()
-        if conf['read']:
-            main_window.logger.debug("CMD_READ")
-            main_window.ui.tabs_cmd.setCurrentIndex(3)
-            if conf['filepath']:
-                main_window.ui.tread_ledit_filepath.setText(conf['filepath'])
-                main_window.ui.tread_ledit_filepath.textEdited['QString'].emit(conf['filepath'])
-            if conf['addr']:
-                main_window.ui.tread_ledit_addr.setText('0x%08X' % conf['addr'])
-                main_window.ui.tread_ledit_addr.editingFinished.emit()
-            if conf['size']:
-                main_window.ui.tread_ledit_size.setText('0x%08X' % conf['size'])
-                main_window.ui.tread_ledit_size.editingFinished.emit()
-            if conf['first_page']:
-                main_window.ui.tread_ledit_page.setText('%d' % conf['first_page'])
-                main_window.ui.tread_ledit_page.editingFinished.emit()
-            if conf['pages_used']:
-                main_window.ui.tread_ledit_pages.setText('%d' % conf['pages_used'])
-                main_window.ui.tread_ledit_pages.editingFinished.emit()
-            main_window.ui.btn_exec.clicked.emit()
-        elif conf['write']:
-            main_window.logger.debug("CMD_WRITE")
-            main_window.ui.tabs_cmd.setCurrentIndex(1)
-            if conf['filepath']:
-                main_window.ui.twrite_ledit_filepath.setText(conf['filepath'])
-                main_window.ui.twrite_ledit_filepath.textEdited['QString'].emit(conf['filepath'])
-            if conf['addr']:
-                main_window.ui.twrite_ledit_addr.setText('0x%08X' % conf['addr'])
-                main_window.ui.twrite_ledit_addr.editingFinished.emit()
-            if conf['first_page']:
-                main_window.ui.twrite_ledit_page.setText('%d' % conf['first_page'])
-                main_window.ui.twrite_ledit_page.editingFinished.emit()
-            if conf['erase']:
-                main_window.ui.twrite_rbtn_erpages.setChecked(True)
-            elif conf['mass_erase']:
-                main_window.ui.twrite_rbtn_erall.setChecked(True)
-            else:
-                main_window.ui.twrite_rbtn_ernone.setChecked(True)
-            if conf['verify']:
-                main_window.ui.twrite_chbox_verif.setChecked(True)
-            # TODO: добавить софварный выход из загрузчика
-            # if conf['jump_prog']:
-            #     main_window.ui.twrite_chbox_jump.setEnabled(True)
-            #     main_window.ui.twrite_ledit_jumpaddr.setText('0x%08X' % conf['jump_prog'])
-            #     main_window.ui.twrite_ledit_jumpaddr.editingFinished.emit()
-            main_window.ui.btn_exec.clicked.emit()
-        elif conf['mass_erase']:
-            main_window.logger.debug("CMD_MASS_ERASE")
-            main_window.ui.tabs_cmd.setCurrentIndex(2)
-            main_window.ui.terase_rbtn_erall.setChecked(True)
-            main_window.ui.btn_exec.clicked.emit()
-        elif conf['erase']:
-            main_window.logger.debug("CMD_ERASE")
-            main_window.ui.tabs_cmd.setCurrentIndex(2)
-            main_window.ui.terase_rbtn_erpages.setChecked(True)
-            if conf['addr']:
-                main_window.ui.terase_ledit_addr.setText('0x%08X' % conf['addr'])
-                main_window.ui.terase_ledit_addr.editingFinished.emit()
-            if conf['size']:
-                main_window.ui.terase_ledit_size.setText('0x%08X' % conf['size'])
-                main_window.ui.terase_ledit_size.editingFinished.emit()
-            if conf['first_page']:
-                main_window.ui.terase_ledit_page.setText('%d' % conf['first_page'])
-                main_window.ui.terase_ledit_page.editingFinished.emit()
-            if conf['pages_used']:
-                main_window.ui.terase_ledit_pages.setText('%d' % conf['pages_used'])
-                main_window.ui.terase_ledit_pages.editingFinished.emit()
-            main_window.ui.btn_exec.clicked.emit()
-        else:
-            main_window.logger.error("Команда не задана. Запустите программу с ключом -h чтобы увидеть подсказки")
-        cmd_exit()

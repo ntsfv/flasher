@@ -23,7 +23,7 @@ class MCU:
 class K1921Vx(MCU):
     def __init__(self):
         super().__init__()
-        self.chipid = '0xFFFFFFF'
+        self.chipid = '0xFFFFFFFF'
         self.name = 'k1921'
         self.name_ru = 'К1921Вxххх'
         self.flash_base_address = 0x0
