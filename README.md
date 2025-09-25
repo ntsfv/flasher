@@ -20,12 +20,7 @@
 * pySerial 3.x+
 * PyQt5
 
-
-<<<<<<< OURS
 В [Release](https://gitflic.ru/project/niiet/k1921vkx_flasher/release) репозитория расположены собранные в статичный утилиты ```.exe``` не требующие наличия Python на ПК.
-=======
-В [Релизах](https://gitflic.ru/project/niiet/k1921vkx_flasher/release/793b2797-36f3-48b8-9eda-0f418d4e5c51) репозитория расположена последняя версия утилиты, собранная в статичный ```.exe``` и не требующая наличия Python на ПК.
->>>>>>> THEIRS
 
 Собрать самостоятельно такой ```.exe``` можно с помощью скрипта ```app/misc/make_exe.bat```, если хостовая система Windows.
 Если используется Linux и Wine с помощью ```app/misc/make_exe.sh```.
