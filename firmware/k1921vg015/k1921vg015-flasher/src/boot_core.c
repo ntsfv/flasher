@@ -25,6 +25,7 @@
 #include "boot_core.h"
 #include "boot_flash.h"
 #include "boot_packet.h"
+#include "stdbool.h"
 #include <string.h>
 #include <riscv-csr.h>
 
@@ -54,8 +55,11 @@ int wait_uart_rx(uint32_t value){
 //    TIMEOUT_TMR->CTRL_bit.CLR = 1;
 //    timeout_start = TIMEOUT_TMR->COUNT;
 //    TIMEOUT_TMR->CTRL_bit.MODE = 2;
-
-    while (UART_PORT->MASKLB[1 << UART_PIN_RX_POS].MASKLB != value ) {
+#if UART_PIN_RX_POS < 8
+    while ((bool) (UART_PORT->MASKLB[1 << UART_PIN_RX_POS].MASKLB) != (bool) value) {
+#else
+    while ((bool) (UART_PORT->MASKHB[1 << UART_PIN_RX_POS].MASKHB) != (bool) value) {
+#endif
 //        if((uint32_t)(TIMEOUT_TMR->COUNT - timeout_start) > (uint32_t)(SYSCLK / 1000 * UART_TIMEOUT_MS)) {
 //            return -1;
 //        }
