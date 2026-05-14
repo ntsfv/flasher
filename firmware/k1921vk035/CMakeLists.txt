@@ -21,6 +21,10 @@ SET(CMSIS_CORE_INC_PATH     ${PLATFORM_PATH}/CMSIS/Core/Include)
 SET(DEVICE_SRC_PATH         ${PLATFORM_PATH}/Device/NIIET/K1921VK035/Source/GCC)
 SET(DEVICE_INC_PATH         ${PLATFORM_PATH}/Device/NIIET/K1921VK035/Include)
 
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -gz=zlib-gnu -Wall -Wextra -Werror -fdata-sections -ffunction-sections -Wl,--gc-sections -pipe -DSTR_MODULES_VERSION=${STR_MODULES_VERSION}")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -gz=zlib-gnu -Os -pipe")
+
+
 
 #-- Include dirs ---------------------------------------------------------------
 INCLUDE_DIRECTORIES(${APP_PATH})
@@ -31,13 +35,13 @@ INCLUDE_DIRECTORIES(${DEVICE_INC_PATH})
 #FILE(GLOB_RECURSE APP_SRC ${APP_PATH}/*.c)
 #LIST(APPEND APP_SRC ${DEVICE_SRC_PATH}/startup_K1921VK035.S)
 
-LIST(APPEND APP_SRC ${DEVICE_SRC_PATH}/startup_K1921VK035.S)
+# LIST(APPEND APP_SRC ${DEVICE_SRC_PATH}/startup_K1921VK035.S)
 FILE(GLOB_RECURSE APP_SRC_C ${APP_PATH}/*.c)
 LIST(APPEND APP_SRC ${APP_SRC_C})
 
 
 #-- Linker script --------------------------------------------------------------
-SET(LDSCRIPT ${CMAKE_SOURCE_DIR}/${DEVICE_SRC_PATH}/K1921VK035.ld)
+SET(LDSCRIPT ${CMAKE_SOURCE_DIR}/${DEVICE_SRC_PATH}/K1921VK035_2.ld)
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -T ${LDSCRIPT} -Wl,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map -Wl,--print-memory-usage")
 
 #-- Project linking ------------------------------------------------------------

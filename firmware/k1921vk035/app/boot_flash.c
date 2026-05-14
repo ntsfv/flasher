@@ -24,21 +24,23 @@
 #include "boot_flash.h"
 
 //-- Private functions ---------------------------------------------------------
-static RAMFUNC void flash_cmd(uint32_t addr, FlashType_TypeDef ftype, uint32_t* data, FlashCmd_TypeDef cmd)
+__attribute__ ((section(".data.text"),used))
+void flash_cmd(uint32_t addr, FlashType_TypeDef ftype, uint32_t* data, FlashCmd_TypeDef cmd)
 {
     __NOP();
-    while (MFLASH->STAT_bit.BUSY) {
-    };
+    while (MFLASH->STAT_bit.BUSY) {};
     MFLASH->ADDR = addr;
-    if (cmd == FLASH_WR) {
-        MFLASH->DATA[0].DATA = data[0];
-        MFLASH->DATA[1].DATA = data[1];
+    if ( FLASH_WR == cmd ) {
+      MFLASH->DATA[0].DATA = data[0];
+      MFLASH->DATA[1].DATA = data[1];
     }
-    MFLASH->CMD = FLASH_MAGICKEY_CONST << MFLASH_CMD_KEY_Pos |
-                  cmd | ftype << MFLASH_CMD_NVRON_Pos;
-    if (cmd == FLASH_RD) {
-        while (MFLASH->STAT_bit.BUSY) {
-        };
+    MFLASH->CMD = FLASH_MAGICKEY_CONST << MFLASH_CMD_KEY_Pos
+                | cmd
+                | ftype << MFLASH_CMD_NVRON_Pos
+                ;
+    __NOP();
+    while (MFLASH->STAT_bit.BUSY) {};
+    if ( FLASH_RD == cmd ) {
         data[0] = MFLASH->DATA[0].DATA;
         data[1] = MFLASH->DATA[1].DATA;
     }

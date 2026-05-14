@@ -25,17 +25,18 @@
 #include "boot_core.h"
 #include "boot_flash.h"
 #include "boot_packet.h"
+#include "vectors.h"
 
 //-- Private function prototypes -----------------------------------------------
-static RAMFUNC void msg_cmd(Packet_TypeDef* packet);
-static RAMFUNC void get_info_cmd(Packet_TypeDef* packet);
-static RAMFUNC void get_cfgword_cmd(Packet_TypeDef* packet);
-static RAMFUNC void set_cfgword_cmd(Packet_TypeDef* packet);
-static RAMFUNC void read_page_cmd(Packet_TypeDef* packet);
-static RAMFUNC void write_page_cmd(Packet_TypeDef* packet);
-static RAMFUNC void erase_full_cmd(Packet_TypeDef* packet);
-static RAMFUNC void erase_page_cmd(Packet_TypeDef* packet);
-static RAMFUNC void exit_cmd(Packet_TypeDef* packet);
+void msg_cmd(Packet_TypeDef* packet);
+void get_info_cmd(Packet_TypeDef* packet);
+void get_cfgword_cmd(Packet_TypeDef* packet);
+void set_cfgword_cmd(Packet_TypeDef* packet);
+void read_page_cmd(Packet_TypeDef* packet);
+void write_page_cmd(Packet_TypeDef* packet);
+void erase_full_cmd(Packet_TypeDef* packet);
+void erase_page_cmd(Packet_TypeDef* packet);
+void exit_cmd(Packet_TypeDef* packet);
 
 //-- Functions -----------------------------------------------------------------
 void boot_init()
@@ -44,35 +45,32 @@ void boot_init()
     uint32_t baud_i;
     uint32_t baud_f;
 
-    DBG_PRINT(0x01);
     //Ждем стартового бита - 0
-    while (UART_PORT->DATA & (1 << UART_PIN_RX_POS)) {
-    };
+    while (UART_PORT->DATA & (1 << UART_PIN_RX_POS)) {};
     //включаем счетчик
     TMR->CTRL_bit.ON = 1;
     //Ждём начало группы из семи 1 (передаётся 0x7F)
-    while (!(UART_PORT->DATA & (1 << UART_PIN_RX_POS))) {
-    };
+    while (!(UART_PORT->DATA & (1 << UART_PIN_RX_POS))) {};
     ticks_counted = TMR->VALUE;
     //Ждём нуля
-    while (UART_PORT->DATA & (1 << UART_PIN_RX_POS)) {
-    };
+    while (UART_PORT->DATA & (1 << UART_PIN_RX_POS)) {};
     ticks_counted -= TMR->VALUE;
     TMR->CTRL_bit.ON = 0;
     //Вычисляем баудрейт
     baud_i = ticks_counted / (16 * 7);
-    baud_f = (uint32_t)((ticks_counted / (16.0f * 7.0f) - baud_i) * 64 + 0.5f);
+    baud_f = (ticks_counted * 64 + 8*7) / (16 * 7) - (baud_i * 64);
     //Ждем стопового бита - 1
-    while (!(UART_PORT->DATA & (1 << UART_PIN_RX_POS))) {
-    };
+    while (!(UART_PORT->DATA & (1 << UART_PIN_RX_POS))) {};
     //Включаем UART
     UART->IBRD = baud_i;
     UART->FBRD = baud_f;
-    UART->LCRH = (1 << UART_LCRH_FEN_Pos) | (3 << UART_LCRH_WLEN_Pos);
+    UART->LCRH = (3 << UART_LCRH_WLEN_Pos) | (1 << UART_LCRH_FEN_Pos);
     UART->CR = (1 << UART_CR_RXE_Pos) | (1 << UART_CR_TXE_Pos) | (1 << UART_CR_UARTEN_Pos);
+    //Инициализируем FIFO пакетов
+    packet_fifo_init();
     //передаем сигнатуру устройства с обменянными местами байтами
-    UART->DR = (PACKET_DEVICE_SIGN & 0xFF00) >> 8;
-    UART->DR = PACKET_DEVICE_SIGN & 0x00FF;
+    send_byte( (PACKET_DEVICE_SIGN & 0xFF00) >> 8 );
+    send_byte( PACKET_DEVICE_SIGN & 0x00FF );
 }
 
 void boot_exit()
@@ -81,13 +79,20 @@ void boot_exit()
     NVIC_SystemReset();
 }
 
+Packet_TypeDef packet;
+
+__attribute__((aligned(0x200)))
+volatile IntFunc ram_exception_table[sizeof(exception_table)/sizeof(exception_table[0])];
+
 __attribute__((noreturn)) void boot_core()
 {
-    Packet_TypeDef packet;
+  for ( unsigned int i = 0; i < sizeof(exception_table)/sizeof(exception_table[0]); ++i ) {
+    ram_exception_table[i] = exception_table[i];
+  }
+  __disable_irq();
+  *((volatile uint32_t *)0xE000ED08) = (uint32_t)ram_exception_table; // меняем VTOR
+  __enable_irq();
 
-    DBG_PRINT(0x02);
-    //Инициализируем FIFO пакетов
-    packet_fifo_init();
     //Передаём сообщение о готовности принимать команды
     packet.cmd_code = CMD_NONE;
     packet.tmp_data8[0] = MSG_READY;
@@ -95,8 +100,6 @@ __attribute__((noreturn)) void boot_core()
 
     while (1) {
         packet_recieve(&packet);
-        DBG_PRINT(0x03);
-        DBG_PRINT(packet.cmd_code);
         switch (packet.cmd_code) {
         // Get commands
         case CMD_GET_INFO:
@@ -139,8 +142,9 @@ __attribute__((noreturn)) void boot_core()
 
 void msg_cmd(Packet_TypeDef* packet)
 {
-    if (packet->cmd_code == CMD_NONE)
+    if (packet->cmd_code == CMD_NONE) {
         packet->data_n = 4;
+    }
     packet->tmp_data8[1] = packet->cmd_code;
     packet->tmp_data8[2] = PACKET_EMPTY_DATA;
     packet->tmp_data8[3] = PACKET_EMPTY_DATA;
@@ -282,8 +286,9 @@ void write_page_cmd(Packet_TypeDef* packet)
     for (uint32_t i = 0; i < FLASH_PAGE_SIZE_BYTES / 8; i++) {
         data[0] = packet_fifo_read_u32();
         data[1] = packet_fifo_read_u32();
-        if (modify_en)
+        if (modify_en) {
             flash_write(addr_i, flash_type, data);
+          }
         calc_crc = crc_upd_u32(calc_crc, data[0]);
         calc_crc = crc_upd_u32(calc_crc, data[1]);
         addr_i += 8;
@@ -466,14 +471,14 @@ void exit_cmd(Packet_TypeDef* packet)
     rx_crc = packet_fifo_read_u16();
 
     packet->data_n = 4;
-    if (calc_crc != rx_crc)
-        packet->tmp_data8[0] = MSG_ERR_CRC;
-    else
-        packet->tmp_data8[0] = MSG_OK;
+    if (calc_crc != rx_crc) {
+      packet->tmp_data8[0] = MSG_ERR_CRC;
+    } else {
+      packet->tmp_data8[0] = MSG_OK;
+    }
 
     msg_cmd(packet);
-    while (packet_transmit_status_busy()) {
-    };
+    while (packet_transmit_status_busy()) {};
 
     boot_exit();
 }

@@ -85,15 +85,17 @@ typedef struct
 } Packet_TypeDef;
 
 //--- Function prototypes ------------------------------------------------------
-RAMFUNC void packet_fifo_init();
-RAMFUNC uint8_t packet_fifo_read();
-RAMFUNC uint32_t packet_fifo_read_u32();
-RAMFUNC uint16_t packet_fifo_read_u16();
-RAMFUNC void packet_recieve(Packet_TypeDef* cmd);
-RAMFUNC void packet_transmit(Packet_TypeDef* tx_packet);
-RAMFUNC uint32_t packet_transmit_status_busy();
-RAMFUNC uint16_t crc_upd(uint16_t crc_in, uint8_t data);
-RAMFUNC uint16_t crc_upd_u32(uint16_t crc_in, uint32_t data);
-RAMFUNC uint16_t crc_upd_u16(uint16_t crc_in, uint16_t data);
+void packet_fifo_init();
+uint8_t packet_fifo_read();
+uint32_t packet_fifo_read_u32();
+uint16_t packet_fifo_read_u16();
+void packet_recieve(Packet_TypeDef* cmd);
+void packet_transmit(Packet_TypeDef* tx_packet);
+uint32_t packet_transmit_status_busy();
+uint16_t crc_upd(uint16_t crc_in, uint8_t data);
+uint16_t crc_upd_u32(uint16_t crc_in, uint32_t data);
+uint16_t crc_upd_u16(uint16_t crc_in, uint16_t data);
+void send_byte( uint8_t a_byte );
+void packet_fifo_init();
 
 #endif //BOOT_PACKET_H

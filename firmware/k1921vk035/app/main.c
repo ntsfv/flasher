@@ -24,52 +24,34 @@
 #include "boot_core.h"
 
 //-- Init functions ------------------------------------------------------------
-static void DebugInit()
-{
-#ifdef DEBUG
-    // настраиваем служебные выводы на выход
-    RCU->HCLKCFG = DBG_PORT_EN;
-    RCU->HRSTCFG = DBG_PORT_EN;
-    DBG_PORT->DENSET = DBG_INFO_MSK << 8;
-    DBG_PORT->OUTENSET = DBG_INFO_MSK << 8;
-#endif
+void some_stuck() {
+  for( volatile int i = 0; i < 10000; ++i ) {}
 }
 
-static void FPUInit()
-{
-    SCB->CPACR = 0x00F00000;
-    __DSB();
-    __ISB();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-    __NOP();
-}
 
-static void ClockInit()
+void ClockInit()
 {
-    //Настраиваем PLL на 100 МГц (от внутренних 8 МГц)
-    RCU->PLLCFG = (RCU_PLLCFG_REFSRC_OSICLK << RCU_PLLCFG_REFSRC_Pos) |
-                  (1 << RCU_PLLCFG_N_Pos) |
-                  (25 << RCU_PLLCFG_M_Pos) |
-                  (1 << RCU_PLLCFG_OD_Pos) |
-                  (1 << RCU_PLLCFG_OUTEN_Pos);
+    // Переводим системную частоту на HSI
+    RCU->SYSCLKCFG = RCU_SYSCLKCFG_SYSSEL_OSICLK;
+    //
+    some_stuck();
+    //Настраиваем PLL на 100 МГц (от внешних 8 МГц)
+    RCU->PLLCFG = (RCU_PLLCFG_REFSRC_OSECLK << RCU_PLLCFG_REFSRC_Pos) 
+                | (1 << RCU_PLLCFG_N_Pos)
+                | (25 << RCU_PLLCFG_M_Pos)
+                | (1 << RCU_PLLCFG_OD_Pos)
+                | (1 << RCU_PLLCFG_OUTEN_Pos)
+                ;
+    //
+    some_stuck();
     //Ждем пока PLL стабилизируется
-    while (!RCU->PLLCFG_bit.LOCK)
-        ;
-    // Устанавливаем количество waitstate для флешки = 4 (4*30 = 120 MHz max)
-    MFLASH->CTRL = 3 << MFLASH_CTRL_LAT_Pos;
+    while (!RCU->PLLCFG_bit.LOCK) {}
+    //
+    RCU->PLLCFG |= (1 << RCU_PLLCFG_OUTEN_Pos);
+    // Устанавливаем количество waitstate
+    MFLASH->CTRL = 4 << MFLASH_CTRL_LAT_Pos;
     // Переводим системную частоту на PLL
-    RCU->SYSCLKCFG = RCU_SYSCLKCFG_SYSSEL_PLLCLK << RCU_SYSCLKCFG_SYSSEL_Pos;
+    RCU->SYSCLKCFG = RCU_SYSCLKCFG_SYSSEL_PLLCLK;
 }
 
 static void UartInit()
@@ -83,48 +65,63 @@ static void UartInit()
                                      (1 << RCU_UARTCFG_UARTCFG_CLKEN_Pos) |
                                      (1 << RCU_UARTCFG_UARTCFG_RSTDIS_Pos);
     UART->IFLS = UART_IFLS_RXIFLSEL_Lvl18 << UART_IFLS_RXIFLSEL_Pos |
-                 UART_IFLS_RXIFLSEL_Lvl18 << UART_IFLS_TXIFLSEL_Pos;
+                 UART_IFLS_TXIFLSEL_Lvl12 << UART_IFLS_TXIFLSEL_Pos;
     UART->IMSC = UART_MIS_RXMIS_Msk;
     NVIC_EnableIRQ(UART_RX_IRQn);
 }
 
 static void TimerInit()
 {
-    RCU->PRSTCFG_bit.TMR_EN = 1;
-    RCU->PCLKCFG_bit.TMR_EN = 1;
-    TMR->LOAD = TMR_LOAD;
+  RCU->PRSTCFG_bit.TMR_EN = 1;
+  RCU->PCLKCFG_bit.TMR_EN = 1;
+  TMR->LOAD = TMR_LOAD;
 }
 
 void PeriphInit()
 {
-    DebugInit();
-    FPUInit();
-    ClockInit();
-    UartInit();
-    TimerInit();
+  ClockInit();
+  UartInit();
+  TimerInit();
 }
+
 
 //-- Main ----------------------------------------------------------------------
 int main()
 {
-    //выходим из загрузчика, если NMI не был активен при сбросе
-    if (!TMR->LOAD)
-        //примерно 15мс проходит до этого момента
-        boot_exit();
-    boot_core();
-    return 0;
+  //выходим из загрузчика, если NMI не был активен при сбросе
+  for ( int i = 0; i < 1000000 && 0 == TMR->LOAD; ++i ) {}
+  if ( 0 == TMR->LOAD ) {
+    boot_exit();
+  }
+  boot_core();
+  return 0;
 }
+
 
 //-- IRQ handlers --------------------------------------------------------------
 // NMI используется как BOOT нога, которая разрешает работу загрузчика.
 // При этом, NMI нужно установить обратно в 1, чтобы загручик продолжил работу после инициализации -
 // это можно сделать либо вручную, либо использовать RTS пин USB-UART.
-void NMI_Handler()
+void ih_NMI()
 {
-    DBG_PRINT(0xBB);
-    if (!TMR->LOAD) { // TODO: перенести это в main для новых ревизий чипа (где будет человеский BOOT пин, на месте NMI)
-        PeriphInit();
-        boot_init();
-    }
-    DBG_PRINT(0xCC);
+  if (0 == TMR->LOAD) { // TODO: перенести это в main для новых ревизий чипа (где будет человеский BOOT пин, на месте NMI)
+    PeriphInit();
+    boot_init();
+  }
+}
+
+
+extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss;
+
+void _start() {
+  // copy initialized data
+  uint32_t * v_ptr = (uint32_t *)&_sidata;
+  for ( uint32_t * i = (uint32_t *)&_sdata; i < (uint32_t *)&_edata; ++i ) {
+    *i = *v_ptr++;
+  }
+  // zero initialized data
+  for ( uint32_t * i = (uint32_t *)&_sbss; i < (uint32_t *)&_ebss; ++i ) {
+    *i = 0;
+  }
+  main();
 }
