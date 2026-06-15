@@ -1,5 +1,6 @@
 import os
-
+import sys
+import traceback
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable
 
 from model.logger.loggable import Loggable
@@ -33,7 +34,11 @@ class BaseCommandRunnable(QRunnable, Loggable):
         except ProtException as e:
             pass
         except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            formatted_lines = traceback.format_exc()
+            print(f"Трассировка:\n{formatted_lines}")
             self.signals.error.emit('Неизвестная ошибка: ' + repr(e))
+
         finally:
             self.signals.finished.emit()
 
@@ -73,6 +78,7 @@ class InitPortRunnable(BaseCommandRunnable):
         self.signals.pbar_signal.emit(100)
         self.signals.data.emit(self.mcu)
         self.signals.finished.emit()
+
 
 
 class DeInitPortRunnable(BaseCommandRunnable):
@@ -157,8 +163,7 @@ class WritePortRunnable(BaseCommandRunnable):
                     err += 1
                     if err_limit > 0:
                         self.logger.error(
-                            "Адрес 0%08X, записано 0x%02X - прочитано 0x%02X" % (i, data[i], read_data[i]),
-                            msgbox_en=False)
+                            "Адрес 0%08X, записано 0x%02X - прочитано 0x%02X" % (i, data[i], read_data[i]))
                         err_limit -= 1
                         if err_limit == 0:
                             self.logger.error("Показаны первые 16 ошибок верификации, дальнейшие показываться не будут")
@@ -244,7 +249,6 @@ class GetCfgWordPortRunnable(BaseCommandRunnable):
         cmd = CommandInterface(mcu=self.mcu, serport=self.serport)
         self.signals.pbar_signal.emit(50)
         cfgword = cmd.cmd_get_cfgword()
-
         self.signals.pbar_signal.emit(100)
         self.signals.data.emit(cfgword)
         self.signals.finished.emit()
@@ -261,6 +265,7 @@ class SetCfgWordPortRunnable(BaseCommandRunnable):
         self.signals.pbar_signal.emit(50)
         cmd.cmd_set_cfgword(self.kwargs['cfgword'])
         self.signals.pbar_signal.emit(100)
+        
 
 class JumpPortRunnable(BaseCommandRunnable):
     def __init__(self, mcu, serport, **kwargs):

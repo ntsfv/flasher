@@ -7,8 +7,6 @@ from PyQt5.QtWidgets import QApplication
 from utils.constants import VERSION
 from viewmodel.main_window_viewmodel import MainWindowViewModel
 
-from dotenv import load_dotenv
-
 class ArgParser:
     def help(self):
         print("""Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921ВКх.
@@ -50,7 +48,7 @@ class ArgParser:
         Полное стирание
         python3 k1921vkx_flasher.py -cE -p /dev/ttyUSB0 -b 115200 -f mflash -n main
 
-НИИЭТ, 2025""" % VERSION)
+НИИЭТ, 2026""" % VERSION)
 
     def do(self, app, win):
         conf = {
@@ -127,7 +125,6 @@ class ArgParser:
 
 # -- Standalone run -----------------------------------------------------------
 if __name__ == '__main__':
-    load_dotenv()
     app = QApplication(sys.argv)
 
     main_window = MainWindowViewModel()

@@ -27,6 +27,10 @@ from view.config015_view import Ui_Config015
 from view.config01t_view import Ui_Config01T
 from view.config028_view import Ui_Config028
 from view.config035_view import Ui_Config035
+from view.config1t_view import Ui_Config1t
+from view.config3t_view import Ui_Config3t
+from view.config5t_view import Ui_Config5t
+from view.config7t_view import Ui_Config7t
 from view.config1921_view import Ui_Config1921
 from view.main_view import Ui_MainWindow
 
@@ -158,7 +162,6 @@ class MainWindowViewModel(QMainWindow, Loggable):
         def init_callback(data):
             error = data['error']
             mcu = data['data']
-
             if not error:
                 self.mcu = mcu
                 self.update_gui("Отключиться", True)
@@ -267,17 +270,34 @@ class MainWindowViewModel(QMainWindow, Loggable):
     def update_cfg_word(self, cfgword):
         self.mcu.apply_cfgword(cfgword)
         self.upd_flash_selected()
-        if self.mcu.name == 'k1921vk035':
-            self.exec_tab_config_035(cfgword)
-        elif self.mcu.name == 'k1921vk028':
-            self.exec_tab_config_028(cfgword)
-        if self.mcu.name == 'k1921vg015':
-            self.exec_tab_config_015(cfgword)
-        elif self.mcu.name == 'k1921vk01t':
-            self.exec_tab_config_01t(cfgword)
+        match self.mcu.name:
+            case 'k1921vg7t':
+                self.exec_tab_config_seria(cfgword)
+            case 'k1921vg5t':
+                self.exec_tab_config_seria(cfgword)
+            case 'k1921vg3t':
+                self.exec_tab_config_seria(cfgword)
+            case 'k1921vg1t':
+                self.exec_tab_config_seria(cfgword)
+            case 'k1921vk035':
+                self.exec_tab_config_035(cfgword)
+            case 'k1921vk028':
+                self.exec_tab_config_028(cfgword)
+            case 'k1921vg015':
+                self.exec_tab_config_015(cfgword)
+            case 'k1921vk01t':
+                self.exec_tab_config_01t(cfgword)
 
     def get_cfg_word(self):
         match self.mcu.name:
+            case 'k1921vg7t':
+                return self.exec_tab_config_seria()
+            case 'k1921vg5t':
+                return self.exec_tab_config_seria()
+            case 'k1921vg3t':
+                return self.exec_tab_config_seria()
+            case 'k1921vg1t':
+                return self.exec_tab_config_seria()
             case 'k1921vk035':
                 return self.exec_tab_config_035()
             case 'k1921vk028':
@@ -725,6 +745,14 @@ class MainWindowViewModel(QMainWindow, Loggable):
             self.ui.tconfig_widget_cfg.ui = Ui_Config028()
         elif self.mcu.name == 'k1921vg015':
             self.ui.tconfig_widget_cfg.ui = Ui_Config015()
+        elif self.mcu.name == 'k1921vg1t':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config1t()
+        elif self.mcu.name == 'k1921vg3t':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config3t()
+        elif self.mcu.name == 'k1921vg5t':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config5t()
+        elif self.mcu.name == 'k1921vg7t':
+            self.ui.tconfig_widget_cfg.ui = Ui_Config7t()
         elif self.mcu.name == 'k1921vk01t':
             self.ui.tconfig_widget_cfg.ui = Ui_Config01T()
         elif self.mcu.name == 'k1921':
@@ -810,6 +838,7 @@ class MainWindowViewModel(QMainWindow, Loggable):
 
         for p in range(firstpage, lastpage + 1):
             if curr_flash.wr_lock[p]:
+                print(curr_flash.wr_lock)
                 self.logger.error('Не выполнено - одна или несколько модифицируемых страниц защищены от записи/стирания')
                 return
 
@@ -901,17 +930,15 @@ class MainWindowViewModel(QMainWindow, Loggable):
 
         self._protocol_set_cfg_word()
 
-    def exec_tab_config_015(self, cfgword=None):
-        widget015 = self.ui.tconfig_widget_cfg
+    def exec_tab_config_seria(self, cfgword=None):
+        widget_seria = self.ui.tconfig_widget_cfg
         if cfgword:
-            widget015.ui.chbox_flashwe.setChecked(cfgword['flashwe'])
-            widget015.ui.chbox_nvrwe.setChecked(cfgword['nvrwe'])
-            widget015.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
+            widget_seria.ui.chbox_flashwe.setChecked(cfgword['flashwe'])
+            widget_seria.ui.chbox_jtagen.setChecked(cfgword['jtagen'])
         else:
             cfgword = dict()
-            cfgword['flashwe'] = widget015.ui.chbox_flashwe.isChecked()
-            cfgword['nvrwe'] = widget015.ui.chbox_nvrwe.isChecked()
-            cfgword['jtagen'] = widget015.ui.chbox_jtagen.isChecked()
+            cfgword['flashwe'] = widget_seria.ui.chbox_flashwe.isChecked()
+            cfgword['jtagen'] = widget_seria.ui.chbox_jtagen.isChecked()
         return cfgword
 
     def exec_tab_config_035(self, cfgword=None):

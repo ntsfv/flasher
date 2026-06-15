@@ -39,6 +39,255 @@ class K1921Vx(MCU):
                        'lockable': True}]
         self.booten_active = False
 
+class K1921VG7T(MCU):
+    CFGWORD_FLASHWE_POS = 0
+    CFGWORD_JTAGEN_POS = 2
+    CFGWORD_FLASHWE_MSK = 1 << CFGWORD_FLASHWE_POS
+    CFGWORD_JTAGEN_MSK = 1 << CFGWORD_JTAGEN_POS
+
+    def __init__(self):
+        super().__init__()
+        self.chipid = '0x04E4C400'
+        self.name = 'k1921vg7t'
+        self.name_ru = 'К1921ВГ7Т'
+        self.flash_base_address = 0x00000000
+        self.flash = [{'name': 'flash',
+                       'region_main': Flash(size=(512 * K), pages=512),
+                       'region_nvr': Flash(size=(16 * K), pages=16),
+                       'bootflash_end_address': 0x2000,
+                       'base_address': 0x00000000,
+                       'start_page_main': 8,
+                       'start_page_nvr': 0,
+                       'lockable': False }]
+        self.cfgword = {}
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+        self.booten_active = True
+
+    def parse_cfgword(self, data):
+        cfgword = {}
+        cfgword['jtagen'] = (data[0] & self.CFGWORD_JTAGEN_MSK) >> self.CFGWORD_JTAGEN_POS
+        cfgword['flashwe'] = (data[0] & self.CFGWORD_FLASHWE_MSK) >> self.CFGWORD_FLASHWE_POS
+        cfgword['res_str'] = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                              (cfgword['jtagen'], cfgword['flashwe']))
+        print(data[0])
+        return cfgword
+
+    def pack_cfgword(self, cfgword):
+        data = [0xFF] * 4
+        data[0] = 0
+        if cfgword['jtagen']:
+            data[0] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[1] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[2] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[3] |= 1 << self.CFGWORD_JTAGEN_POS
+        if cfgword['flashwe']:
+            data[0] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[1] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[2] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[3] |= 1 << self.CFGWORD_FLASHWE_POS
+        print(f"PACKED CFGWORD = {data}")
+        res_str = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                   (cfgword['flashwe'], cfgword['jtagen']) )
+        return (data, res_str)
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['flashwe'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['flashwe'] else True
+        # bootloader pages
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+
+
+class K1921VG5T(MCU):
+    CFGWORD_FLASHWE_POS = 0
+    CFGWORD_JTAGEN_POS = 2
+    CFGWORD_FLASHWE_MSK = 1 << CFGWORD_FLASHWE_POS
+    CFGWORD_JTAGEN_MSK = 1 << CFGWORD_JTAGEN_POS
+
+    def __init__(self):
+        super().__init__()
+        self.chipid = '0x04E4C300'
+        self.name = 'k1921vg5t'
+        self.name_ru = 'К1921ВГ5Т'
+        self.flash_base_address = 0x00000000
+        self.flash = [{'name': 'flash',
+                       'region_main': Flash(size=(512 * K), pages=512),
+                       'region_nvr': Flash(size=(16 * K), pages=16),
+                       'bootflash_end_address': 0x2000,
+                       'base_address': 0x00000000,
+                       'start_page_main': 8,
+                       'start_page_nvr': 0,
+                       'lockable': False }]
+        self.cfgword = {}
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+        self.booten_active = True
+
+    def parse_cfgword(self, data):
+        cfgword = {}
+        cfgword['jtagen'] = (data[0] & self.CFGWORD_JTAGEN_MSK) >> self.CFGWORD_JTAGEN_POS
+        cfgword['flashwe'] = (data[0] & self.CFGWORD_FLASHWE_MSK) >> self.CFGWORD_FLASHWE_POS
+        cfgword['res_str'] = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                              (cfgword['jtagen'], cfgword['flashwe']))
+        print(data[0])
+        return cfgword
+
+    def pack_cfgword(self, cfgword):
+        data = [0xFF] * 4
+        data[0] = 0
+        if cfgword['jtagen']:
+            data[0] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[1] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[2] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[3] |= 1 << self.CFGWORD_JTAGEN_POS
+        if cfgword['flashwe']:
+            data[0] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[1] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[2] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[3] |= 1 << self.CFGWORD_FLASHWE_POS
+        print(f"PACKED CFGWORD = {data}")
+        res_str = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                   (cfgword['flashwe'], cfgword['jtagen']) )
+        return (data, res_str)
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['flashwe'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['flashwe'] else True
+        # bootloader pages
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+
+class K1921VG3T(MCU):
+    CFGWORD_FLASHWE_POS = 0
+    CFGWORD_JTAGEN_POS = 2
+    CFGWORD_FLASHWE_MSK = 1 << CFGWORD_FLASHWE_POS
+    CFGWORD_JTAGEN_MSK = 1 << CFGWORD_JTAGEN_POS
+
+    def __init__(self):
+        super().__init__()
+        self.chipid = '0x04E4C200'
+        self.name = 'k1921vg3t'
+        self.name_ru = 'К1921ВГ3Т'
+        self.flash_base_address = 0x00000000
+        self.flash = [{'name': 'flash',
+                       'region_main': Flash(size=(1024 * K), pages=512),
+                       'region_nvr': Flash(size=(32 * K), pages=16),
+                       'bootflash_end_address': 0x2000,
+                       'base_address': 0x00000000,
+                       'start_page_main': 4,
+                       'start_page_nvr': 0,
+                       'lockable': False }]
+        self.cfgword = {}
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+        self.booten_active = True
+
+    def parse_cfgword(self, data):
+        cfgword = {}
+        cfgword['jtagen'] = (data[0] & self.CFGWORD_JTAGEN_MSK) >> self.CFGWORD_JTAGEN_POS
+        cfgword['flashwe'] = (data[0] & self.CFGWORD_FLASHWE_MSK) >> self.CFGWORD_FLASHWE_POS
+        cfgword['res_str'] = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                              (cfgword['jtagen'], cfgword['flashwe']))
+        print(data[0])
+        return cfgword
+
+    def pack_cfgword(self, cfgword):
+        data = [0xFF] * 4
+        data[0] = 0
+        if cfgword['jtagen']:
+            data[0] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[1] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[2] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[3] |= 1 << self.CFGWORD_JTAGEN_POS
+        if cfgword['flashwe']:
+            data[0] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[1] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[2] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[3] |= 1 << self.CFGWORD_FLASHWE_POS
+        print(f"PACKED CFGWORD = {data}")
+        res_str = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                   (cfgword['flashwe'], cfgword['jtagen']) )
+        return (data, res_str)
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        print(cfgword)
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['flashwe'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['flashwe'] else True
+        # bootloader pages
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+
+class K1921VG1T(MCU):
+    CFGWORD_FLASHWE_POS = 0
+    CFGWORD_JTAGEN_POS = 2
+    CFGWORD_FLASHWE_MSK = 1 << CFGWORD_FLASHWE_POS
+    CFGWORD_JTAGEN_MSK = 1 << CFGWORD_JTAGEN_POS
+
+    def __init__(self):
+        super().__init__()
+        self.chipid = '0x04E4C100'
+        self.name = 'k1921vg1t'
+        self.name_ru = 'К1921ВГ1Т'
+        self.flash_base_address = 0x00000000
+        self.flash = [{'name': 'flash',
+                       'region_main': Flash(size=(4096 * K), pages=2048),
+                       'region_nvr': Flash(size=(128 * K), pages=64),
+                       'bootflash_end_address': 0x2000,
+                       'base_address': 0x00000000,
+                       'start_page_main': 4,
+                       'start_page_nvr': 0,
+                       'lockable': False }]
+        self.cfgword = {}
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
+        self.booten_active = True
+
+    def parse_cfgword(self, data):
+        print(bin(data[0]))
+        cfgword = {}
+        cfgword['jtagen'] = (data[0] & self.CFGWORD_JTAGEN_MSK) >> self.CFGWORD_JTAGEN_POS
+        cfgword['flashwe'] = (data[0] & self.CFGWORD_FLASHWE_MSK) >> self.CFGWORD_FLASHWE_POS
+        cfgword['res_str'] = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                              (cfgword['jtagen'], cfgword['flashwe']))
+        print(data[0])
+        return cfgword
+
+    def pack_cfgword(self, cfgword):
+        data = [0x0] * 4
+        if cfgword['jtagen']:
+            data[0] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[1] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[2] |= 1 << self.CFGWORD_JTAGEN_POS
+            data[3] |= 1 << self.CFGWORD_JTAGEN_POS
+        if cfgword['flashwe']:
+            data[0] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[1] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[2] |= 1 << self.CFGWORD_FLASHWE_POS
+            data[3] |= 1 << self.CFGWORD_FLASHWE_POS
+        print(f"PACKED CFGWORD = {data}")
+        res_str = ("JTAGEN=[%01d] FLASHWE=[%01d]" %
+                   (cfgword['flashwe'], cfgword['jtagen']) )
+        return (data, res_str)
+
+    def apply_cfgword(self, cfgword):
+        self.cfgword = cfgword
+        for p in range(self.flash[0]['region_main'].pages):
+            self.flash[0]['region_main'].wr_lock[p] = False if cfgword['flashwe'] else True
+        for p in range(self.flash[0]['region_nvr'].pages):
+            self.flash[0]['region_nvr'].wr_lock[p] = False if cfgword['flashwe'] else True
+        # bootloader pages
+        self.flash[0]['region_nvr'].wr_lock[0:3] = [True] * 3
+        self.flash[0]['region_nvr'].rd_lock[0:3] = [True] * 3
 
 class K1921VG015(MCU):
     CFGWORD_FLASHWE_POS = 0
@@ -447,7 +696,8 @@ class K1921VK01T(MCU):
         self.flash[0]['region_main'].rd_lock[0] = True
 
 
-db = [K1921Vx(), K1921VG015(), K1921VK035(), K1921VK028(), K1921VK01T()]
+
+db = [K1921Vx(), K1921VG015(), K1921VK035(), K1921VK028(), K1921VK01T(), K1921VG5T(), K1921VG7T(), K1921VG3T(), K1921VG1T()]
 
 
 def get_by_chipid(chipid):
