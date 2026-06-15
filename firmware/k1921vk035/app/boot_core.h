@@ -28,7 +28,7 @@
 
 //--- Function prototypes ------------------------------------------------------
 void boot_init();
-RAMFUNC void boot_exit();
-RAMFUNC void boot_core();
+void boot_exit();
+void boot_core();
 
 #endif //BOOT_CORE_H

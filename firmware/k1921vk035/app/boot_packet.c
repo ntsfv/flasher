@@ -24,32 +24,20 @@
 #include "boot_packet.h"
 
 //-- Variables -----------------------------------------------------------------
-volatile static struct
+struct
 {
     uint8_t mem[PACKET_FIFO_BYTES];
-    uint32_t wr_ptr;
-    uint32_t rd_ptr;
-    uint32_t full;
-    uint32_t empty;
+    int wr_ptr;
+    int rd_ptr;
+    volatile int count;
 } packet_fifo;
 
-//-- Private functions ---------------------------------------------------------
-//Функция записи в fifo, вызываемая в обработчике прерывания UART_RX
-static inline __attribute__((always_inline)) void packet_fifo_write(uint8_t data)
-{
-    if (!packet_fifo.full) {
-        packet_fifo.mem[packet_fifo.wr_ptr] = data;
-        packet_fifo.empty = 0;
-        if (packet_fifo.wr_ptr == (PACKET_FIFO_BYTES - 1))
-            packet_fifo.wr_ptr = 0;
-        else
-            packet_fifo.wr_ptr++;
-    }
+int packet_fifo_full() {
+  return PACKET_FIFO_BYTES == packet_fifo.count;
+}
 
-    if (packet_fifo.wr_ptr == packet_fifo.rd_ptr)
-        packet_fifo.full = 1;
-    else
-        packet_fifo.full = 0;
+int packet_fifo_empty() {
+  return 0 == packet_fifo.count;
 }
 
 //-- Functions -----------------------------------------------------------------
@@ -58,8 +46,7 @@ void packet_fifo_init()
 {
     packet_fifo.wr_ptr = 0;
     packet_fifo.rd_ptr = 0;
-    packet_fifo.full = 0;
-    packet_fifo.empty = 1;
+    packet_fifo.count = 0;
 }
 
 //Чтение байта из пакетного fifo
@@ -67,17 +54,21 @@ uint8_t packet_fifo_read()
 {
     uint8_t data = 0;
 
-    while (packet_fifo.empty) {
-    };
+    while ( packet_fifo_empty() ) {};
+    
 
     data = packet_fifo.mem[packet_fifo.rd_ptr];
-    if (packet_fifo.rd_ptr == (PACKET_FIFO_BYTES - 1))
+    
+    __disable_irq();
+    
+    --packet_fifo.count;
+    
+    __enable_irq();
+    
+    if ( ++packet_fifo.rd_ptr >= PACKET_FIFO_BYTES ) {
         packet_fifo.rd_ptr = 0;
-    else
-        packet_fifo.rd_ptr++;
-
-    if ((packet_fifo.wr_ptr == packet_fifo.rd_ptr) && !packet_fifo.full)
-        packet_fifo.empty = 1;
+    }
+    
 
     return data;
 }
@@ -91,10 +82,12 @@ uint16_t crc_upd(uint16_t crc_in, uint8_t data)
     do {
         crc <<= 1;
         in <<= 1;
-        if (in & 0x100)
-            ++crc;
-        if (crc & 0x10000)
-            crc ^= 0x1021;
+        if (in & 0x100) {
+          ++crc;
+        }
+        if (crc & 0x10000) {
+          crc ^= 0x1021;
+        }
     } while (!(in & 0x10000));
 
     return crc & 0xffffu;
@@ -140,55 +133,44 @@ void packet_recieve(Packet_TypeDef* rx_packet)
 //Проверка статуса отправки текущего пакета
 uint32_t packet_transmit_status_busy()
 {
-    return UART->FR_bit.BUSY | !UART->FR_bit.TXFE;
+    return !UART->FR_bit.TXFE;
 }
 
 //Отправка исходящего пакета
 void packet_transmit(Packet_TypeDef* tx_packet)
 {
-    uint16_t crc = 0;
+  uint16_t crc = 0;
 
-    //ждем если есть передача
-    while (packet_transmit_status_busy()) {
-    };
-    DBG_PRINT(0x04);
-    DBG_PRINT(tx_packet->cmd_code);
+  send_byte( PACKET_DEVICE_SIGN & 0x00FF );
+  send_byte( (PACKET_DEVICE_SIGN & 0xFF00) >> 8 );
 
-    //грузим все сразу в uart fifo
-    UART->DR = PACKET_DEVICE_SIGN & 0x00FF;
-    UART->DR = (PACKET_DEVICE_SIGN & 0xFF00) >> 8;
+  send_byte( tx_packet->cmd_code );
+  crc = crc_upd(crc, tx_packet->cmd_code);
 
-    UART->DR = tx_packet->cmd_code;
-    crc = crc_upd(crc, tx_packet->cmd_code);
+  send_byte( ~tx_packet->cmd_code );
+  crc = crc_upd(crc, ~tx_packet->cmd_code);
 
-    UART->DR = ~tx_packet->cmd_code;
-    crc = crc_upd(crc, ~tx_packet->cmd_code);
+  send_byte( tx_packet->data_n & 0x00FF );
+  send_byte( (tx_packet->data_n & 0xFF00) >> 8 );
+  crc = crc_upd_u16(crc, tx_packet->data_n);
 
-    UART->DR = tx_packet->data_n & 0x00FF;
-    UART->DR = (tx_packet->data_n & 0xFF00) >> 8;
-    crc = crc_upd_u16(crc, tx_packet->data_n);
+  for ( uint16_t i = 0; i < tx_packet->data_n; ++i ) {
+    send_byte( tx_packet->tmp_data8[i] );
+    //UART->ICR = UART_ICR_TXIC_Msk;
+    crc = crc_upd(crc, tx_packet->tmp_data8[i]);
+  }
 
-    for (uint16_t i = 0; i < tx_packet->data_n; i++) {
-        while (!UART->RIS_bit.TXRIS || UART->FR_bit.TXFF) {
-        };
-        UART->DR = tx_packet->tmp_data8[i];
-        UART->ICR = UART_ICR_TXIC_Msk;
-        crc = crc_upd(crc, tx_packet->tmp_data8[i]);
-    }
-
-    UART->DR = crc & 0x00FF;
-    UART->DR = (crc & 0xFF00) >> 8;
+  send_byte( crc & 0x00FF );
+  send_byte( (crc & 0xFF00) >> 8 );
 }
 
 //Обертка для чтения 32-битных значений из пакетного fifo
 uint32_t packet_fifo_read_u32()
 {
-    uint32_t data = 0;
-
-    data = (uint32_t)(packet_fifo_read() << 0);
-    data |= (uint32_t)(packet_fifo_read() << 8);
-    data |= (uint32_t)(packet_fifo_read() << 16);
-    data |= (uint32_t)(packet_fifo_read() << 24);
+    uint32_t data = packet_fifo_read() << 0;
+    data |= packet_fifo_read() << 8;
+    data |= packet_fifo_read() << 16;
+    data |= packet_fifo_read() << 24;
 
     return data;
 }
@@ -207,10 +189,10 @@ uint16_t packet_fifo_read_u16()
 //Обертка для расчета CRC16 для 32-битных данных
 uint16_t crc_upd_u32(uint16_t crc_in, uint32_t data)
 {
-    crc_in = crc_upd(crc_in, (uint8_t)((data & 0x000000FF) >> 0));
-    crc_in = crc_upd(crc_in, (uint8_t)((data & 0x0000FF00) >> 8));
-    crc_in = crc_upd(crc_in, (uint8_t)((data & 0x00FF0000) >> 16));
-    crc_in = crc_upd(crc_in, (uint8_t)((data & 0xFF000000) >> 24));
+    crc_in = crc_upd( crc_in, data );
+    crc_in = crc_upd( crc_in, data >> 8 );
+    crc_in = crc_upd( crc_in, data >> 16 );
+    crc_in = crc_upd( crc_in, data >> 24 );
 
     return crc_in;
 }
@@ -218,18 +200,31 @@ uint16_t crc_upd_u32(uint16_t crc_in, uint32_t data)
 //Обертка для расчета CRC16 для 16-битных данных
 uint16_t crc_upd_u16(uint16_t crc_in, uint16_t data)
 {
-    crc_in = crc_upd(crc_in, (uint8_t)((data & 0x00FF) >> 0));
-    crc_in = crc_upd(crc_in, (uint8_t)((data & 0xFF00) >> 8));
+    crc_in = crc_upd( crc_in, data );
+    crc_in = crc_upd( crc_in, data >> 8 );
 
     return crc_in;
 }
 
-//-- Interrupt handlers --------------------------------------------------------
-RAMFUNC void UART_RX_IRQHandler()
-{
-    UART->ICR = UART_ICR_RXIC_Msk;
 
-    while (!UART->FR_bit.RXFE) { //вычитываем uart fifo полностью
-        packet_fifo_write(UART->DR_bit.DATA);
+void send_byte( uint8_t a_byte ) {
+  while ( 0 != (UART->FR & UART_FR_TXFF_Msk) ) {};
+  UART->DR = a_byte;
+}
+
+
+//-- Interrupt handlers --------------------------------------------------------
+__attribute__ ((section(".data.text"),used))
+void ih_UART1_RX_IRQ()
+{
+  while ( !UART->FR_bit.RXFE ) {
+    if ( !packet_fifo_full() ) {
+      packet_fifo.mem[packet_fifo.wr_ptr] = UART->DR;
+      ++packet_fifo.count;
+      if ( ++packet_fifo.wr_ptr >= PACKET_FIFO_BYTES ) {
+        packet_fifo.wr_ptr = 0;
+      }
     }
+  }
+  UART->ICR = UART_ICR_RXIC_Msk;
 }

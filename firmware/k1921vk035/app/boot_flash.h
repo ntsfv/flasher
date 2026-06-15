@@ -62,10 +62,10 @@ typedef enum {
 } FlashCmd_TypeDef;
 
 //--- Function prototypes ------------------------------------------------------
-RAMFUNC void flash_read(uint32_t addr, FlashType_TypeDef ftype, uint32_t* data);
-RAMFUNC void flash_write(uint32_t addr, FlashType_TypeDef ftype, uint32_t* data);
-RAMFUNC void flash_erase_page(uint32_t addr, FlashType_TypeDef ftype);
-RAMFUNC void flash_erase_full();
-RAMFUNC void flash_disable_boot();
+void flash_read(uint32_t addr, FlashType_TypeDef ftype, uint32_t* data);
+void flash_write(uint32_t addr, FlashType_TypeDef ftype, uint32_t* data);
+void flash_erase_page(uint32_t addr, FlashType_TypeDef ftype);
+void flash_erase_full();
+void flash_disable_boot();
 
 #endif //BOOT_FLASH_H
