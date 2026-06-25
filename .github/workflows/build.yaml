@@ -1,0 +1,104 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: app
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            name: linux
+            artifact: k1921vk_flasher-linux
+            bin: k1921vk_flasher
+          - os: windows-latest
+            name: windows
+            artifact: k1921vk_flasher-windows
+            bin: k1921vk_flasher.exe
+          - os: macos-13
+            name: macos-x64
+            artifact: k1921vk_flasher-macos-x64
+            bin: k1921vk_flasher
+          - os: macos-14
+            name: macos-arm64
+            artifact: k1921vk_flasher-macos-arm64
+            bin: k1921vk_flasher
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: app/requirements.txt
+
+      - name: Install Linux system deps
+        if: runner.os == 'Linux'
+        working-directory: ${{ github.workspace }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxcb-xinerama0 libxcb-cursor0
+
+      - name: Normalize requirements.txt
+        shell: python
+        run: |
+          import pathlib
+          p = pathlib.Path('requirements.txt')
+          p.write_text(p.read_text(encoding='utf-8-sig'), encoding='utf-8')
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build
+        run: pyinstaller --noconfirm k1921vx_flasher.spec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: app/dist/${{ matrix.bin }}
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package into archives
+        run: |
+          cd artifacts
+          for d in */; do
+            name="${d%/}"
+            (cd "$d" && zip -r "../${name}.zip" .)
+          done
+          ls -la
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.zip
+          generate_release_notes: true

@@ -5,5 +5,5 @@ firmware/*/build-*
 *.user
 build/
 dist/
-*.spec
+
 .DS_Store
