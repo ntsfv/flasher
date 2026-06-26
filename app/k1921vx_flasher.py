@@ -1,5 +1,25 @@
-import getopt
+import os
 import sys
+
+if sys.platform == "win32":
+    import ctypes
+
+    ATTACH_PARENT_PROCESS = -1
+    if ctypes.windll.kernel32.AttachConsole(ATTACH_PARENT_PROCESS):
+        try:
+            sys.stdout = open("CONOUT$", "w", buffering=1)
+            sys.stderr = open("CONOUT$", "w", buffering=1)
+            sys.stdin = open("CONIN$", "r")
+        except OSError:
+            pass
+
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w")
+
+
+import getopt
 import traceback
 
 from PyQt5.QtWidgets import QApplication
