@@ -1,14 +1,5 @@
-import sys
-
-# Windows console attach with console=False in build .spec
-if sys.platform == "win32" and len(sys.argv) <= 1:
-    import ctypes
-
-    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
-    if hwnd:
-        ctypes.windll.user32.ShowWindow(hwnd, 0)
-
 import getopt
+import sys
 import traceback
 
 from PyQt5.QtWidgets import QApplication
