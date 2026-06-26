@@ -1,10 +1,4 @@
-import getopt
 import sys
-import traceback
-
-from PyQt5.QtWidgets import QApplication
-from utils.constants import VERSION
-from viewmodel.main_window_viewmodel import MainWindowViewModel
 
 # Windows console attach with console=False in build .spec
 if sys.platform == "win32" and len(sys.argv) > 1:
@@ -18,11 +12,18 @@ if sys.platform == "win32" and len(sys.argv) > 1:
         except OSError:
             pass
 
+import getopt
+import traceback
+
+from PyQt5.QtWidgets import QApplication
+from utils.constants import VERSION
+from viewmodel.main_window_viewmodel import MainWindowViewModel
+
 
 class ArgParser:
     def help(self):
         print(
-            """Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921ВКх.
+            """Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921Вх.
 Версия v.%s
 
 Доступные ключи: [-hDсeEwvr] [-f flash] [-n region] [-j addr] [-F first] [-L last] [-a addr] [-s size] [-p port] [-b baud] [file.bin]
