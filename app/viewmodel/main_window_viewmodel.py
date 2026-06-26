@@ -269,7 +269,13 @@ class MainWindowViewModel(QMainWindow, Loggable):
 
     @_blockable
     def _protocol_erase(self, **kwargs):
+        def erase_callback(data):
+            erall = data["data"]
+            if erall:
+                self._protocol_deinit()
+
         self.command = self.prot.Erase()
+        self.command.finished.connect(erase_callback)
         return {"pbar_callback": self.pbar_set, **kwargs}
 
     @_blockable

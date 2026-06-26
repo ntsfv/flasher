@@ -33,6 +33,8 @@ class K1921Vx(MCU):
                 "region_main": Flash(size=(64 * K), pages=64),
                 "region_nvr": Flash(size=(4 * K), pages=4),
                 "bootflash_end_address": 0x0,
+                "start_page_main": 0,
+                "start_page_nvr": 0,
                 "lockable": True,
             },
             {
@@ -40,6 +42,8 @@ class K1921Vx(MCU):
                 "region_main": Flash(size=(32 * K), pages=16),
                 "region_nvr": Flash(size=(8 * K), pages=4),
                 "bootflash_end_address": 0x0,
+                "start_page_main": 0,
+                "start_page_nvr": 0,
                 "lockable": True,
             },
         ]
@@ -476,6 +480,8 @@ class K1921VK035(MCU):
                 "region_nvr": Flash(size=(4 * K), pages=4),
                 "bootflash_end_address": 0x0,
                 "base_address": 0x0,
+                "start_page_main": 0,
+                "start_page_nvr": 0,
                 "lockable": True,
             }
         ]
@@ -605,6 +611,8 @@ class K1921VK028(MCU):
                 "region_main": Flash(size=(2 * M), pages=128),
                 "region_nvr": Flash(size=(64 * K), pages=4),
                 "bootflash_end_address": 0x0,
+                "start_page_main": 0,
+                "start_page_nvr": 0,
                 "lockable": True,
             },
             {
@@ -612,6 +620,8 @@ class K1921VK028(MCU):
                 "region_main": Flash(size=(512 * K), pages=128),
                 "region_nvr": Flash(size=(16 * K), pages=4),
                 "bootflash_end_address": 0x0,
+                "start_page_main": 0,
+                "start_page_nvr": 0,
                 "lockable": True,
             },
         ]
@@ -825,6 +835,8 @@ class K1921VK01T(MCU):
                 "region_main": Flash(size=(1 * M), pages=128),
                 "region_nvr": Flash(size=(8 * K), pages=1),
                 "bootflash_end_address": 0x0,
+                "start_page_main": 0,
+                "start_page_nvr": 0,
                 "lockable": True,
             },
             {
@@ -832,6 +844,8 @@ class K1921VK01T(MCU):
                 "region_main": Flash(size=(64 * K), pages=256),
                 "region_nvr": Flash(size=512, pages=2),
                 "bootflash_end_address": 0x0,
+                "start_page_main": 0,
+                "start_page_nvr": 0,
                 "lockable": True,
             },
         ]

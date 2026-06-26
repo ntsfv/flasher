@@ -50,7 +50,7 @@ LIBS_ACR += -lc -lgcc
 DEFS := -D SYSCLK_PLL -D HSECLK_VAL=16000000 -D __TARGET_IDX__=$(TARGET_IDX)
 
 
-ARCH = rv32imfc
+ARCH = rv32imafc_zicsr_zifencei
 LD_SRC := $(LD_SCR_PATH)/k1921$(TARGET_NAME)_flash.ld
 LD_FLAGS = -static -march=$(ARCH) -melf32lriscv $(LIBS) $(LIBS_ACR)
 ifeq ($(TARGET_IDX), 1)
@@ -59,8 +59,8 @@ else
 	OPT = -O3
 endif
 
-export RISCV-GCC	 ?= $(CROSS_PREFIX)gcc -c -Wall $(OPT) -ggdb3 -ffunction-sections -fdata-sections -march=$(ARCH) -mabi=ilp32 $(INCLUDE_FOLDER) $(DEFS) -static -std=gnu99 $(LIBS) $(LIBS_ACR) 
-export CROSS_PREFIX  ?= riscv64-unknown-elf-
+export RISCV-GCC	 ?= $(CROSS_PREFIX)gcc -c -Wall $(OPT) -ggdb3 -ffunction-sections -fdata-sections -march=$(ARCH) -mabi=ilp32 $(INCLUDE_FOLDER) $(DEFS) -static -std=gnu99 $(LIBS) $(LIBS_ACR)
+export CROSS_PREFIX  ?= ~/embedded/toolchains/riscv32-unknown-elf/bin/riscv32-unknown-elf-
 export RISCV-AS 	 ?= $(CROSS_PREFIX)as -ggdb3 -march=$(ARCH) -mno-arch-attr
 export RISCV-LD 	 ?= $(CROSS_PREFIX)ld --gc-sections -L$(LD_SCR_PATH)
 export RISCV-OBJDUMP ?= $(CROSS_PREFIX)objdump -d -S
@@ -74,27 +74,30 @@ header:
 
 %.o: %.c
 	@ echo "COMPILE "$^""
-	$(RISCV-GCC) $^ -o $@ 
+	$(RISCV-GCC) $^ -o $@
 	@ echo "...DONE"
 
 %.o: %.S
-	@ echo "ASSEMBLY "$^"" 
+	@ echo "ASSEMBLY "$^""
 	$(RISCV-GCC) $^ -o $@
 	@ echo "...DONE"
 
 $(TARGET_NAME).elf: $(ELF_O_FILES)
-	@ echo "LINK "$^"" 
+	@ echo "LINK "$^""
 	$(RISCV-LD) -o $@ -T $(LD_SRC) $^ $(LD_FLAGS)
-	@ echo "...DONE" 
+	@ echo "...DONE"
 
 %.dump: %.elf
-	@ echo "DUMP "$^"" 
-	$(RISCV-OBJDUMP) $^ > $@
+	@ echo "DUMP "$^""
+	$(RISCV-OBJDUMP) -dS $^ > $@
 	@ echo "...DONE"
 
 size: ./$(TARGET_NAME).elf
-	@ echo "~~SIZE~~ """ 
+	@ echo "~~SIZE~~ """
 	$(CROSS_PREFIX)size $^
+
+$(TARGET_NAME).bin: $(TARGET_NAME).elf
+	$(RISCV-OBJCOPY) -O binary $< $@
 
 clean:
 	@ echo "CLEANING "$^""
@@ -104,8 +107,8 @@ clean:
 	find $(PRJ_ROOT_DIR)/. -name "*.dump" -exec rm {} \;
 	@ echo "...DONE"
 
-all: header clean $(TARGET_NAME).elf $(TARGET_NAME).dump size
+all: header clean $(TARGET_NAME).elf $(TARGET_NAME).bin $(TARGET_NAME).dump size
 
 load: all
-	@ echo "LOAD "$(TARGET_NAME).elf"" 
+	@ echo "LOAD "$(TARGET_NAME).elf""
 	$(CROSS_PREFIX)gdb ./$(TARGET_NAME).elf -ex="tar rem :3333" -ex="monitor reset halt" -ex="load"

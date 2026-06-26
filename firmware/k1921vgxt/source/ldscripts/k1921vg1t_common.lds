@@ -38,7 +38,7 @@ SECTIONS {
     *(.text .text.*)
     PROVIDE(__TEXT_END__ = .);
   } >REGION_TEXT
-  
+
 
   /* thread-local data segment */
   .tdata : ALIGN(4) {
@@ -66,12 +66,12 @@ SECTIONS {
   .srodata : {
     *(.srodata.cst16) *(.srodata.cst8) *(.srodata.cst4) *(.srodata.cst2) *(.srodata*)
   } >REGION_RODATA
-  
-  __etext = .;  
-  __tcmcode_pos = . +0x1000;  
-  __tcmconst_pos = . +0x2000;  
-  __tcmvar_pos = . +0x3000;  
-  
+
+  __etext = .;
+  __tcmcode_pos = . +0x1000;
+  __tcmconst_pos = . +0x2000;
+  __tcmvar_pos = . +0x3000;
+
   /* small data segment */
   .sdata : ALIGN(4) {
     __SDATA_BEGIN__ = .;
@@ -87,7 +87,7 @@ SECTIONS {
   PROVIDE( __data_source_start = LOADADDR(.data) );
   PROVIDE( __data_target_start = ADDR(.data) );
   PROVIDE( __data_target_end = ADDR(.data) + SIZEOF(.data) );
-  
+
   PROVIDE( __sdata_source_start = LOADADDR(.sdata) );
   PROVIDE( __sdata_target_start = ADDR(.sdata) );
   PROVIDE( __sdata_target_end = ADDR(.sdata) + SIZEOF(.sdata) );
@@ -95,9 +95,10 @@ SECTIONS {
   .ramfunc : ALIGN(4) {
     __RAMFUNC_BEGIN__ = .;
     *(.ramfunc)
+    *(.ramfunc.*)
     __RAMFUNC_END__ = .;
   } >REGION_DATA AT>REGION_TEXT
-  
+
   PROVIDE( __ramfunc_source_start = LOADADDR(.ramfunc) );
   PROVIDE( __ramfunc_target_start = ADDR(.ramfunc) );
   PROVIDE( __ramfunc_target_end = ADDR(.ramfunc) + SIZEOF(.ramfunc) );
@@ -118,11 +119,11 @@ SECTIONS {
     PROVIDE(_end = .);
     PROVIDE(__end = .);
     /* for libc nano */
-        end = .; 
+        end = .;
     /*    _end = .; */
-        _ebss = .;       
+        _ebss = .;
   } >REGION_BSS
-  
+
   /* End of uninitalized data segement */
 
   __global_pointer$ = MIN(__DATA_BEGIN__ + 0x780,
@@ -144,7 +145,7 @@ SECTIONS {
   .ramvars ORIGIN(REGION_TCM): ALIGN(4) {
     *(.ramvars)
   } >REGION_TCM
-  
+
   /* discard relocation code */
   /* plf_init_relocate = plf_init_noreloc;*/
 

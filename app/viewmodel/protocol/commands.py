@@ -213,13 +213,15 @@ class ErasePortRunnable(BaseCommandRunnable):
         cmd = CommandInterface(mcu=self.mcu, serport=self.serport)
         region = self.kwargs["current_region"]
         flash = self.kwargs["current_flash"]
+        erall = self.kwargs["erall"]
         cmd_count = 0
         state = 0.0
         self.signals.pbar_signal.emit(state)
-        if self.kwargs["erall"]:
+        if erall:
             self.signals.pbar_signal.emit(50)
             cmd.cmd_erase_full(flash, region)
-            cmd.cmd_msg()
+            self.signals.data.emit(True)
+            # cmd.cmd_msg()
         else:
             for p in range(self.kwargs["firstpage"], self.kwargs["lastpage"] + 1):
                 cmd.cmd_erase_page(p, flash, region)
@@ -231,6 +233,7 @@ class ErasePortRunnable(BaseCommandRunnable):
                 cmd.cmd_msg()
                 state += 50 / cmd_count
                 self.signals.pbar_signal.emit(state)
+                self.signals.data.emit(False)
 
         self.signals.pbar_signal.emit(100)
         self.signals.finished.emit()
