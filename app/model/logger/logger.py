@@ -1,7 +1,9 @@
 import logging
 import os
 import sys
+
 from utils.singleton import Singleton
+
 
 class Logger(metaclass=Singleton):
     formatter = logging.Formatter("%(levelname)s: %(message)s")
@@ -40,13 +42,15 @@ class Logger(metaclass=Singleton):
                 self.logger.setLevel(logging.INFO)
 
         if log_file:
-            file_handler = logging.FileHandler(log_file, 'w')
+            file_handler = logging.FileHandler(log_file, "w")
             file_handler.setFormatter(self.formatter)
             self.logger.addHandler(file_handler)
 
         def formatter_message(message, use_color=True):
             if use_color:
-                message = message.replace("$RESET", ColoredFormatter.RESET_SEQ).replace("$BOLD", ColoredFormatter.BOLD_SEQ)
+                message = message.replace("$RESET", ColoredFormatter.RESET_SEQ).replace(
+                    "$BOLD", ColoredFormatter.BOLD_SEQ
+                )
             else:
                 message = message.replace("$RESET", "").replace("$BOLD", "")
             return message
@@ -55,7 +59,7 @@ class Logger(metaclass=Singleton):
             fmt = "$BOLD%(levelname)s$RESET: %(message)s"
             color_format = formatter_message(fmt, True)
             console_handler = logging.StreamHandler(sys.stdout)
-            if sys.platform.startswith('win'):
+            if sys.platform.startswith("win"):
                 console_handler.setFormatter(self.formatter)
             else:
                 console_handler.setFormatter(ColoredFormatter(color_format))
@@ -92,11 +96,11 @@ class ColoredFormatter(logging.Formatter):
     BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
     COLORS = {
-        '[WARN]': YELLOW,
-        '[INFO]': BLUE,
-        '[DBG]': GREEN,
-        '[CRIT]': MAGENTA,
-        '[ERR]': RED
+        "[WARN]": YELLOW,
+        "[INFO]": BLUE,
+        "[DBG]": GREEN,
+        "[CRIT]": MAGENTA,
+        "[ERR]": RED,
     }
 
     def __init__(self, msg, use_color=True):
@@ -106,6 +110,10 @@ class ColoredFormatter(logging.Formatter):
     def format(self, record):
         levelname = record.levelname
         if self.use_color and levelname in self.COLORS:
-            levelname_color = self.COLOR_SEQ % (30 + self.COLORS[levelname]) + levelname + self.RESET_SEQ
+            levelname_color = (
+                self.COLOR_SEQ % (30 + self.COLORS[levelname])
+                + levelname
+                + self.RESET_SEQ
+            )
             record.levelname = levelname_color
         return logging.Formatter.format(self, record)

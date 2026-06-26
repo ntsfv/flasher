@@ -1,10 +1,19 @@
-from PyQt5.QtCore import pyqtSignal, QThreadPool, QObject
+import time
 
 from model.logger.loggable import Loggable
-import time
 from model.protocol.serport.serport import SerPort
-from viewmodel.protocol.commands import InitPortRunnable, DeInitPortRunnable, WritePortRunnable, ErasePortRunnable, \
-    ReadPortRunnable, GetCfgWordPortRunnable, SetCfgWordPortRunnable, JumpPortRunnable
+from PyQt5.QtCore import QObject, QThreadPool, pyqtSignal
+
+from viewmodel.protocol.commands import (
+    DeInitPortRunnable,
+    ErasePortRunnable,
+    GetCfgWordPortRunnable,
+    InitPortRunnable,
+    JumpPortRunnable,
+    ReadPortRunnable,
+    SetCfgWordPortRunnable,
+    WritePortRunnable,
+)
 
 
 class Protocol(Loggable, QObject):
@@ -25,7 +34,7 @@ class Protocol(Loggable, QObject):
             Loggable.__init__(self)
             QObject.__init__(self)
             self.data = 0
-            self.error = ''
+            self.error = ""
             self.threadpool = QThreadPool.globalInstance()
             self.start_time = 0
             self.runnable = None
@@ -48,8 +57,8 @@ class Protocol(Loggable, QObject):
 
             self.finished.emit(
                 {
-                    'error': self.error,
-                    'data': self.data,
+                    "error": self.error,
+                    "data": self.data,
                 }
             )
 
@@ -70,54 +79,71 @@ class Protocol(Loggable, QObject):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(InitPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
+            super()._start(
+                InitPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback
+            )
 
     class DeInit(BaseProtocolCommand):
         def __init__(self):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(DeInitPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
+            super()._start(
+                DeInitPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback
+            )
 
     class Write(BaseProtocolCommand):
         def __init__(self):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(WritePortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
+            super()._start(
+                WritePortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback
+            )
 
     class Erase(BaseProtocolCommand):
         def __init__(self):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(ErasePortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
+            super()._start(
+                ErasePortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback
+            )
 
     class Read(BaseProtocolCommand):
         def __init__(self):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(ReadPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
+            super()._start(
+                ReadPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback
+            )
 
     class GetCfgWord(BaseProtocolCommand):
         def __init__(self):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(GetCfgWordPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
+            super()._start(
+                GetCfgWordPortRunnable(mcu, serport, **kwargs),
+                pbar_callback=pbar_callback,
+            )
 
     class SetCfgWord(BaseProtocolCommand):
         def __init__(self):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(SetCfgWordPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
+            super()._start(
+                SetCfgWordPortRunnable(mcu, serport, **kwargs),
+                pbar_callback=pbar_callback,
+            )
 
     class Jump(BaseProtocolCommand):
         def __init__(self):
             super().__init__()
 
         def start(self, mcu, serport, pbar_callback=None, **kwargs):
-            super()._start(JumpPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback)
-
+            super()._start(
+                JumpPortRunnable(mcu, serport, **kwargs), pbar_callback=pbar_callback
+            )

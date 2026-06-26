@@ -3,13 +3,14 @@ import sys
 import traceback
 
 from PyQt5.QtWidgets import QApplication
-
 from utils.constants import VERSION
 from viewmodel.main_window_viewmodel import MainWindowViewModel
 
+
 class ArgParser:
     def help(self):
-        print("""Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921ВКх.
+        print(
+            """Утилита взаимодействия с UART загрузчиками микроконтроллеров серии К1921ВКх.
 Версия v.%s
 
 Доступные ключи: [-hDсeEwvr] [-f flash] [-n region] [-j addr] [-F first] [-L last] [-a addr] [-s size] [-p port] [-b baud] [file.bin]
@@ -48,7 +49,9 @@ class ArgParser:
         Полное стирание
         python3 k1921vkx_flasher.py -cE -p /dev/ttyUSB0 -b 115200 -f mflash -n main
 
-НИИЭТ, 2026""" % VERSION)
+НИИЭТ, 2026"""
+            % VERSION
+        )
 
     def do(self, app, win):
         conf = {
@@ -77,46 +80,46 @@ class ArgParser:
             sys.exit(2)
 
         if args:
-            conf['filepath'] = args[0]
+            conf["filepath"] = args[0]
 
         for o, a in opts:
-            #print(o)
-            #print(a)
-            if o == '-h':
+            # print(o)
+            # print(a)
+            if o == "-h":
                 self.help()
                 sys.exit(0)
-            elif o == '-c':
-                conf['cmd_mode'] = True
-            elif o == '-D':
-                conf['debug'] = True
-            elif o == '-e':
-                conf['erase'] = True
-            elif o == '-E':
-                conf['mass_erase'] = True
-            elif o == '-w':
-                conf['write'] = True
-            elif o == '-v':
-                conf['verify'] = True
-            elif o == '-r':
-                conf['read'] = True
-            elif o == '-j':
-                conf['jump_prog'] = eval(a)
-            elif o == '-p':
-                conf['port'] = a
-            elif o == '-b':
-                conf['baud'] = a
-            elif o == '-f':
-                conf['flash'] = a
-            elif o == '-n':
-                conf['region'] = a
-            elif o == '-F':
-                conf['first_page'] = eval(a)
-            elif o == '-L':
-                conf['pages_used'] = eval(a)
-            elif o == '-a':
-                conf['addr'] = eval(a)
-            elif o == '-s':
-                conf['size'] = eval(a)
+            elif o == "-c":
+                conf["cmd_mode"] = True
+            elif o == "-D":
+                conf["debug"] = True
+            elif o == "-e":
+                conf["erase"] = True
+            elif o == "-E":
+                conf["mass_erase"] = True
+            elif o == "-w":
+                conf["write"] = True
+            elif o == "-v":
+                conf["verify"] = True
+            elif o == "-r":
+                conf["read"] = True
+            elif o == "-j":
+                conf["jump_prog"] = eval(a)
+            elif o == "-p":
+                conf["port"] = a
+            elif o == "-b":
+                conf["baud"] = a
+            elif o == "-f":
+                conf["flash"] = a
+            elif o == "-n":
+                conf["region"] = a
+            elif o == "-F":
+                conf["first_page"] = eval(a)
+            elif o == "-L":
+                conf["pages_used"] = eval(a)
+            elif o == "-a":
+                conf["addr"] = eval(a)
+            elif o == "-s":
+                conf["size"] = eval(a)
             else:
                 self.help()
                 sys.exit(1)
@@ -124,17 +127,18 @@ class ArgParser:
 
 
 # -- Standalone run -----------------------------------------------------------
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     main_window = MainWindowViewModel()
     arg_parser = ArgParser()
     conf = arg_parser.do(app, main_window)
-    main_window.debug = conf['debug']
-    if conf['cmd_mode'] is None:
+    main_window.debug = conf["debug"]
+    if conf["cmd_mode"] is None:
         main_window.show()
         sys.exit(app.exec_())
     else:
+
         def cmd_exit():
             global main_window
             if main_window.serport.is_open:
@@ -144,66 +148,70 @@ if __name__ == '__main__':
         main_window.logger.info("Режим без графического интерфейса")
         main_window.ui.btn_updport.clicked.emit()
         try:
-            port_i = main_window.ui.combo_port.findText(conf['port'])
+            port_i = main_window.ui.combo_port.findText(conf["port"])
             main_window.ui.combo_port.setCurrentIndex(port_i)
-            baud_i = main_window.ui.combo_baud.findText(conf['baud'])
+            baud_i = main_window.ui.combo_baud.findText(conf["baud"])
             main_window.ui.combo_baud.setCurrentIndex(baud_i)
         except:
             main_window.logger.error("Заданы некорректные параметры порта!")
             traceback.print_exc()
             cmd_exit()
         main_window.ui.btn_connect.clicked.emit()
-        if main_window.mcu.name == 'k1921':
+        if main_window.mcu.name == "k1921":
             cmd_exit()
-        flash = {'bootflash': 0, 'userflash': 1, 'mflash': 0, 'bflash': 1}
-        region = {'main': 0, 'nvr': 1, 'info': 1}
+        flash = {"bootflash": 0, "userflash": 1, "mflash": 0, "bflash": 1}
+        region = {"main": 0, "nvr": 1, "info": 1}
         flash_rbtn = [main_window.ui.rbtn_flash0, main_window.ui.rbtn_flash1]
         region_rbtn = [main_window.ui.rbtn_regionmain, main_window.ui.rbtn_regionnvr]
         try:
-            flash_rbtn[flash[conf['flash']]].setChecked(True)
-            region_rbtn[region[conf['region']]].setChecked(True)
+            flash_rbtn[flash[conf["flash"]]].setChecked(True)
+            region_rbtn[region[conf["region"]]].setChecked(True)
         except:
             main_window.logger.error("Заданы некорректные параметры флеш-памяти!")
             traceback.print_exc()
             cmd_exit()
-        if conf['read']:
+        if conf["read"]:
             main_window.logger.debug("CMD_READ")
             main_window.ui.tabs_cmd.setCurrentIndex(3)
-            if conf['filepath']:
-                main_window.ui.tread_ledit_filepath.setText(conf['filepath'])
-                main_window.ui.tread_ledit_filepath.textEdited['QString'].emit(conf['filepath'])
-            if conf['addr']:
-                main_window.ui.tread_ledit_addr.setText('0x%08X' % conf['addr'])
+            if conf["filepath"]:
+                main_window.ui.tread_ledit_filepath.setText(conf["filepath"])
+                main_window.ui.tread_ledit_filepath.textEdited["QString"].emit(
+                    conf["filepath"]
+                )
+            if conf["addr"]:
+                main_window.ui.tread_ledit_addr.setText("0x%08X" % conf["addr"])
                 main_window.ui.tread_ledit_addr.editingFinished.emit()
-            if conf['size']:
-                main_window.ui.tread_ledit_size.setText('0x%08X' % conf['size'])
+            if conf["size"]:
+                main_window.ui.tread_ledit_size.setText("0x%08X" % conf["size"])
                 main_window.ui.tread_ledit_size.editingFinished.emit()
-            if conf['first_page']:
-                main_window.ui.tread_ledit_page.setText('%d' % conf['first_page'])
+            if conf["first_page"]:
+                main_window.ui.tread_ledit_page.setText("%d" % conf["first_page"])
                 main_window.ui.tread_ledit_page.editingFinished.emit()
-            if conf['pages_used']:
-                main_window.ui.tread_ledit_pages.setText('%d' % conf['pages_used'])
+            if conf["pages_used"]:
+                main_window.ui.tread_ledit_pages.setText("%d" % conf["pages_used"])
                 main_window.ui.tread_ledit_pages.editingFinished.emit()
             main_window.ui.btn_exec.clicked.emit()
-        elif conf['write']:
+        elif conf["write"]:
             main_window.logger.debug("CMD_WRITE")
             main_window.ui.tabs_cmd.setCurrentIndex(1)
-            if conf['filepath']:
-                main_window.ui.twrite_ledit_filepath.setText(conf['filepath'])
-                main_window.ui.twrite_ledit_filepath.textEdited['QString'].emit(conf['filepath'])
-            if conf['addr']:
-                main_window.ui.twrite_ledit_addr.setText('0x%08X' % conf['addr'])
+            if conf["filepath"]:
+                main_window.ui.twrite_ledit_filepath.setText(conf["filepath"])
+                main_window.ui.twrite_ledit_filepath.textEdited["QString"].emit(
+                    conf["filepath"]
+                )
+            if conf["addr"]:
+                main_window.ui.twrite_ledit_addr.setText("0x%08X" % conf["addr"])
                 main_window.ui.twrite_ledit_addr.editingFinished.emit()
-            if conf['first_page']:
-                main_window.ui.twrite_ledit_page.setText('%d' % conf['first_page'])
+            if conf["first_page"]:
+                main_window.ui.twrite_ledit_page.setText("%d" % conf["first_page"])
                 main_window.ui.twrite_ledit_page.editingFinished.emit()
-            if conf['erase']:
+            if conf["erase"]:
                 main_window.ui.twrite_rbtn_erpages.setChecked(True)
-            elif conf['mass_erase']:
+            elif conf["mass_erase"]:
                 main_window.ui.twrite_rbtn_erall.setChecked(True)
             else:
                 main_window.ui.twrite_rbtn_ernone.setChecked(True)
-            if conf['verify']:
+            if conf["verify"]:
                 main_window.ui.twrite_chbox_verif.setChecked(True)
             # TODO: добавить софтварный выход из загрузчика
             # if conf['jump_prog']:
@@ -211,28 +219,30 @@ if __name__ == '__main__':
             #     main_window.ui.twrite_ledit_jumpaddr.setText('0x%08X' % conf['jump_prog'])
             #     main_window.ui.twrite_ledit_jumpaddr.editingFinished.emit()
             main_window.ui.btn_exec.clicked.emit()
-        elif conf['mass_erase']:
+        elif conf["mass_erase"]:
             main_window.logger.debug("CMD_MASS_ERASE")
             main_window.ui.tabs_cmd.setCurrentIndex(2)
             main_window.ui.terase_rbtn_erall.setChecked(True)
             main_window.ui.btn_exec.clicked.emit()
-        elif conf['erase']:
+        elif conf["erase"]:
             main_window.logger.debug("CMD_ERASE")
             main_window.ui.tabs_cmd.setCurrentIndex(2)
             main_window.ui.terase_rbtn_erpages.setChecked(True)
-            if conf['addr']:
-                main_window.ui.terase_ledit_addr.setText('0x%08X' % conf['addr'])
+            if conf["addr"]:
+                main_window.ui.terase_ledit_addr.setText("0x%08X" % conf["addr"])
                 main_window.ui.terase_ledit_addr.editingFinished.emit()
-            if conf['size']:
-                main_window.ui.terase_ledit_size.setText('0x%08X' % conf['size'])
+            if conf["size"]:
+                main_window.ui.terase_ledit_size.setText("0x%08X" % conf["size"])
                 main_window.ui.terase_ledit_size.editingFinished.emit()
-            if conf['first_page']:
-                main_window.ui.terase_ledit_page.setText('%d' % conf['first_page'])
+            if conf["first_page"]:
+                main_window.ui.terase_ledit_page.setText("%d" % conf["first_page"])
                 main_window.ui.terase_ledit_page.editingFinished.emit()
-            if conf['pages_used']:
-                main_window.ui.terase_ledit_pages.setText('%d' % conf['pages_used'])
+            if conf["pages_used"]:
+                main_window.ui.terase_ledit_pages.setText("%d" % conf["pages_used"])
                 main_window.ui.terase_ledit_pages.editingFinished.emit()
             main_window.ui.btn_exec.clicked.emit()
         else:
-            main_window.logger.error("Команда не задана. Запустите программу с ключом -h чтобы увидеть подсказки")
+            main_window.logger.error(
+                "Команда не задана. Запустите программу с ключом -h чтобы увидеть подсказки"
+            )
         cmd_exit()

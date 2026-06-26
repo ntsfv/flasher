@@ -1,8 +1,8 @@
+import time
+
 from model.logger.loggable import Loggable
 from model.protocol.commands.constants import CmdCode
 from model.protocol.constants import *
-import time
-
 from model.protocol.packet.packet import Packet
 from model.protocol.packet.rx_packet import RxPacket
 from model.protocol.packet.tx_packet import TxPacket
@@ -16,18 +16,18 @@ class CommandInterface(Loggable):
         self.mcu = mcu
         self.serport = serport
 
-    def open_port(self, port='/dev/ttyUSB0', baudrate=115200):
+    def open_port(self, port="/dev/ttyUSB0", baudrate=115200):
         self.serport.open(port, baudrate)
 
     def reset_chip(self, is_riscv: bool):
         self.logger.info(LogId["PROG"] + "Сброс микроконтроллера ...")
         time.sleep(0.1)
         if is_riscv:
-            self.serport.rts = True
+            self.serport.rts = not self.serport.rts
         self.serport.dtr = True
         time.sleep(0.3)
         if is_riscv:
-            self.serport.rts = False
+            self.serport.rts = not self.serport.rts
         self.serport.dtr = False
         time.sleep(0.5)
 
@@ -40,7 +40,10 @@ class CommandInterface(Loggable):
         self.serport.write([0x7F])
         ack = self.serport.read(2)
         self.logger.debug(LogId["DEVICE"] + "ack = 0x%04X" % ack)
-        if ack == ((((SignCode["DEVICE"]) >> 8) & 0x00FF) | (((SignCode["DEVICE"]) << 8) & 0xFF00)):
+        if ack == (
+            (((SignCode["DEVICE"]) >> 8) & 0x00FF)
+            | (((SignCode["DEVICE"]) << 8) & 0xFF00)
+        ):
             self.logger.info(LogId["PROG"] + "Устройство подключено")
         else:
             # try RTS active 0
@@ -51,14 +54,21 @@ class CommandInterface(Loggable):
             self.serport.write([0x7F])
             ack = self.serport.read(2)
             self.logger.debug(LogId["DEVICE"] + "ack = 0x%04X" % ack)
-            if ack == ((((SignCode["DEVICE"]) >> 8) & 0x00FF) | (((SignCode["DEVICE"]) << 8) & 0xFF00)):
+            if ack == (
+                (((SignCode["DEVICE"]) >> 8) & 0x00FF)
+                | (((SignCode["DEVICE"]) << 8) & 0xFF00)
+            ):
                 self.logger.info(LogId["PROG"] + "Устройство подключено")
             else:
                 raise ProtException("Неизвестный ответ от устройства")
         self.serport.rts = not self.serport.rts
         rx_info = self.cmd_msg()
-        if (rx_info['cmd_code'] != CmdCode["NONE"]) or (rx_info['msg_code'] != MsgCode["READY"]):
-            raise ProtException("Получено неизвестное сообщение, когда ожидался ответ о готовности")
+        if (rx_info["cmd_code"] != CmdCode["NONE"]) or (
+            rx_info["msg_code"] != MsgCode["READY"]
+        ):
+            raise ProtException(
+                "Получено неизвестное сообщение, когда ожидался ответ о готовности"
+            )
 
     def release_device(self, is_riscv: bool):
         self.logger.info(LogId["PROG"] + "Отключение от устройства ...")
@@ -106,8 +116,11 @@ class CommandInterface(Loggable):
         packet = TxPacket(self.mcu, self.serport)
         packet.cmd_code = CmdCode["ERASE_PAGE"]
         nvr = self._set_address(packet, addr, flash, region)
-        self.logger.debug(LogId["HOST"] + "ERASE_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                     (nvr, flash, addr, page))
+        self.logger.debug(
+            LogId["HOST"]
+            + "ERASE_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]"
+            % (nvr, flash, addr, page)
+        )
         packet.transmit()
 
     def cmd_erase_full(self, flash, region):
@@ -115,12 +128,14 @@ class CommandInterface(Loggable):
         packet = TxPacket(self.mcu, self.serport)
         packet.cmd_code = CmdCode["ERASE_FULL"]
         packet.data8_n = 4
-        packet.data += [(self.mcu.flash[0]['bootflash_end_address'] >> 0) & 0xFF]
-        packet.data += [(self.mcu.flash[0]['bootflash_end_address'] >> 8) & 0xFF]
-        packet.data += [(self.mcu.flash[0]['bootflash_end_address'] >> 16) & 0xFF]
-        nvr = 1 if 'nvr' in region else 0
+        packet.data += [(self.mcu.flash[0]["bootflash_end_address"] >> 0) & 0xFF]
+        packet.data += [(self.mcu.flash[0]["bootflash_end_address"] >> 8) & 0xFF]
+        packet.data += [(self.mcu.flash[0]["bootflash_end_address"] >> 16) & 0xFF]
+        nvr = 1 if "nvr" in region else 0
         packet.data += [((nvr << 7) | (flash << 5)) & 0xFF]
-        self.logger.debug(LogId["HOST"] + "ERASE_FULL - NVR=[%01d] FLASH=[%01d]" % (nvr, flash))
+        self.logger.debug(
+            LogId["HOST"] + "ERASE_FULL - NVR=[%01d] FLASH=[%01d]" % (nvr, flash)
+        )
         packet.transmit()
 
     def cmd_write_page(self, page, page_data, flash, region, erpages):
@@ -133,16 +148,21 @@ class CommandInterface(Loggable):
         packet.data += [(addr >> 0) & 0xFF]
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
-        nvr = 1 if 'nvr' in region else 0
+        nvr = 1 if "nvr" in region else 0
         erase = 1 if erpages else 0
         packet.data += [((nvr << 7) | (erase << 6) | (flash << 5)) & 0xFF]
         packet.data += page_data
-        self.logger.debug(LogId["HOST"] + "WRITE_PAGE - NVR=[%01d] FLASH=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                     (nvr, flash, erase, addr, page))
+        self.logger.debug(
+            LogId["HOST"]
+            + "WRITE_PAGE - NVR=[%01d] FLASH=[%01d] ERASE=[%01d] ADDR=[0x%08x] PAGE=[%0d]"
+            % (nvr, flash, erase, addr, page)
+        )
         packet.transmit()
 
     def cmd_jump(self, address):
-        self.logger.info(LogId["PROG"] + "Переход по адресу исполнения 0x%08x" % address)
+        self.logger.info(
+            LogId["PROG"] + "Переход по адресу исполнения 0x%08x" % address
+        )
         packet = TxPacket(self.mcu, self.serport)
         packet.cmd_code = CmdCode["JUMP"]
         packet.data8_n = 4
@@ -162,8 +182,11 @@ class CommandInterface(Loggable):
         packet.flash_page_size = self.mcu.flash[flash][region].page_size
         packet.cmd_code = CmdCode["READ_PAGE"]
         nvr = self._set_address(packet, addr, flash, region)
-        self.logger.debug(LogId["HOST"] + "READ_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]" %
-                     (nvr, flash, addr, page))
+        self.logger.debug(
+            LogId["HOST"]
+            + "READ_PAGE - NVR=[%01d] FLASH=[%01d] ADDR=[0x%08x] PAGE=[%0d]"
+            % (nvr, flash, addr, page)
+        )
         packet.transmit()
 
     def cmd_exit_bootloader(self):
@@ -190,6 +213,6 @@ class CommandInterface(Loggable):
         packet.data += [(addr >> 0) & 0xFF]
         packet.data += [(addr >> 8) & 0xFF]
         packet.data += [(addr >> 16) & 0xFF]
-        nvr = 1 if 'nvr' in region else 0
+        nvr = 1 if "nvr" in region else 0
         packet.data += [((nvr << 7) | (flash << 5)) & 0xFF]
         return nvr
