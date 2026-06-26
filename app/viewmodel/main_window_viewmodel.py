@@ -962,8 +962,8 @@ class MainWindowViewModel(QMainWindow, Loggable):
             self.ui.tconfig_widget_cfg.ui.ledit_tac.setValidator(
                 QRegExpValidator(QtCore.QRegExp(allowed_nums))
             )
-        if self.mcu.name == "k1921vg015":
-            self.exec_tab_config_015(self.mcu.cfgword)
+        # if self.mcu.name == "k1921vg015":
+        #     self.exec_tab_config_015(self.mcu.cfgword)
         elif self.mcu.name == "k1921vk01t":
             self.exec_tab_config_01t(self.mcu.cfgword)
         elif self.mcu.name == "k1921":

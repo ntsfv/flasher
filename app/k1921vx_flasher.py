@@ -1,16 +1,12 @@
 import sys
 
 # Windows console attach with console=False in build .spec
-if sys.platform == "win32" and len(sys.argv) > 1:
+if sys.platform == "win32" and len(sys.argv) <= 1:
     import ctypes
 
-    if ctypes.windll.kernel32.AttachConsole(-1):
-        try:
-            sys.stdout = open("CONOUT$", "w", encoding="utf-8", buffering=1)
-            sys.stderr = open("CONOUT$", "w", encoding="utf-8", buffering=1)
-            sys.stdin = open("CONIN$", "r", encoding="utf-8")
-        except OSError:
-            pass
+    hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+    if hwnd:
+        ctypes.windll.user32.ShowWindow(hwnd, 0)
 
 import getopt
 import traceback
