@@ -6,6 +6,18 @@ from PyQt5.QtWidgets import QApplication
 from utils.constants import VERSION
 from viewmodel.main_window_viewmodel import MainWindowViewModel
 
+# Windows console attach with console=False in build .spec
+if sys.platform == "win32" and len(sys.argv) > 1:
+    import ctypes
+
+    if ctypes.windll.kernel32.AttachConsole(-1):
+        try:
+            sys.stdout = open("CONOUT$", "w", encoding="utf-8", buffering=1)
+            sys.stderr = open("CONOUT$", "w", encoding="utf-8", buffering=1)
+            sys.stdin = open("CONIN$", "r", encoding="utf-8")
+        except OSError:
+            pass
+
 
 class ArgParser:
     def help(self):

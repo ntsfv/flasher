@@ -16,7 +16,9 @@ class Ui_AboutDialog(object):
         AboutDialog.setObjectName("AboutDialog")
         AboutDialog.setWindowModality(QtCore.Qt.NonModal)
         AboutDialog.resize(387, 298)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(AboutDialog.sizePolicy().hasHeightForWidth())
@@ -27,26 +29,36 @@ class Ui_AboutDialog(object):
         font.setPointSize(10)
         AboutDialog.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icons/flasher.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/icons/flasher.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         AboutDialog.setWindowIcon(icon)
         AboutDialog.setSizeGripEnabled(False)
         AboutDialog.setModal(False)
         self.verticalLayout = QtWidgets.QVBoxLayout(AboutDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.lab_version = QtWidgets.QLabel(AboutDialog)
-        self.lab_version.setText("<html><head/><body><p><span style=\" font-size:16pt; font-weight:600;\">K1921VKx Flasher vx.x</span></p><p><img src=\":/icons/flasher.png\"/></p></body></html>")
+        self.lab_version.setText(
+            '<html><head/><body><p><span style=" font-size:16pt; font-weight:600;">K1921VKx Flasher vx.x</span></p><p><img src=":/icons/flasher.png"/></p></body></html>'
+        )
         self.lab_version.setAlignment(QtCore.Qt.AlignCenter)
-        self.lab_version.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByMouse)
+        self.lab_version.setTextInteractionFlags(
+            QtCore.Qt.LinksAccessibleByMouse | QtCore.Qt.TextSelectableByMouse
+        )
         self.lab_version.setObjectName("lab_version")
         self.verticalLayout.addWidget(self.lab_version)
         self.lab_version_2 = QtWidgets.QLabel(AboutDialog)
         self.lab_version_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.lab_version_2.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByMouse)
+        self.lab_version_2.setTextInteractionFlags(
+            QtCore.Qt.LinksAccessibleByMouse | QtCore.Qt.TextSelectableByMouse
+        )
         self.lab_version_2.setObjectName("lab_version_2")
         self.verticalLayout.addWidget(self.lab_version_2)
         self.label_3 = QtWidgets.QLabel(AboutDialog)
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_3.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByMouse)
+        self.label_3.setTextInteractionFlags(
+            QtCore.Qt.LinksAccessibleByMouse | QtCore.Qt.TextSelectableByMouse
+        )
         self.label_3.setObjectName("label_3")
         self.verticalLayout.addWidget(self.label_3)
         self.buttonBox = QtWidgets.QDialogButtonBox(AboutDialog)
@@ -57,19 +69,26 @@ class Ui_AboutDialog(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(AboutDialog)
-        self.buttonBox.clicked['QAbstractButton*'].connect(AboutDialog.close) # type: ignore
+        self.buttonBox.clicked["QAbstractButton*"].connect(AboutDialog.close)  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(AboutDialog)
 
     def retranslateUi(self, AboutDialog):
         _translate = QtCore.QCoreApplication.translate
         AboutDialog.setWindowTitle(_translate("AboutDialog", "About"))
-        self.lab_version_2.setText(_translate("AboutDialog", "<html><head/><body><p align=\"center\">Утилита взаимодействия с UART загрузчиками </p><p align=\"center\">микроконтроллеров серии К1921ВКх, К1921ВГx</p></body></html>"))
-        self.label_3.setText(_translate("AboutDialog", "АО \"НИИЭТ\", 2025"))
-import view.ui_rc
+        self.lab_version_2.setText(
+            _translate(
+                "AboutDialog",
+                '<html><head/><body><p align="center">Утилита взаимодействия с UART загрузчиками </p><p align="center">микроконтроллеров серии К1921ВКх, К1921ВГx</p></body></html>',
+            )
+        )
+        self.label_3.setText(_translate("AboutDialog", 'АО "НИИЭТ", 2026'))
 
+
+import view.ui_rc
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     AboutDialog = QtWidgets.QDialog()
     ui = Ui_AboutDialog()
